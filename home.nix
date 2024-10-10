@@ -144,6 +144,7 @@ in {
         pre_sudo = true;
         cleanup = true;
         disable = [
+          "bun"
           "cargo"
           "containers"
           "dotnet"
