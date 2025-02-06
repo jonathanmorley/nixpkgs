@@ -3,6 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,16 +17,15 @@
       url = "github:jonathanmorley/oktaws";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-    };
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
   outputs = inputs @ {
     self,
     nixpkgs,
-    darwin,
+    nixpkgs-unstable,
     home-manager,
+    darwin,
     oktaws,
     flake-parts,
     ...
@@ -40,7 +41,11 @@
       {
         nixpkgs.overlays = [
           (final: prev: {
+            # Custom packages
             oktaws = oktaws.packages.${prev.system}.default;
+            # Newer packages (unstable)
+            gitify = nixpkgs-unstable.legacyPackages.${prev.system}.gitify;
+            mise = nixpkgs-unstable.legacyPackages.${prev.system}.mise;
           })
         ];
         nixpkgs.config.allowUnfree = true;

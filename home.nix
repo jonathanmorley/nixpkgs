@@ -200,6 +200,8 @@ in {
       du-dust
       duf
       gnugrep
+      gitify
+      git-filter-repo
       ipcalc
       mtr
       oktaws
