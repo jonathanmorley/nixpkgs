@@ -254,7 +254,7 @@ in {
     ];
     # Adapted from batman --export-env
     MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
-    MANROFFOPT= "-c";
+    MANROFFOPT = "-c";
   };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
