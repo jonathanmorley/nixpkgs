@@ -80,16 +80,23 @@ in {
     includes =
       lib.mkIf cvent
       (builtins.concatMap (org: [
-          # Internal GitHub
+          # Internal GitHub (SSH)
           {
             condition = "hasconfig:remote.*.url:git@github.com:${org}-internal/**";
+            contents = {
+              core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
+              user.signingKey = sshKeys.cvent;
+            };
+          }
+          # Internal GitHub (HTTPS)
+          {
+            condition = "hasconfig:remote.*.url:https://github.com/${org}-internal/**";
             contents = {
               credential = {
                 "https://github.com" = {
                   helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=JMorley_cvent\\npassword=$(gh auth token --user JMorley_cvent)\\n\""}"];
                 };
               };
-              core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
               user.signingKey = sshKeys.cvent;
             };
           }
@@ -199,9 +206,12 @@ in {
       du-dust
       duf
       gnugrep
+      gitify
+      git-filter-repo
       ipcalc
       mtr
       oktaws
+      openssl
       tree
       unixtools.watch
     ]
@@ -217,10 +227,7 @@ in {
       gettext # For compiling Python
       gnupg # For fetching Java
       groff # Needed by awscli
-      libyaml # For compiling ruby
-      openssl
-      openssl.dev
-      pkg-config
+      pkg-config-unwrapped
     ]
     ++ lib.optional (! pkgs.stdenv.isDarwin) gh
     ++ lib.optional pkgs.stdenv.isDarwin colima
@@ -238,7 +245,13 @@ in {
     nix-clean = "sudo nix-collect-garbage --delete-older-than 30d";
   };
 
-  # home.sessionVariables and home.sessionPath do not work on MacOS
+  home.sessionVariables = {
+    PKG_CONFIG_PATH = lib.strings.makeSearchPathOutput "dev" "lib/pkgconfig" [
+      # For compiling ruby
+      pkgs.libyaml
+      pkgs.openssl
+    ];
+  };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
     target = ".colima/_templates/default.yaml";
