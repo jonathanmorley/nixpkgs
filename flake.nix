@@ -49,6 +49,7 @@
           })
         ];
         nixpkgs.config.allowUnfree = true;
+        nixpkgs.config.allowUnsupportedSystem = true;
 
         home-manager.useGlobalPkgs = true;
         home-manager.useUserPackages = true;

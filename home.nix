@@ -36,7 +36,9 @@ in {
   home.stateVersion = "24.11";
 
   programs.awscli.enable = true;
-  programs.bat.enable = true;
+  programs.bat = {
+    enable = true;
+  };
   programs.chromium = {
     enable = true;
     package = pkgs.google-chrome;
@@ -200,11 +202,13 @@ in {
     [
       coreutils
       dasel
+      disk-inventory-x
       docker-client
       docker-buildx
       dogdns
       du-dust
       duf
+      gh
       gnugrep
       gitify
       git-filter-repo
@@ -212,24 +216,19 @@ in {
       mtr
       oktaws
       openssl
+      pkg-config-unwrapped
+      raycast
+      slack
       tree
       unixtools.watch
+      vscode
     ]
     # Languages / Package Managers
     ++ [
       nodejs
-      nodePackages.pnpm
       python3
       rustup
     ]
-    # Libraries
-    ++ [
-      gettext # For compiling Python
-      gnupg # For fetching Java
-      groff # Needed by awscli
-      pkg-config-unwrapped
-    ]
-    ++ lib.optional (! pkgs.stdenv.isDarwin) gh
     ++ lib.optional pkgs.stdenv.isDarwin colima
     ++ lib.optional personal tailscale
     ++ lib.optional cvent zoom-us;
@@ -240,7 +239,9 @@ in {
       interactive = true;
       tty = true;
       rm = true;
-    }} --volume $(pwd):$(pwd) --workdir $(pwd)";
+      volume = "$(pwd):$(pwd)";
+      workdir = "$(pwd)";
+    }}";
     gls = ''${pkgs.git}/bin/git log --pretty='format:' --name-only | ${pkgs.gnugrep}/bin/grep -oP "^''$(${pkgs.git}/bin/git rev-parse --show-prefix)\K.*" | cut -d/ -f1 | sort -u'';
     nix-clean = "sudo nix-collect-garbage --delete-older-than 30d";
   };
@@ -251,6 +252,9 @@ in {
       pkgs.libyaml
       pkgs.openssl
     ];
+    # Adapted from batman --export-env
+    MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
+    MANROFFOPT = "-c";
   };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {

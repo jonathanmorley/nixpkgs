@@ -50,21 +50,13 @@ in {
       [
         # https://github.com/NixOS/nixpkgs/issues/254944
         "1password"
-        # Not available in nixpkgs
-        "disk-inventory-x"
         # The 1Password extension does not unlock with biometrics if FF is installed via nix
         "firefox"
         # Not available in nixpkgs
         "lulu"
-        # Raycast won't configure itself to run at startup if installed by nix
-        "raycast"
-        # Nix is refusing to build slack
-        # mkdir: cannot create directory '/nix/store/8sxv71mr0sa9qdg02b4fflwaf0jglpra-slack-4.39.95/Applications/Slack.app': Operation not permitted
-        "slack"
-        # Nix is refusing to build vscode
-        # mkdir: cannot create directory '/nix/store/df3lynf0asnl973l6mhpk5749c5z642j-vscode-1.92.0/Applications/Visual Studio Code.app': Operation not permitted
-        "visual-studio-code"
-        # Warp from nix will complain about not being able to auto-update on startup
+        # Not available in nixpkgs
+        "oversight"
+        # https://github.com/warpdotdev/Warp/issues/1991
         "warp"
       ]
       # Not available in nixpkgs
@@ -101,7 +93,7 @@ in {
           "/Applications/Warp.app"
           "/Applications/Firefox.app"
         ]
-        ++ lib.optional cvent "/Applications/Slack.app"
+        ++ lib.optional cvent "${pkgs.slack}/Applications/Slack.app"
         ++ lib.optional cvent "/Applications/Microsoft Outlook.app";
       show-recents = false;
       wvous-bl-corner = 5; # Start Screen Saver
