@@ -203,15 +203,19 @@ in {
       coreutils
       dasel
       disk-inventory-x
-      docker-client
       docker-buildx
+      docker-client
+      (pkgs.writeShellScriptBin "docker-credential-gh" ''
+        #!/bin/sh
+        echo "{\"Username\":\"JMorley_cvent\",\"Secret\":\"$(gh auth token --user JMorley_cvent)\"}"
+      '')
       dogdns
       du-dust
       duf
       gh
-      gnugrep
       gitify
       git-filter-repo
+      gnugrep
       ipcalc
       mtr
       oktaws
@@ -255,6 +259,16 @@ in {
     # Adapted from batman --export-env
     MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
     MANROFFOPT = "-c";
+  };
+
+  home.file."docker config" = {
+    target = ".docker/config.json";
+    source = (pkgs.formats.json {}).generate "config.json" {
+      credHelpers = {
+        "ghcr.io" = "gh";
+      };
+      currentContext = "colima";
+    };
   };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
