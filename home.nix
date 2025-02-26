@@ -106,7 +106,6 @@ in {
         enabled = true;
         autoupdate = true;
       };
-      
       tag.sort = "version:refname";
     };
     includes =
