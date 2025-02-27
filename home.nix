@@ -284,6 +284,7 @@ in {
       };
     in
       lib.hm.dag.entryAfter ["writeBoundary"] ''
+        run mkdir -p ${config.home.homeDirectory}/.docker
         run cp -f ${dockerConfig} ${config.home.homeDirectory}/.docker/config.json
         run chmod a+w ${config.home.homeDirectory}/.docker/config.json
       '';
