@@ -62,22 +62,51 @@ in {
       else "Linux"
     }.gitignore");
     extraConfig = {
+      # Some from https://blog.gitbutler.com/how-git-core-devs-configure-git/
+      branch.sort = "-committerdate";
+      column.ui = "auto";
+      commit.verbose = true;
+      core.sshCommand = "ssh -i ${builtins.toFile "github.com.pub" sshKeys."github.com"}";
       credential = {
         "https://github.com" = {
           helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=jonathanmorley\\npassword=$(gh auth token --user jonathanmorley)\\n\""}"];
         };
       };
-      core.sshCommand = "ssh -i ${builtins.toFile "github.com.pub" sshKeys."github.com"}";
-      fetch.prune = true;
-      rebase.autosquash = true;
-      pull.rebase = true;
-      push.autoSetupRemote = true;
-      push.default = "current";
-      init.defaultBranch = "main";
-      gpg.format = "ssh";
-      gpg.ssh.program = lib.mkIf pkgs.stdenv.isDarwin "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      diff = {
+        algorithm = "histogram";
+        colorMoved = "plain";
+        mnemonicPrefix = true;
+        renames = true;
+      };
+      fetch = {
+        prune = true;
+        pruneTags = true;
+        all = true;
+      };
+      gpg = {
+        format = "ssh";
+        ssh.program = lib.mkIf pkgs.stdenv.isDarwin "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+      };
+      help.autocorrect = "prompt";
       http.postBuffer = 2097152000;
       https.postBuffer = 2097152000;
+      init.defaultBranch = "main";
+      merge.conflictstyle = "zdiff3";
+      pull.rebase = true;
+      push = {
+        default = "simple";
+        autoSetupRemote = true;
+        followTags = true;
+      };
+      rebase = {
+        autoSquash = true;
+        updateRefs = true;
+      };
+      rerere = {
+        enabled = true;
+        autoupdate = true;
+      };
+      tag.sort = "version:refname";
     };
     includes =
       lib.mkIf cvent
