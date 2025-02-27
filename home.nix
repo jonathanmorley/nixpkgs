@@ -229,8 +229,6 @@ in {
   home.packages = with pkgs;
   # Tools
     [
-      # CDK has a hardcoded `docker login` that doesn't play nice with the ECR docker credential helper
-      # See https://github.com/aws/aws-cdk/issues/32925.
       amazon-ecr-credential-helper
       coreutils
       dasel
@@ -278,7 +276,10 @@ in {
         credHelpers = {
           "ghcr.io" = "gh";
         };
-        credsStore = "ecr-login";
+        # CDK has a hardcoded `docker login` that _still_ doesn't play nice with the ECR docker credential helper,
+        # even when using AWS_ECR_IGNORE_CREDS_STORAGE, so we can't use it as a catch-all until that is addressed.
+        # See https://github.com/aws/aws-cdk/issues/32925.
+        # credsStore = "ecr-login";
         currentContext = "colima";
       };
     in
