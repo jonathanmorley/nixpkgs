@@ -64,7 +64,7 @@
         formatter = pkgs.alejandra;
       };
       flake = {
-        darwinConfigurations = rec {
+        darwinConfigurations = {
           # GitHub CI
           "ci-x86_64-darwin" = darwin.lib.darwinSystem rec {
             system = "x86_64-darwin";

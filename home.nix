@@ -230,7 +230,8 @@ in {
   # Tools
     [
       # CDK has a hardcoded `docker login` that doesn't play nice with the ECR docker credential helper
-      # amazon-ecr-credential-helper
+      # amazon-ecr-credential-helper.
+      # See https://github.com/aws/aws-cdk/issues/32925
       coreutils
       dasel
       disk-inventory-x
