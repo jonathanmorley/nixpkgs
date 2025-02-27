@@ -230,8 +230,8 @@ in {
   # Tools
     [
       # CDK has a hardcoded `docker login` that doesn't play nice with the ECR docker credential helper
-      # amazon-ecr-credential-helper.
-      # See https://github.com/aws/aws-cdk/issues/32925
+      # See https://github.com/aws/aws-cdk/issues/32925.
+      amazon-ecr-credential-helper
       coreutils
       dasel
       disk-inventory-x
@@ -278,6 +278,7 @@ in {
         credHelpers = {
           "ghcr.io" = "gh";
         };
+        credsStore = "ecr-login";
         currentContext = "colima";
       };
     in
@@ -309,6 +310,8 @@ in {
     # Adapted from batman --export-env
     MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
     MANROFFOPT = "-c";
+    # Allow `docker login` to succeed
+    AWS_ECR_IGNORE_CREDS_STORAGE = "true";
   };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
