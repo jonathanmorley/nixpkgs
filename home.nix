@@ -229,12 +229,14 @@ in {
   home.packages = with pkgs;
   # Tools
     [
+      # CDK has a hardcoded `docker login` that doesn't play nice with the ECR docker credential helper
+      # amazon-ecr-credential-helper
       coreutils
       dasel
       disk-inventory-x
       docker-buildx
       docker-client
-      (pkgs.writeShellScriptBin "docker-credential-gh" ''
+      (writeShellScriptBin "docker-credential-gh" ''
         #!/bin/sh
         echo "{\"Username\":\"JMorley_cvent\",\"Secret\":\"$(gh auth token --user JMorley_cvent)\"}"
       '')
@@ -247,6 +249,7 @@ in {
       gnugrep
       ipcalc
       mtr
+      nil
       oktaws
       openssl
       pkg-config-unwrapped
@@ -265,6 +268,23 @@ in {
     ++ lib.optional pkgs.stdenv.isDarwin colima
     ++ lib.optional personal tailscale
     ++ lib.optional cvent zoom-us;
+
+  home.activation = {
+    # Copy the docker config so that docker login can write to it.
+    # We can't use `mkOutOfStoreSymlink` because it may contain secrets we don't want to accidentally commit.
+    writeDockerConfig = let
+      dockerConfig = (pkgs.formats.json {}).generate "config.json" {
+        credHelpers = {
+          "ghcr.io" = "gh";
+        };
+        currentContext = "colima";
+      };
+    in
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        run cp -f ${dockerConfig} ${config.home.homeDirectory}/.docker/config.json
+        run chmod a+w ${config.home.homeDirectory}/.docker/config.json
+      '';
+  };
 
   home.shellAliases = {
     cat = "${pkgs.bat}/bin/bat";
@@ -288,16 +308,6 @@ in {
     # Adapted from batman --export-env
     MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
     MANROFFOPT = "-c";
-  };
-
-  home.file."docker config" = {
-    target = ".docker/config.json";
-    source = (pkgs.formats.json {}).generate "config.json" {
-      credHelpers = {
-        "ghcr.io" = "gh";
-      };
-      currentContext = "colima";
-    };
   };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
