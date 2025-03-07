@@ -1,6 +1,5 @@
 {
   description = "Jonathan's Configurations";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -65,7 +64,7 @@
         formatter = pkgs.alejandra;
       };
       flake = {
-        darwinConfigurations = rec {
+        darwinConfigurations = {
           # GitHub CI
           "ci-x86_64-darwin" = darwin.lib.darwinSystem rec {
             system = "x86_64-darwin";

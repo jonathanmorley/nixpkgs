@@ -229,12 +229,13 @@ in {
   home.packages = with pkgs;
   # Tools
     [
+      amazon-ecr-credential-helper
       coreutils
       dasel
       disk-inventory-x
       docker-buildx
       docker-client
-      (pkgs.writeShellScriptBin "docker-credential-gh" ''
+      (writeShellScriptBin "docker-credential-gh" ''
         #!/bin/sh
         echo "{\"Username\":\"JMorley_cvent\",\"Secret\":\"$(gh auth token --user JMorley_cvent)\"}"
       '')
@@ -247,6 +248,7 @@ in {
       gnugrep
       ipcalc
       mtr
+      nil
       oktaws
       openssl
       pkg-config-unwrapped
@@ -265,6 +267,28 @@ in {
     ++ lib.optional pkgs.stdenv.isDarwin colima
     ++ lib.optional personal tailscale
     ++ lib.optional cvent zoom-us;
+
+  home.activation = {
+    # Copy the docker config so that docker login can write to it.
+    # We can't use `mkOutOfStoreSymlink` because it may contain secrets we don't want to accidentally commit.
+    writeDockerConfig = let
+      dockerConfig = (pkgs.formats.json {}).generate "config.json" {
+        credHelpers = {
+          "ghcr.io" = "gh";
+        };
+        # CDK has a hardcoded `docker login` that _still_ doesn't play nice with the ECR docker credential helper,
+        # even when using AWS_ECR_IGNORE_CREDS_STORAGE, so we can't use it as a catch-all until that is addressed.
+        # See https://github.com/aws/aws-cdk/issues/32925.
+        # credsStore = "ecr-login";
+        currentContext = "colima";
+      };
+    in
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        run mkdir -p ${config.home.homeDirectory}/.docker
+        run cp -f ${dockerConfig} ${config.home.homeDirectory}/.docker/config.json
+        run chmod a+w ${config.home.homeDirectory}/.docker/config.json
+      '';
+  };
 
   home.shellAliases = {
     cat = "${pkgs.bat}/bin/bat";
@@ -288,16 +312,8 @@ in {
     # Adapted from batman --export-env
     MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
     MANROFFOPT = "-c";
-  };
-
-  home.file."docker config" = {
-    target = ".docker/config.json";
-    source = (pkgs.formats.json {}).generate "config.json" {
-      credHelpers = {
-        "ghcr.io" = "gh";
-      };
-      currentContext = "colima";
-    };
+    # Allow `docker login` to succeed
+    AWS_ECR_IGNORE_CREDS_STORAGE = "true";
   };
 
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
