@@ -66,7 +66,6 @@ in {
       branch.sort = "-committerdate";
       column.ui = "auto";
       commit.verbose = true;
-      core.sshCommand = "ssh -i ${builtins.toFile "github.com.pub" sshKeys."github.com"}";
       credential = {
         "https://github.com" = {
           helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=jonathanmorley\\npassword=$(gh auth token --user jonathanmorley)\\n\""}"];
@@ -115,7 +114,7 @@ in {
           {
             condition = "hasconfig:remote.*.url:git@github.com:${org}-internal/**";
             contents = {
-              core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
+              url."git@cvent.github.com".insteadOf = "git@github.com";
               user.signingKey = sshKeys.cvent;
             };
           }
@@ -169,8 +168,15 @@ in {
       identitiesOnly = true;
       extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
     };
+    matchBlocks."github.com" = {
+      identityFile = builtins.toFile "github.com.pub" sshKeys."github.com";
+    };
     matchBlocks."*.cvent.*" = lib.mkIf cvent {
       user = "jmorley";
+    };
+    matchBlocks."cvent.github.com" = lib.mkIf cvent {
+      hostname = "github.com";
+      identityFile = builtins.toFile "cvent.pub" sshKeys.cvent;
     };
   };
   programs.starship.enable = true;
