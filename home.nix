@@ -52,7 +52,7 @@ in {
     userName = "Jonathan Morley";
     userEmail =
       if cvent
-      then "jmorley@cvent.com"
+      then "jmorley+github@cvent.com"
       else "morley.jonathan@gmail.com";
     signing.key = sshKeys."github.com";
     signing.signByDefault = true;
@@ -115,7 +115,10 @@ in {
             condition = "hasconfig:remote.*.url:git@github.com:${org}-internal/**";
             contents = {
               url."git@cvent.github.com".insteadOf = "git@github.com";
-              user.signingKey = sshKeys.cvent;
+              user = {
+                signingKey = sshKeys.cvent;
+                email = "jmorley@cvent.com";
+              };
             };
           }
           # Internal GitHub (HTTPS)
@@ -127,7 +130,10 @@ in {
                   helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=JMorley_cvent\\npassword=$(gh auth token --user JMorley_cvent)\\n\""}"];
                 };
               };
-              user.signingKey = sshKeys.cvent;
+              user = {
+                signingKey = sshKeys.cvent;
+                email = "jmorley@cvent.com";
+              };
             };
           }
         ]) ["cvent" "cvent-archive" "cvent-incubator" "cvent-forks" "cvent-test" "icapture" "jifflenow" "SHOFLO" "socialtables" "weddingspot"]
