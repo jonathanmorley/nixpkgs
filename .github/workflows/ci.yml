@@ -27,17 +27,11 @@ jobs:
           - aarch64-darwin
         include:
           - platform: x86_64-darwin
-            runner: macos-13  # this is the latest intel runner
+            runner: macos-13  # this is the latest intel runner, needed for smoke
           - platform: aarch64-darwin
             runner: macos-latest
     runs-on: ${{ matrix.runner }}
     steps:
-    - name: Runner Informtion
-      run: |
-        echo "Runner: ${{ runner.name }}"
-        echo "OS: ${{ runner.os }}"
-        echo "Architecture: ${{ runner.arch }}"
-        uname -a
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Install Nix
