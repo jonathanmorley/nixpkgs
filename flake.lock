@@ -22,11 +22,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1723825316,
-        "narHash": "sha256-IGZRG9Ors3wUGVw28vbgdMDdt9yd1ZvO8tb8u2ENwfo=",
+        "lastModified": 1745436703,
+        "narHash": "sha256-n4OaImcHqXi77uDgKn7fDofvzfdwTMnBMxzo0WbVRoI=",
         "owner": "jonathanmorley",
         "repo": "nix-darwin",
-        "rev": "44863a066786cb3918e8ff39aa1278d5544e9191",
+        "rev": "d714a021be27495db9d18b5c290f16d0612c9304",
         "type": "github"
       },
       "original": {
