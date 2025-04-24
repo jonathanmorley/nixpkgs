@@ -223,7 +223,7 @@ in {
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-    initExtra = ''
+    initContent = ''
       export PATH="''${PATH}:''${HOME}/.cargo/bin"
        # We want shims so that commands executed without a shell still use mise
       eval "$(${lib.getExe pkgs.mise} activate --shims zsh)"

@@ -27,14 +27,10 @@ in {
   };
 
   fonts.packages = [
-    (pkgs.nerdfonts.override {
-      fonts = ["FiraCode"];
-    })
+    pkgs.nerd-fonts.fira-code
   ];
 
   programs.zsh.enable = true;
-
-  services.nix-daemon.enable = true;
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
@@ -65,8 +61,10 @@ in {
       ++ lib.optional cvent "microsoft-excel";
   };
 
-  security.pam.enableSudoTouchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth = true;
   security.pki.certificateFiles = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
+
+  system.stateVersion = 6;
 
   system.defaults = {
     ActivityMonitor.IconType = 5; # CPU Usage
