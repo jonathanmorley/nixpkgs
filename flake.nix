@@ -1,7 +1,7 @@
 {
   description = "Jonathan's Configurations";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-25.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     home-manager = {
@@ -10,7 +10,7 @@
     };
     darwin = {
       url = "github:jonathanmorley/nix-darwin/fix-cacerts-with-spaces";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     oktaws = {
       url = "github:jonathanmorley/oktaws";
