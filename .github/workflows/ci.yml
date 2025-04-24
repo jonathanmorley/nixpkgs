@@ -43,7 +43,6 @@ jobs:
         restore-prefixes-first-match: nix-${{ runner.os }}-
     - name: Backup config files
       run: |
-        sudo mv /etc/nix/nix.conf{,.before-nix-darwin}
         sudo mv /etc/shells{,.before-nix-darwin}
         sudo mv /etc/zshenv{,.before-nix-darwin}
     - name: Switch to nix-darwin ci env
