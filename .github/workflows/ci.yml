@@ -35,9 +35,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v9
+      uses: nixbuild/nix-quick-install-action@v30
     - name: Cache Nix
-      uses: DeterminateSystems/magic-nix-cache-action@v3
+      uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-
     - name: Backup config files
       run: |
         sudo mv /etc/nix/nix.conf{,.before-nix-darwin}
