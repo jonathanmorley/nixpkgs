@@ -42,9 +42,7 @@ jobs:
         primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
         restore-prefixes-first-match: nix-${{ runner.os }}-
     - name: Backup config files
-      run: |
-        sudo mv /etc/shells{,.before-nix-darwin}
-        sudo mv /etc/zshenv{,.before-nix-darwin}
+      run: sudo mv /etc/shells{,.before-nix-darwin}
     - name: Switch to nix-darwin ci env
       run: |
         nix --extra-experimental-features 'nix-command flakes' \
