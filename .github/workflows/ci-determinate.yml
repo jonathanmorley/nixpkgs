@@ -13,9 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v9
-      - name: Cache Nix
-        uses: DeterminateSystems/magic-nix-cache-action@v3
+        uses: DeterminateSystems/nix-installer-action@v17
       - name: Check Formatting
         run: nix fmt -- --check .
 
@@ -35,7 +33,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Install Nix
-      uses: nixbuild/nix-quick-install-action@v30
+      uses: DeterminateSystems/nix-installer-action@v17
     - name: Check commands
       run: |
         set -x
@@ -43,11 +41,6 @@ jobs:
         dscl . -read /Groups/nixbld GroupMembership
         dscl . -read /Users/_nixbld1 UniqueID
         dscl . -read /Users/nobody NFSHomeDirectory
-    - name: Cache Nix
-      uses: nix-community/cache-nix-action@v6
-      with:
-        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-        restore-prefixes-first-match: nix-${{ runner.os }}-
     - name: Backup config files
       run: sudo mv /etc/shells{,.before-nix-darwin}
     - name: Switch to nix-darwin ci env
