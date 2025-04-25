@@ -25,9 +25,11 @@ jobs:
           - aarch64-darwin
         include:
           - platform: x86_64-darwin
-            runner: macos-13  # this is the latest intel runner, needed for smoke
+            # this is the latest intel runner, needed for smoke
+            runner: macos-13  
           - platform: aarch64-darwin
-            runner: macos-15  # actually the latest arm64 runner
+            # actually the latest arm64 runner
+            runner: macos-15  
     runs-on: ${{ matrix.runner }}
     steps:
     - name: Checkout repository
