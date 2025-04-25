@@ -10,26 +10,7 @@
   cvent = builtins.elem "cvent" specialArgs.profiles;
 in {
   # Nix configuration
-  nix.settings = {
-    trusted-users = ["@admin"];
-    experimental-features = "nix-command flakes";
-  };
-
-  # Workaround for doing the first `darwin-rebuild switch`. Since nix-darwin only
-  # overwrites files that it knows the contents of, I have to take the add the hash
-  # of my /etc/nix/nix.conf here before doing my first rebuild so it can overwrite
-  # it. You can also move the existing nix.conf to another location, but then none of
-  # my settings, like substituters, will be applied when I do the first rebuild. So
-  # the plan is to temporarily add the hash here and once the first rebuild is done,
-  # remove it. There's an open issue for having nix-darwin backup the file and
-  # replace it instead of refusing to run[1].
-  #
-  # Also, this is an internal option so it may change without notice.
-  #
-  # [1]: https://github.com/LnL7/nix-darwin/issues/149
-  environment.etc."nix/nix.conf".knownSha256Hashes = [
-    "cbc38cd586caa7bf3e3b296232ce2690ba42f756bea1b255ec38f99c53d91749"
-  ];
+  nix.settings.trusted-users = ["@admin"];
 
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];

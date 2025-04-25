@@ -35,6 +35,18 @@ in {
   # changes in each release.
   home.stateVersion = "24.11";
 
+  nix.settings = {
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://jonathanmorley.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI="
+    ];
+    extra-experimental-features = ["nix-command" "flakes"];
+  };
+
   programs.awscli.enable = true;
   programs.bat = {
     enable = true;

@@ -10,7 +10,7 @@
     * [Graphical Installer](https://install.determinate.systems/nix-installer-pkg/stable/Universal)
     * CLI: `curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
 1. Clone the repository: `git clone https://github.com/jonathanmorley/nixpkgs.git ~/.nixpkgs`
-1. Add host config block to [flake.nix](~/.nixpkgs/flake.nix).
+1. Add host config block to [flake.nix](`~/.nixpkgs/flake.nix`).
 1. Run `nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake ~/.nixpkgs` to apply changes.
 
 ## Resources
