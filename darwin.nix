@@ -21,9 +21,7 @@ in {
     NODE_EXTRA_CA_CERTS = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
   };
 
-  fonts.packages = [
-    pkgs.nerd-fonts.fira-code
-  ];
+  fonts.packages = [pkgs.nerd-fonts.fira-code];
 
   programs.zsh.enable = true;
 

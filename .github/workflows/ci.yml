@@ -41,5 +41,9 @@ jobs:
       with:
         name: jonathanmorley
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - name: Dump files
+      run: |
+        cat /etc/nix/nix.conf
+        cat /etc/shells
     - name: Switch to nix-darwin ci env
       run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
