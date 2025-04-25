@@ -14,6 +14,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Nix
         uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check Formatting
         run: nix fmt -- --check .
 
@@ -34,6 +36,8 @@ jobs:
       uses: actions/checkout@v4
     - name: Install Nix
       uses: cachix/install-nix-action@v31
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Cache Nix
       uses: cachix/cachix-action@v16
       with:
@@ -42,8 +46,4 @@ jobs:
     - name: Backup config files
       run: sudo mv /etc/shells{,.before-nix-darwin}
     - name: Switch to nix-darwin ci env
-      run: |
-        nix --extra-experimental-features 'nix-command flakes' \
-          run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
-      env:
-        NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
+      run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
