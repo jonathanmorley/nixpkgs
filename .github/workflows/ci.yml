@@ -44,5 +44,5 @@ jobs:
         name: jonathanmorley
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - name: Switch to nix-darwin ci env
-      run: nix --accept-flake-config run nix-darwin -- \
-        switch --flake .#ci-${{ matrix.platform }}
+      run: nix --accept-flake-config run nix-darwin \
+        -- switch --flake .#ci-${{ matrix.platform }}
