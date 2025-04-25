@@ -45,10 +45,6 @@ jobs:
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - name: Backup config files
       run: |
-        sudo mv /etc/nix/nix.conf{,.before-nix-darwin}
         sudo mv /etc/shells{,.before-nix-darwin}
     - name: Switch to nix-darwin ci env
-      run: |
-        nix --extra-experimental-features 'nix-command' \
-          run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
-
+      run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
