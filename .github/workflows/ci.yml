@@ -36,6 +36,12 @@ jobs:
       uses: actions/checkout@v4
     - name: Install Nix
       uses: nixbuild/nix-quick-install-action@v30
+    - name: Check commands
+      run: |
+        dscl . -read /Groups/nixbld PrimaryGroupID
+        dscl . -read /Groups/nixbld GroupMembership
+        dscl . -read /Users/_nixbld1 UniqueID
+        dscl . -read /Users/nobody NFSHomeDirectory
     - name: Cache Nix
       uses: nix-community/cache-nix-action@v6
       with:
@@ -49,3 +55,10 @@ jobs:
           run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
       env:
         NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
+    - name: Check commands
+      if: always()
+      run: |
+        dscl . -read /Groups/nixbld PrimaryGroupID
+        dscl . -read /Groups/nixbld GroupMembership
+        dscl . -read /Users/_nixbld1 UniqueID
+        dscl . -read /Users/nobody NFSHomeDirectory
