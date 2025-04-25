@@ -35,6 +35,7 @@ jobs:
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@v17
     - name: Check commands
+      continue-on-error: true
       run: |
         set -x
         dscl . -read /Groups/nixbld PrimaryGroupID

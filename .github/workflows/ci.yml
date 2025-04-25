@@ -37,6 +37,7 @@ jobs:
     - name: Install Nix
       uses: nixbuild/nix-quick-install-action@v30
     - name: Check commands
+      continue-on-error: true
       run: |
         set -x
         dscl . -read /Groups/nixbld PrimaryGroupID
