@@ -47,6 +47,5 @@ jobs:
       run: |
         sudo mv /etc/nix/nix.conf{,.before-nix-darwin}
         sudo mv /etc/shells{,.before-nix-darwin}
-        sudo mv /etc/zshenv{,.before-nix-darwin}
     - name: Switch to nix-darwin ci env
       run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
