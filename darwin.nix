@@ -10,7 +10,7 @@
   cvent = builtins.elem "cvent" specialArgs.profiles;
 in {
   # Nix configuration
-  nix.settings.trusted-users = ["@admin"];
+  nix.enable = false;
 
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
