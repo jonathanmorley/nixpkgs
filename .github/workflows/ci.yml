@@ -18,9 +18,6 @@ jobs:
         run: nix fmt -- --check .
 
   build:
-    permissions:
-      id-token: "write"
-      contents: "read"
     strategy:
       matrix:
         platform:
@@ -45,6 +42,6 @@ jobs:
         name: jonathanmorley
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - name: Remove files that will be replaced by nix-darwin
-      run: rm /etc/shells
+      run: sudo rm /etc/shells
     - name: Switch to nix-darwin ci env
       run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
