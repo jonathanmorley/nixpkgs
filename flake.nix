@@ -46,6 +46,9 @@
             # Newer packages (unstable)
             colima = nixpkgs-unstable.legacyPackages.${prev.system}.colima;
             gitify = nixpkgs-unstable.legacyPackages.${prev.system}.gitify;
+            mise = nixpkgs-unstable.legacyPackages.${prev.system}.mise.overrideAttrs {
+              doCheck = false;
+            };
           })
         ];
         nixpkgs.config.allowUnfree = true;
