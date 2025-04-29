@@ -35,6 +35,18 @@ in {
   # changes in each release.
   home.stateVersion = "24.11";
 
+  nix.settings = {
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://jonathanmorley.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI="
+    ];
+    extra-experimental-features = ["nix-command" "flakes"];
+  };
+
   programs.awscli.enable = true;
   programs.bat = {
     enable = true;
@@ -66,7 +78,6 @@ in {
       branch.sort = "-committerdate";
       column.ui = "auto";
       commit.verbose = true;
-      core.sshCommand = "ssh -i ${builtins.toFile "github.com.pub" sshKeys."github.com"}";
       credential = {
         "https://github.com" = {
           helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=jonathanmorley\\npassword=$(gh auth token --user jonathanmorley)\\n\""}"];
@@ -115,8 +126,11 @@ in {
           {
             condition = "hasconfig:remote.*.url:git@github.com:${org}-internal/**";
             contents = {
-              core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
-              user.signingKey = sshKeys.cvent;
+              url."git@cvent.github.com".insteadOf = "git@github.com";
+              user = {
+                signingKey = sshKeys.cvent;
+                email = "jmorley@cvent.com";
+              };
             };
           }
           # Internal GitHub (HTTPS)
@@ -128,7 +142,10 @@ in {
                   helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=JMorley_cvent\\npassword=$(gh auth token --user JMorley_cvent)\\n\""}"];
                 };
               };
-              user.signingKey = sshKeys.cvent;
+              user = {
+                signingKey = sshKeys.cvent;
+                email = "jmorley@cvent.com";
+              };
             };
           }
         ]) ["cvent" "cvent-archive" "cvent-incubator" "cvent-forks" "cvent-test" "icapture" "jifflenow" "SHOFLO" "socialtables" "weddingspot"]
@@ -166,11 +183,19 @@ in {
     hashKnownHosts = true;
     matchBlocks."*" = {
       identityFile = lib.mkIf (builtins.hasAttr "ssh" sshKeys) (builtins.toFile "ssh.pub" sshKeys."ssh");
-      identitiesOnly = true;
       extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
+    };
+    matchBlocks."github.com" = {
+      identitiesOnly = true;
+      identityFile = builtins.toFile "github.com.pub" sshKeys."github.com";
     };
     matchBlocks."*.cvent.*" = lib.mkIf cvent {
       user = "jmorley";
+    };
+    matchBlocks."cvent.github.com" = lib.mkIf cvent {
+      identitiesOnly = true;
+      identityFile = builtins.toFile "cvent.pub" sshKeys.cvent;
+      hostname = "github.com";
     };
   };
   programs.starship.enable = true;
@@ -210,7 +235,7 @@ in {
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-    initExtra = ''
+    initContent = ''
       export PATH="''${PATH}:''${HOME}/.cargo/bin"
        # We want shims so that commands executed without a shell still use mise
       eval "$(${lib.getExe pkgs.mise} activate --shims zsh)"

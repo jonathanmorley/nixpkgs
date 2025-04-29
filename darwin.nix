@@ -10,12 +10,7 @@
   cvent = builtins.elem "cvent" specialArgs.profiles;
 in {
   # Nix configuration
-  nix.settings = {
-    trusted-users = ["@admin"];
-    # https://github.com/NixOS/nix/issues/7273
-    auto-optimise-store = false;
-    experimental-features = "nix-command flakes";
-  };
+  nix.enable = false;
 
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
@@ -26,15 +21,9 @@ in {
     NODE_EXTRA_CA_CERTS = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
   };
 
-  fonts.packages = [
-    (pkgs.nerdfonts.override {
-      fonts = ["FiraCode"];
-    })
-  ];
+  fonts.packages = [pkgs.nerd-fonts.fira-code];
 
   programs.zsh.enable = true;
-
-  services.nix-daemon.enable = true;
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
@@ -65,8 +54,10 @@ in {
       ++ lib.optional cvent "microsoft-excel";
   };
 
-  security.pam.enableSudoTouchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth = true;
   security.pki.certificateFiles = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
+
+  system.stateVersion = 6;
 
   system.defaults = {
     ActivityMonitor.IconType = 5; # CPU Usage

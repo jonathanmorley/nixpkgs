@@ -13,9 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v9
-      - name: Cache Nix
-        uses: DeterminateSystems/magic-nix-cache-action@v3
+        uses: DeterminateSystems/nix-installer-action@v17
       - name: Check Formatting
         run: nix fmt -- --check .
 
@@ -27,31 +25,23 @@ jobs:
           - aarch64-darwin
         include:
           - platform: x86_64-darwin
-            runner: macos-13  # this is the latest intel runner
+            # this is the latest intel runner, needed for smoke
+            runner: macos-13
           - platform: aarch64-darwin
-            runner: macos-latest
+            # actually the latest arm64 runner
+            runner: macos-15
     runs-on: ${{ matrix.runner }}
     steps:
-    - name: Runner Informtion
-      run: |
-        echo "Runner: ${{ runner.name }}"
-        echo "OS: ${{ runner.os }}"
-        echo "Architecture: ${{ runner.arch }}"
-        uname -a
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v9
+      uses: DeterminateSystems/nix-installer-action@v17
     - name: Cache Nix
-      uses: DeterminateSystems/magic-nix-cache-action@v3
-    - name: Backup config files
-      run: |
-        sudo mv /etc/nix/nix.conf{,.before-nix-darwin}
-        sudo mv /etc/shells{,.before-nix-darwin}
-        sudo mv /etc/zshenv{,.before-nix-darwin}
+      uses: cachix/cachix-action@v16
+      with:
+        name: jonathanmorley
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - name: Remove files that will be replaced by nix-darwin
+      run: sudo rm /etc/shells
     - name: Switch to nix-darwin ci env
-      run: |
-        nix --extra-experimental-features 'nix-command flakes' \
-          run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
-      env:
-        NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
+      run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}

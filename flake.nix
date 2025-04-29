@@ -1,16 +1,17 @@
 {
   description = "Jonathan's Configurations";
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.11";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:nix-community/home-manager/master";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     darwin = {
       url = "github:jonathanmorley/nix-darwin/fix-cacerts-with-spaces";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     oktaws = {
       url = "github:jonathanmorley/oktaws";
@@ -45,7 +46,9 @@
             # Newer packages (unstable)
             colima = nixpkgs-unstable.legacyPackages.${prev.system}.colima;
             gitify = nixpkgs-unstable.legacyPackages.${prev.system}.gitify;
-            mise = nixpkgs-unstable.legacyPackages.${prev.system}.mise;
+            mise = nixpkgs-unstable.legacyPackages.${prev.system}.mise.overrideAttrs {
+              doCheck = false;
+            };
           })
         ];
         nixpkgs.config.allowUnfree = true;
