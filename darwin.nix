@@ -30,11 +30,6 @@ in {
   homebrew = {
     enable = true;
     onActivation.cleanup = "uninstall";
-    brews = [
-      # gh is implicitly installed for attestation purposes.
-      # this prevents it from being repeatedly installed, then uninstalled
-      "gh"
-    ];
     casks =
       [
         # https://github.com/NixOS/nixpkgs/issues/254944
