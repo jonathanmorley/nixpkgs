@@ -78,11 +78,13 @@ in {
       branch.sort = "-committerdate";
       column.ui = "auto";
       commit.verbose = true;
-      credential = {
-        "https://github.com" = {
-          helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=jonathanmorley\\npassword=$(gh auth token --user jonathanmorley)\\n\""}"];
-        };
-      };
+      credential."https://github.com".helper = [
+        ""
+        "!${pkgs.writeShellScript "credential-helper" ''
+          echo username=jonathanmorley
+          echo password=$(${lib.getExe pkgs.gh} auth token --user jonathanmorley)
+        ''}"
+      ];
       diff = {
         algorithm = "histogram";
         colorMoved = "plain";
@@ -127,25 +129,22 @@ in {
             condition = "hasconfig:remote.*.url:git@github.com:${org}-internal/**";
             contents = {
               url."git@cvent.github.com".insteadOf = "git@github.com";
-              user = {
-                signingKey = sshKeys.cvent;
-                email = "jmorley@cvent.com";
-              };
+              user.signingKey = sshKeys.cvent;
             };
           }
           # Internal GitHub (HTTPS)
           {
             condition = "hasconfig:remote.*.url:https://github.com/${org}-internal/**";
             contents = {
-              credential = {
-                "https://github.com" = {
-                  helper = ["" "!${pkgs.writeShellScript "credential-helper" "printf \"username=JMorley_cvent\\npassword=$(gh auth token --user JMorley_cvent)\\n\""}"];
-                };
-              };
-              user = {
-                signingKey = sshKeys.cvent;
-                email = "jmorley@cvent.com";
-              };
+              credential."https://github.com".helper = [
+                ""
+                # This needs to be an absolute path for the credential helper to work with private homebrew taps, because it removes the PATH env var.
+                "!${pkgs.writeShellScript "credential-helper" ''
+                  echo username=JMorley_cvent
+                  echo password=$(${lib.getExe pkgs.gh} auth token --user JMorley_cvent)
+                ''}"
+              ];
+              user.signingKey = sshKeys.cvent;
             };
           }
         ]) ["cvent" "cvent-archive" "cvent-incubator" "cvent-forks" "cvent-test" "icapture" "jifflenow" "SHOFLO" "socialtables" "weddingspot"]
@@ -261,8 +260,7 @@ in {
       docker-buildx
       docker-client
       (writeShellScriptBin "docker-credential-gh" ''
-        #!/bin/sh
-        echo "{\"Username\":\"JMorley_cvent\",\"Secret\":\"$(gh auth token --user JMorley_cvent)\"}"
+        echo "{\"Username\":\"JMorley_cvent\",\"Secret\":\"$(${lib.getExe pkgs.gh} auth token --user JMorley_cvent)\"}"
       '')
       dogdns
       du-dust
