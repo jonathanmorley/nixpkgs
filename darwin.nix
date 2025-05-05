@@ -30,6 +30,7 @@ in {
   homebrew = {
     enable = true;
     onActivation.cleanup = "uninstall";
+    taps = ["hashicorp/tap"];
     casks =
       [
         # https://github.com/NixOS/nixpkgs/issues/254944
@@ -40,13 +41,15 @@ in {
         "lulu"
         # Not available in nixpkgs
         "oversight"
-        # https://github.com/warpdotdev/Warp/issues/1991
-        "warp"
+        "hashicorp-vagrant"
+        "virtualbox"
       ]
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
       # Not available in nixpkgs
-      ++ lib.optional cvent "microsoft-excel";
+      ++ lib.optional cvent "microsoft-excel"
+      # Screensharing doesn't work with nixpkgs
+      ++ lib.optional cvent "zoom";
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;
@@ -76,7 +79,7 @@ in {
       dashboard-in-overlay = true;
       persistent-apps =
         [
-          "/Applications/Warp.app"
+          "${pkgs.warp-terminal}/Applications/Warp.app"
           "/Applications/Firefox.app"
         ]
         ++ lib.optional cvent "${pkgs.slack}/Applications/Slack.app"

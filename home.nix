@@ -280,6 +280,7 @@ in {
       tree
       unixtools.watch
       vscode
+      warp-terminal
     ]
     # Languages / Package Managers
     ++ [
@@ -288,8 +289,7 @@ in {
       rustup
     ]
     ++ lib.optional pkgs.stdenv.isDarwin colima
-    ++ lib.optional personal tailscale
-    ++ lib.optional cvent zoom-us;
+    ++ lib.optional personal tailscale;
 
   home.activation = {
     # Copy the docker config so that docker login can write to it.
