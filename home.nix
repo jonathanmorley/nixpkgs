@@ -179,20 +179,20 @@ in {
   programs.ripgrep.enable = true;
   programs.ssh = {
     enable = true;
+
     hashKnownHosts = true;
     matchBlocks."*" = {
       identityFile = lib.mkIf (builtins.hasAttr "ssh" sshKeys) (builtins.toFile "ssh.pub" sshKeys."ssh");
+      identitiesOnly = true;
       extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
     };
     matchBlocks."github.com" = {
-      identitiesOnly = true;
       identityFile = builtins.toFile "github.com.pub" sshKeys."github.com";
     };
     matchBlocks."*.cvent.*" = lib.mkIf cvent {
       user = "jmorley";
     };
     matchBlocks."cvent.github.com" = lib.mkIf cvent {
-      identitiesOnly = true;
       identityFile = builtins.toFile "cvent.pub" sshKeys.cvent;
       hostname = "github.com";
     };
