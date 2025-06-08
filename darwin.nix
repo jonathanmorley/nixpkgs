@@ -43,8 +43,12 @@ in {
         # https://github.com/warpdotdev/Warp/issues/1991
         "warp"
       ]
+      # The GUI is not available in nixpkgs
+      ++ lib.optional personal "tailscale"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
+      # Not available in nixpkgs
+      ++ lib.optional personal "chrome-remote-desktop-host"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-excel";
   };
