@@ -44,8 +44,12 @@ in {
       ]
       # https://github.com/NixOS/nixpkgs/issues/254944
       ++ lib.optional personal "1password"
+      # The GUI is not available in nixpkgs
+      ++ lib.optional personal "tailscale"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
+      # Not available in nixpkgs
+      ++ lib.optional personal "chrome-remote-desktop-host"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-excel";
     masApps = lib.mkIf cvent {
