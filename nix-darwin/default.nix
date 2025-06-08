@@ -90,8 +90,11 @@ in {
       wvous-tr-corner = 4; # Desktop
     };
     finder.ShowPathbar = true;
-    trackpad.ActuationStrength = 0;
-    trackpad.FirstClickThreshold = 0;
+    trackpad = {
+      ActuationStrength = 0;
+      FirstClickThreshold = 0;
+      TrackpadRightClick = true;
+    };
   };
 
   system.keyboard = {

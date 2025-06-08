@@ -127,6 +127,20 @@
             };
           };
 
+          # Personal Macbook Air
+          "medusa" = darwin.lib.darwinSystem rec {
+            system = "aarch64-darwin";
+            specialArgs.profiles = ["personal"];
+
+            modules = darwinModules {
+              profiles = specialArgs.profiles;
+              username = "jonathan";
+              sshKeys = {
+                "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJbG+RkEeZ8WakJorykKKRPsJ1Su2c8Up/clPmuSqew";
+              };
+            };
+          };
+
           # Personal iMac
           "smoke" = mkDarwinSystem {
             inherit (nixpkgs) pkgs lib;
