@@ -43,8 +43,12 @@ in {
         # https://github.com/warpdotdev/Warp/issues/1991
         "warp"
       ]
+      # The GUI is not available in nixpkgs
+      ++ lib.optional personal "tailscale"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
+      # Not available in nixpkgs
+      ++ lib.optional personal "chrome-remote-desktop-host"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-excel";
   };
@@ -53,6 +57,7 @@ in {
   security.pki.certificateFiles = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
 
   system.stateVersion = 6;
+  system.nixpkgsRelease = "25.05";
 
   system.defaults = {
     ActivityMonitor.IconType = 5; # CPU Usage
@@ -88,8 +93,11 @@ in {
       wvous-tr-corner = 4; # Desktop
     };
     finder.ShowPathbar = true;
-    trackpad.ActuationStrength = 0;
-    trackpad.FirstClickThreshold = 0;
+    trackpad = {
+      ActuationStrength = 0;
+      FirstClickThreshold = 0;
+      TrackpadRightClick = true;
+    };
   };
 
   system.keyboard = {
