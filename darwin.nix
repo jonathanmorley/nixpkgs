@@ -19,6 +19,7 @@ in {
   environment.variables = {
     DOCKER_HOST = "unix:///Users/jonathan/.colima/default/docker.sock";
     NODE_EXTRA_CA_CERTS = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
+    SSH_AUTH_SOCK = lib.mkIf cvent "/Users/jonathan/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
   };
 
   fonts.packages = [pkgs.nerd-fonts.fira-code];
@@ -32,8 +33,6 @@ in {
     onActivation.cleanup = "uninstall";
     casks =
       [
-        # https://github.com/NixOS/nixpkgs/issues/254944
-        "1password"
         # The 1Password extension does not unlock with biometrics if FF is installed via nix
         "firefox"
         # Not available in nixpkgs
@@ -43,10 +42,16 @@ in {
         # https://github.com/warpdotdev/Warp/issues/1991
         "warp"
       ]
+      # https://github.com/NixOS/nixpkgs/issues/254944
+      ++ lib.optional personal "1password"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-excel";
+    masApps = lib.mkIf cvent {
+      # The firefox extension doesnt unlock with biometrics if bitwarden is installed any other way
+      "bitwarden" = 1352778147;
+    };
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;

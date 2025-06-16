@@ -36,6 +36,8 @@ jobs:
       uses: actions/checkout@v4
     - name: Install Nix
       uses: DeterminateSystems/nix-installer-action@v17
+      with:
+        determinate: true
     - name: Cache Nix
       uses: cachix/cachix-action@v16
       with:
@@ -44,4 +46,4 @@ jobs:
     - name: Remove files that will be replaced by nix-darwin
       run: sudo rm /etc/shells
     - name: Switch to nix-darwin ci env
-      run: nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
+      run: sudo nix run nix-darwin -- switch --flake .#ci-${{ matrix.platform }}
