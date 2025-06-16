@@ -203,7 +203,11 @@ in {
     enable = true;
     hashKnownHosts = true;
     matchBlocks."*" = {
-      extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin "\"${config.home.homeDirectory}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
+      identityFile = lib.mkIf (builtins.hasAttr "ssh" sshKeys) (builtins.toFile "ssh.pub" sshKeys."ssh");
+      extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin (
+        if cvent then "\"${config.home.homeDirectory}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\""
+        else "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\""
+      );
     };
     matchBlocks."*.cvent.*" = lib.mkIf cvent {
       user = "jmorley";
