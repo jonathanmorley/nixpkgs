@@ -33,7 +33,7 @@ in {
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 
   nix.settings = {
     extra-substituters = [
@@ -66,8 +66,11 @@ in {
       if cvent
       then "jmorley@cvent.com"
       else "morley.jonathan@gmail.com";
-    signing.key = sshKeys."github.com";
-    signing.signByDefault = true;
+    signing = {
+      format = "ssh";
+      key = sshKeys."github.com";
+      signByDefault = true;
+    };
     ignores = lib.splitString "\n" (builtins.readFile "${gitignores}/Global/${
       if pkgs.stdenv.isDarwin
       then "macOS"
@@ -98,7 +101,14 @@ in {
       };
       gpg = {
         format = "ssh";
-        ssh.program = lib.mkIf pkgs.stdenv.isDarwin "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+        ssh.allowedSignersFile = toString (pkgs.writeText  "allowed_signers" (
+          lib.strings.concatStringsSep "\n" (
+            [
+              "morley.jonathan@gmail.com namespaces='git' ${sshKeys."github.com"}"
+            ] ++ lib.optional cvent "jmorley@cvent.com namespaces='git' ${sshKeys.cvent}"
+          )
+        ));
+        ssh.program = lib.mkIf (personal && pkgs.stdenv.isDarwin) "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
       };
       help.autocorrect = "prompt";
       http.postBuffer = 2097152000;
@@ -124,40 +134,52 @@ in {
     includes =
       lib.mkIf cvent
       (builtins.concatMap (org: [
-          # Internal GitHub (SSH)
-          {
-            condition = "hasconfig:remote.*.url:git@github.com:${org}-internal/**";
-            contents = {
-              url."git@cvent.github.com".insteadOf = "git@github.com";
-              user.signingKey = sshKeys.cvent;
-            };
-          }
-          # Internal GitHub (HTTPS)
-          {
-            condition = "hasconfig:remote.*.url:https://github.com/${org}-internal/**";
-            contents = {
-              credential."https://github.com".helper = [
-                ""
-                # This needs to be an absolute path for the credential helper to work with private homebrew taps, because it removes the PATH env var.
-                "!${pkgs.writeShellScript "credential-helper" ''
-                  echo username=JMorley_cvent
-                  echo password=$(${lib.getExe pkgs.gh} auth token --user JMorley_cvent)
-                ''}"
-              ];
-              user.signingKey = sshKeys.cvent;
-            };
-          }
-        ]) ["cvent" "cvent-archive" "cvent-incubator" "cvent-forks" "cvent-test" "icapture" "jifflenow" "SHOFLO" "socialtables" "weddingspot"]
-        ++ [
-          # Stash
-          {
-            condition = "hasconfig:remote.*.url:ssh://git@*.cvent.*/**";
-            contents = {
-              core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
-              user.signingKey = sshKeys.cvent;
-            };
-          }
-        ]);
+        # Internal GitHub (SSH)
+        {
+          condition = "hasconfig:remote.*.url:git@github.com:${org}/**";
+          contents = {
+            url."git@cvent.github.com".insteadOf = "git@github.com";
+            user.signingKey = sshKeys.cvent;
+          };
+        }
+        # Internal GitHub (HTTPS)
+        {
+          condition = "hasconfig:remote.*.url:https://github.com/${org}/**";
+          contents = {
+            credential."https://github.com".helper = [
+              ""
+              # This needs to be an absolute path for the credential helper to work with private homebrew taps, because it removes the PATH env var.
+              "!${pkgs.writeShellScript "credential-helper" ''
+                echo username=JMorley_cvent
+                echo password=$(${lib.getExe pkgs.gh} auth token --user JMorley_cvent)
+              ''}"
+            ];
+            user.signingKey = sshKeys.cvent;
+          };
+        }
+      ]) [
+        "cvent-internal"
+        "cvent-archive-internal"
+        "cvent-incubator-internal"
+        "cvent-forks-internal"
+        "cvent-test-internal"
+        "enabling-services"
+        "icapture-internal"
+        "jifflenow-internal"
+        "SHOFLO-internal"
+        "socialtables-internal"
+        "weddingspot-internal"
+      ]
+      ++ [
+        # Stash
+        {
+          condition = "hasconfig:remote.*.url:ssh://git@*.cvent.*/**";
+          contents = {
+            core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
+            user.signingKey = sshKeys.cvent;
+          };
+        }
+      ]);
   };
   programs.java.enable = true;
   programs.jq.enable = true;
@@ -181,15 +203,15 @@ in {
     enable = true;
     hashKnownHosts = true;
     matchBlocks."*" = {
-      identityFile = lib.mkIf (builtins.hasAttr "ssh" sshKeys) (builtins.toFile "ssh.pub" sshKeys."ssh");
-      extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
+      extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin "\"${config.home.homeDirectory}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
+    };
+    matchBlocks."*.cvent.*" = lib.mkIf cvent {
+      user = "jmorley";
+      extraOptions.PreferredAuthentications = "password";
     };
     matchBlocks."github.com" = {
       identitiesOnly = true;
       identityFile = builtins.toFile "github.com.pub" sshKeys."github.com";
-    };
-    matchBlocks."*.cvent.*" = lib.mkIf cvent {
-      user = "jmorley";
     };
     matchBlocks."cvent.github.com" = lib.mkIf cvent {
       identitiesOnly = true;

@@ -2,19 +2,19 @@
   description = "Jonathan's Configurations";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-24.11-darwin";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-25.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager/master";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      url = "github:nix-community/home-manager/release-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     darwin = {
       url = "github:jonathanmorley/nix-darwin/fix-cacerts-with-spaces";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     oktaws = {
-      url = "github:jonathanmorley/oktaws";
+      url = "github:jonathanmorley/oktaws/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -45,10 +45,10 @@
             oktaws = oktaws.packages.${prev.system}.default;
             # Newer packages (unstable)
             colima = nixpkgs-unstable.legacyPackages.${prev.system}.colima;
-            gitify = nixpkgs-unstable.legacyPackages.${prev.system}.gitify;
-            mise = nixpkgs-unstable.legacyPackages.${prev.system}.mise.overrideAttrs {
-              doCheck = false;
-            };
+            #gitify = nixpkgs-unstable.legacyPackages.${prev.system}.gitify;
+            # mise = nixpkgs-unstable.legacyPackages.${prev.system}.mise.overrideAttrs {
+            #   doCheck = false;
+            # };
           })
         ];
         nixpkgs.config.allowUnfree = true;
@@ -105,8 +105,8 @@
               profiles = specialArgs.profiles;
               username = "jonathan";
               sshKeys = {
-                "cvent" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKuaMIMcObM1KyhncM9Qndv91P5EDreRxz5pFA7xSHaX";
-                "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN0l85pYmr5UV3FTMAQnmZYyv1wVNeKej4YnIP8sk5fW";
+                "cvent" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBYpuJAHOyz9TwJiRis+0GdjO27MQUU2FoTLD/WQVuqi";
+                "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIApH3hVfolAMy3yCEFSvif1S6DuVA8D1JH13811GK5wg";
               };
             };
           };
