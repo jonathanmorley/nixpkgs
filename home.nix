@@ -176,7 +176,6 @@ in {
           {
             condition = "hasconfig:remote.*.url:ssh://git@*.cvent.*/**";
             contents = {
-              core.sshCommand = "ssh -i ${builtins.toFile "cvent.pub" sshKeys.cvent}";
               user.signingKey = sshKeys.cvent;
             };
           }
@@ -211,9 +210,13 @@ in {
         else "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\""
       );
     };
-    matchBlocks."*.cvent.*" = lib.mkIf cvent {
+    matchBlocks."!stash.cvent.net *.cvent.*" = lib.mkIf cvent {
       user = "jmorley";
       extraOptions.PreferredAuthentications = "password";
+    };
+    matchBlocks."stash.cvent.net" = lib.mkIf cvent {
+      identitiesOnly = true;
+      identityFile = builtins.toFile "cvent.pub" sshKeys.cvent;
     };
     matchBlocks."github.com" = {
       identitiesOnly = true;
