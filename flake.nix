@@ -90,11 +90,11 @@
             };
           };
 
-          # Cvent MacBook Air
-          "FVFFT3XKQ6LR" = darwin.lib.darwinSystem rec {
+          # Cvent MacBook Pro
+          "D3W27G1QW9" = darwin.lib.darwinSystem rec {
             system = "aarch64-darwin";
             specialArgs.profiles = ["cvent"];
-
+            
             modules = darwinModules {
               profiles = specialArgs.profiles;
               username = "jonathan";
