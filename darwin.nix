@@ -12,6 +12,8 @@ in {
   # Nix configuration
   nix.enable = false;
 
+  lib.enableNixpkgsReleaseCheck = false;
+
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
   environment.shells = [pkgs.zsh];
@@ -60,6 +62,8 @@ in {
   # security.pki.certificateFiles = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
 
   system.stateVersion = 6;
+
+  system.primaryUser = "jonathan";
 
   system.defaults = {
     ActivityMonitor.IconType = 5; # CPU Usage
