@@ -30,45 +30,75 @@
     flake-parts,
     ...
   }: let
-    darwinModules = {
-      profiles,
-      username,
-      sshKeys,
-      ...
-    }: [
-      ./darwin.nix
-      home-manager.darwinModules.home-manager
-      {
-        nixpkgs.overlays = [
-          (final: prev: {
-            # Custom packages
-            oktaws = oktaws.packages.${prev.system}.default;
-          })
-        ];
-        nixpkgs.config.allowUnfree = true;
-        nixpkgs.config.allowUnsupportedSystem = true;
+    mkDarwinSystem = { specialArgs, ... }: darwin.lib.darwinSystem {
+      inherit specialArgs;
+      
+      system = "aarch64-darwin";
+      modules = [
+        ./nix-darwin
+        {
+          system.stateVersion = specialArgs.stateVersions.darwin;
+          system.primaryUser = specialArgs.username;
+        }
+        home-manager.darwinModules.home-manager {
+          nixpkgs = {
+            config.allowUnfree = true;
+            config.allowUnsupportedSystem = true;
+            overlays = [
+              (final: prev: {
+                # Custom packages
+                oktaws = oktaws.packages.${prev.system}.default;
+              })
+            ];
+          };
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            extraSpecialArgs = specialArgs;
+            users.${specialArgs.username} = {
+              imports = [
+                ./home
+                ./home/docker.nix
+                ./home/git.nix
+              ];
+              home = {
+                username = specialArgs.username;
+                homeDirectory = nixpkgs.lib.mkForce "/Users/${specialArgs.username}";
+                stateVersion = specialArgs.stateVersions.homeManager;
+              };
+            };
+          };
+        }
+      ]
+      ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/netskope.nix;
+    };
 
-        home-manager.useGlobalPkgs = true;
-        home-manager.useUserPackages = true;
-        home-manager.extraSpecialArgs = {inherit profiles username sshKeys;};
-        home-manager.users."${username}" = import ./home.nix;
-      }
-    ];
+    stateVersions = {
+      darwin = "6";
+      homeManager = "25.05";
+    };
+
+    keys = {
+      personal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJbG+RkEeZ8WakJorykKKRPsJ1Su2c8Up/clPmuSqew";
+      cvent = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIApH3hVfolAMy3yCEFSvif1S6DuVA8D1JH13811GK5wg";
+      cventInternal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBYpuJAHOyz9TwJiRis+0GdjO27MQUU2FoTLD/WQVuqi";
+    };
   in
-    flake-parts.lib.mkFlake {inherit inputs;} {
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
       perSystem = {pkgs, ...}: {
         formatter = pkgs.alejandra;
       };
+
       flake = {
         darwinConfigurations = {
           # GitHub CI
-          "ci-x86_64-darwin" = darwin.lib.darwinSystem rec {
-            system = "x86_64-darwin";
-            specialArgs.profiles = [];
+          "ci-aarch64-darwin" = mkDarwinSystem {
+            inherit (nixpkgs) pkgs lib;
 
-            modules = darwinModules {
-              profiles = specialArgs.profiles;
+            specialArgs = {
+              inherit stateVersions;
+              profiles = [];
               username = "runner";
               sshKeys = {
                 "github.com" = "";
@@ -76,47 +106,37 @@
             };
           };
 
-          # GitHub CI
-          "ci-aarch64-darwin" = darwin.lib.darwinSystem rec {
-            system = "aarch64-darwin";
-            specialArgs.profiles = [];
-
-            modules = darwinModules {
-              profiles = specialArgs.profiles;
-              username = "runner";
-              sshKeys = {
-                "github.com" = "";
-              };
-            };
+          # GitHub CI (x86_64)
+          "ci-x86_64-darwin" = nixpkgs.lib.makeOverridable self.darwinConfigurations."ci-aarch64-darwin".override {
+            system = "x86_64-darwin";
           };
 
           # Cvent MacBook Pro
-          "D3W27G1QW9" = darwin.lib.darwinSystem rec {
-            system = "aarch64-darwin";
-            specialArgs.profiles = ["cvent"];
-
-            modules = darwinModules {
-              profiles = specialArgs.profiles;
+          "D3W27G1QW9" = mkDarwinSystem {
+            inherit (nixpkgs) pkgs lib;
+            specialArgs = {
+              inherit stateVersions;
+              profiles = ["cvent"];
               username = "jonathan";
               sshKeys = {
-                "cvent" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBYpuJAHOyz9TwJiRis+0GdjO27MQUU2FoTLD/WQVuqi";
-                "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIApH3hVfolAMy3yCEFSvif1S6DuVA8D1JH13811GK5wg";
+                cvent = keys.cventInternal;
+                "github.com" = keys.cvent;
               };
             };
           };
 
           # Personal iMac
-          "smoke" = darwin.lib.darwinSystem rec {
-            system = "x86_64-darwin";
-            specialArgs.profiles = ["personal"];
-
-            modules = darwinModules {
-              profiles = specialArgs.profiles;
+          "smoke" = nixpkgs.lib.makeOverridable darwin.lib.darwinSystem {
+            inherit (nixpkgs) pkgs lib;
+            specialArgs = {
+              profiles = ["personal"];
               username = "jonathan";
               sshKeys = {
-                "github.com" = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBJbG+RkEeZ8WakJorykKKRPsJ1Su2c8Up/clPmuSqew";
+                "github.com" = keys.personal;
               };
             };
+          }.override {
+            system = "x86_64-darwin";
           };
         };
       };

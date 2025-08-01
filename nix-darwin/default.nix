@@ -12,15 +12,11 @@ in {
   # Nix configuration
   nix.enable = false;
 
-  lib.enableNixpkgsReleaseCheck = false;
-
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
   environment.shells = [pkgs.zsh];
 
   environment.variables = {
-    DOCKER_HOST = "unix:///Users/jonathan/.colima/default/docker.sock";
-    # NODE_EXTRA_CA_CERTS = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
     SSH_AUTH_SOCK = lib.mkIf cvent "/Users/jonathan/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
   };
 
@@ -59,11 +55,6 @@ in {
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;
-  # security.pki.certificateFiles = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
-
-  system.stateVersion = 6;
-
-  system.primaryUser = "jonathan";
 
   system.defaults = {
     ActivityMonitor.IconType = 5; # CPU Usage
