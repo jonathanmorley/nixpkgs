@@ -45,7 +45,8 @@ in {
       # https://github.com/NixOS/nixpkgs/issues/254944
       ++ lib.optional personal "1password"
       # The GUI is not available in nixpkgs
-      ++ lib.optional personal "tailscale"
+      ++ lib.optional personal "tailscale-app"
+      ++ lib.optional personal "balenaetcher"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
       # Not available in nixpkgs
