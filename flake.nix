@@ -14,7 +14,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     oktaws = {
-      url = "github:jonathanmorley/oktaws/master";
+      url = "github:jonathanmorley/oktaws";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
