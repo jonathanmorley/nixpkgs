@@ -59,7 +59,7 @@ in {
         else "\"${config.home.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\""
       );
     };
-    matchBlocks."*.cvent.*" = lib.mkIf cvent {
+    matchBlocks."!stash.cvent.net *.cvent.*" = lib.mkIf cvent {
       user = "jmorley";
       extraOptions.PreferredAuthentications = "password";
     };
