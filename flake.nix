@@ -110,7 +110,7 @@
           };
 
           # GitHub CI (x86_64)
-          "ci-x86_64-darwin" = nixpkgs.lib.makeOverridable self.darwinConfigurations."ci-aarch64-darwin".override {
+          "ci-x86_64-darwin" = (nixpkgs.lib.makeOverridable self.darwinConfigurations."ci-aarch64-darwin").override {
             system = "x86_64-darwin";
           };
 
@@ -129,8 +129,7 @@
           };
 
           # Personal iMac
-          "smoke" =
-            nixpkgs.lib.makeOverridable darwin.lib.darwinSystem
+          "smoke" = (nixpkgs.lib.makeOverridable darwin.lib.darwinSystem
             {
               inherit (nixpkgs) pkgs lib;
               specialArgs = {
@@ -140,9 +139,9 @@
                   "github.com" = keys.personal;
                 };
               };
-            }.override {
-              system = "x86_64-darwin";
-            };
+            }).override {
+            system = "x86_64-darwin";
+          };
         };
       };
     };
