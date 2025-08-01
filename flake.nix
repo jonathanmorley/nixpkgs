@@ -30,11 +30,13 @@
     flake-parts,
     ...
   }: let
-    mkDarwinSystem = {specialArgs, ...}:
+    mkDarwinSystem = {
+      system ? "aarch64-darwin",
+      specialArgs,
+      ...
+    }:
       darwin.lib.darwinSystem {
-        inherit specialArgs;
-
-        system = "aarch64-darwin";
+        inherit specialArgs system;
         modules =
           [
             ./nix-darwin
@@ -96,21 +98,18 @@
       flake = {
         darwinConfigurations = {
           # GitHub CI
-          "ci-aarch64-darwin" = mkDarwinSystem {
+          "ci-aarch64-darwin" = nixpkgs.lib.makeOverridable mkDarwinSystem {
             inherit (nixpkgs) pkgs lib;
-
             specialArgs = {
               inherit stateVersions;
               profiles = [];
               username = "runner";
-              sshKeys = {
-                "github.com" = "";
-              };
+              sshKeys."github.com" = "";
             };
           };
 
           # GitHub CI (x86_64)
-          "ci-x86_64-darwin" = (nixpkgs.lib.makeOverridable self.darwinConfigurations."ci-aarch64-darwin").override {
+          "ci-x86_64-darwin" = self.darwinConfigurations."ci-aarch64-darwin".override {
             system = "x86_64-darwin";
           };
 
@@ -129,18 +128,15 @@
           };
 
           # Personal iMac
-          "smoke" = (nixpkgs.lib.makeOverridable darwin.lib.darwinSystem
-            {
-              inherit (nixpkgs) pkgs lib;
-              specialArgs = {
-                profiles = ["personal"];
-                username = "jonathan";
-                sshKeys = {
-                  "github.com" = keys.personal;
-                };
-              };
-            }).override {
+          "smoke" = mkDarwinSystem {
+            inherit (nixpkgs) pkgs lib;
             system = "x86_64-darwin";
+            specialArgs = {
+              inherit stateVersions;
+              profiles = ["personal"];
+              username = "jonathan";
+              sshKeys."github.com" = keys.personal;
+            };
           };
         };
       };
