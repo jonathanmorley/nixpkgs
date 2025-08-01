@@ -1,5 +1,4 @@
-{ pkgs, ... }:
-let
+{pkgs, ...}: let
   netskopeCert = pkgs.writeText "netskope.crt" ''
     -----BEGIN CERTIFICATE-----
     MIID/DCCAuSgAwIBAgICATgwDQYJKoZIhvcNAQELBQAwgZcxCzAJBgNVBAYTAlVT

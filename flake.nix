@@ -30,48 +30,51 @@
     flake-parts,
     ...
   }: let
-    mkDarwinSystem = { specialArgs, ... }: darwin.lib.darwinSystem {
-      inherit specialArgs;
-      
-      system = "aarch64-darwin";
-      modules = [
-        ./nix-darwin
-        {
-          system.stateVersion = specialArgs.stateVersions.darwin;
-          system.primaryUser = specialArgs.username;
-        }
-        home-manager.darwinModules.home-manager {
-          nixpkgs = {
-            config.allowUnfree = true;
-            config.allowUnsupportedSystem = true;
-            overlays = [
-              (final: prev: {
-                # Custom packages
-                oktaws = oktaws.packages.${prev.system}.default;
-              })
-            ];
-          };
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            extraSpecialArgs = specialArgs;
-            users.${specialArgs.username} = {
-              imports = [
-                ./home
-                ./home/docker.nix
-                ./home/git.nix
-              ];
-              home = {
-                username = specialArgs.username;
-                homeDirectory = nixpkgs.lib.mkForce "/Users/${specialArgs.username}";
-                stateVersion = specialArgs.stateVersions.homeManager;
+    mkDarwinSystem = {specialArgs, ...}:
+      darwin.lib.darwinSystem {
+        inherit specialArgs;
+
+        system = "aarch64-darwin";
+        modules =
+          [
+            ./nix-darwin
+            {
+              system.stateVersion = specialArgs.stateVersions.darwin;
+              system.primaryUser = specialArgs.username;
+            }
+            home-manager.darwinModules.home-manager
+            {
+              nixpkgs = {
+                config.allowUnfree = true;
+                config.allowUnsupportedSystem = true;
+                overlays = [
+                  (final: prev: {
+                    # Custom packages
+                    oktaws = oktaws.packages.${prev.system}.default;
+                  })
+                ];
               };
-            };
-          };
-        }
-      ]
-      ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/netskope.nix;
-    };
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = specialArgs;
+                users.${specialArgs.username} = {
+                  imports = [
+                    ./home
+                    ./home/docker.nix
+                    ./home/git.nix
+                  ];
+                  home = {
+                    username = specialArgs.username;
+                    homeDirectory = nixpkgs.lib.mkForce "/Users/${specialArgs.username}";
+                    stateVersion = specialArgs.stateVersions.homeManager;
+                  };
+                };
+              };
+            }
+          ]
+          ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/netskope.nix;
+      };
 
     stateVersions = {
       darwin = "6";
@@ -84,7 +87,7 @@
       cventInternal = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBYpuJAHOyz9TwJiRis+0GdjO27MQUU2FoTLD/WQVuqi";
     };
   in
-    flake-parts.lib.mkFlake { inherit inputs; } {
+    flake-parts.lib.mkFlake {inherit inputs;} {
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
       perSystem = {pkgs, ...}: {
         formatter = pkgs.alejandra;
@@ -126,18 +129,20 @@
           };
 
           # Personal iMac
-          "smoke" = nixpkgs.lib.makeOverridable darwin.lib.darwinSystem {
-            inherit (nixpkgs) pkgs lib;
-            specialArgs = {
-              profiles = ["personal"];
-              username = "jonathan";
-              sshKeys = {
-                "github.com" = keys.personal;
+          "smoke" =
+            nixpkgs.lib.makeOverridable darwin.lib.darwinSystem
+            {
+              inherit (nixpkgs) pkgs lib;
+              specialArgs = {
+                profiles = ["personal"];
+                username = "jonathan";
+                sshKeys = {
+                  "github.com" = keys.personal;
+                };
               };
+            }.override {
+              system = "x86_64-darwin";
             };
-          }.override {
-            system = "x86_64-darwin";
-          };
         };
       };
     };
