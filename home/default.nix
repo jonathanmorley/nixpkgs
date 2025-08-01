@@ -144,7 +144,6 @@ in {
       python3
       rustup
     ]
-    ++ lib.optional personal tailscale
     ++ lib.optional cvent zoom-us;
 
   home.shellAliases = {
