@@ -17,8 +17,6 @@ in {
   environment.shells = [pkgs.zsh];
 
   environment.variables = {
-    DOCKER_HOST = "unix:///Users/jonathan/.colima/default/docker.sock";
-    NODE_EXTRA_CA_CERTS = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
     SSH_AUTH_SOCK = lib.mkIf cvent "/Users/jonathan/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
   };
 
@@ -33,6 +31,8 @@ in {
     onActivation.cleanup = "uninstall";
     casks =
       [
+        # Not available in nixpkgs
+        "eqmac"
         # The 1Password extension does not unlock with biometrics if FF is installed via nix
         "firefox"
         # Not available in nixpkgs
@@ -55,9 +55,6 @@ in {
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;
-  security.pki.certificateFiles = lib.optional cvent "/Library/Application Support/Netskope/STAgent/download/nscacert.pem";
-
-  system.stateVersion = 6;
 
   system.defaults = {
     ActivityMonitor.IconType = 5; # CPU Usage
