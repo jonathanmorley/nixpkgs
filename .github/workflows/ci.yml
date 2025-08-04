@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v17
+        uses: DeterminateSystems/determinate-nix-action@v3
       - name: Check Formatting
         run: nix fmt -- --check .
 
@@ -35,9 +35,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v17
-      with:
-        determinate: true
+      uses: DeterminateSystems/determinate-nix-action@v3
     - name: Cache Nix
       uses: cachix/cachix-action@v16
       with:
