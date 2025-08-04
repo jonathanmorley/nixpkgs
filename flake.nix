@@ -127,6 +127,17 @@
             };
           };
 
+          # Personal Macbook Air
+          "medusa" = mkDarwinSystem {
+            inherit (nixpkgs) pkgs lib;
+            specialArgs = {
+              inherit stateVersions;
+              profiles = ["personal"];
+              username = "jonathan";
+              sshKeys."github.com" = keys.personal;
+            };
+          };
+
           # Personal iMac
           "smoke" = mkDarwinSystem {
             inherit (nixpkgs) pkgs lib;

@@ -44,8 +44,13 @@ in {
       ]
       # https://github.com/NixOS/nixpkgs/issues/254944
       ++ lib.optional personal "1password"
+      # The GUI is not available in nixpkgs
+      ++ lib.optional personal "tailscale-app"
+      ++ lib.optional personal "balenaetcher"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-outlook"
+      # Not available in nixpkgs
+      ++ lib.optional personal "chrome-remote-desktop-host"
       # Not available in nixpkgs
       ++ lib.optional cvent "microsoft-excel";
     masApps = lib.mkIf cvent {
@@ -90,8 +95,11 @@ in {
       wvous-tr-corner = 4; # Desktop
     };
     finder.ShowPathbar = true;
-    trackpad.ActuationStrength = 0;
-    trackpad.FirstClickThreshold = 0;
+    trackpad = {
+      ActuationStrength = 0;
+      FirstClickThreshold = 0;
+      TrackpadRightClick = true;
+    };
   };
 
   system.keyboard = {
