@@ -125,7 +125,11 @@ in {
       dogdns
       du-dust
       duf
+      findutils
       gnugrep
+      gnutar
+      gzip
+      hex
       ipcalc
       mtr
       nil
