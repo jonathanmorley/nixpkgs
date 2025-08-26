@@ -98,9 +98,12 @@ in {
     trackpad = {
       ActuationStrength = 0;
       FirstClickThreshold = 0;
-      TrackpadRightClick = true;
     };
   };
+
+  # right clicking behaviour
+  system.defaults.trackpad.TrackpadRightClick = false;
+  system.defaults.NSGlobalDomain."com.apple.trackpad.trackpadCornerClickBehavior" = 1;
 
   system.keyboard = {
     enableKeyMapping = true;

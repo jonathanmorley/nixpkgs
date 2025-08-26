@@ -133,6 +133,7 @@ in {
       ipcalc
       mtr
       nil
+      obsidian
       oktaws
       openssl
       pkg-config-unwrapped
