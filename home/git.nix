@@ -121,8 +121,11 @@ in {
           "icapture-internal"
           "jifflenow-internal"
           "SHOFLO-internal"
+          "shoflo-internal"
           "socialtables-internal"
           "weddingspot-internal"
+          "JMorley_cvent"
+          "jmorley_cvent"
         ]
         ++ [
           # Stash
