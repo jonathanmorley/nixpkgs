@@ -53,6 +53,7 @@
                   (final: prev: {
                     # Custom packages
                     oktaws = oktaws.packages.${prev.system}.default;
+                    gig = prev.callPackage ./pkgs/gig {};
                   })
                 ];
               };

@@ -152,6 +152,11 @@ in {
   };
   programs.zsh.oh-my-zsh.plugins = ["gh" "git"];
 
-  home.packages = with pkgs; [gh gitify git-filter-repo];
+  home.packages = with pkgs; [
+    gig
+    gh
+    gitify
+    git-filter-repo
+  ];
   home.shellAliases.gls = ''${pkgs.git}/bin/git log --pretty='format:' --name-only | ${pkgs.gnugrep}/bin/grep -oP "^''$(${pkgs.git}/bin/git rev-parse --show-prefix)\K.*" | cut -d/ -f1 | sort -u'';
 }
