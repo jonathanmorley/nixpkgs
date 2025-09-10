@@ -98,12 +98,20 @@ in {
     trackpad = {
       ActuationStrength = 0;
       FirstClickThreshold = 0;
-      TrackpadRightClick = true;
     };
   };
+
+  # right clicking behaviour (bottom right corner)
+  system.defaults.trackpad.TrackpadRightClick = false;
+  system.defaults.NSGlobalDomain."com.apple.trackpad.trackpadCornerClickBehavior" = 1;
 
   system.keyboard = {
     enableKeyMapping = true;
     remapCapsLockToControl = true;
   };
+
+  system.activationScripts.extraActivation.text = ''
+    # Force reload of preference cache to apply trackpad settings
+    killall cfprefsd 2>/dev/null || true
+  '';
 }

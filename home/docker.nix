@@ -52,6 +52,7 @@
     source = (pkgs.formats.yaml {}).generate "default.yaml" {
       runtime = "docker";
       vmType = "vz";
+      memory = 16;
       rosetta = true;
       network.address = true;
       mounts = [
