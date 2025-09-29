@@ -37,10 +37,12 @@ in {
         "firefox"
         # Not available in nixpkgs
         "lulu"
+        "ollama-app" # For running local AI models
         # Not available in nixpkgs
         "oversight"
         # https://github.com/warpdotdev/Warp/issues/1991
         "warp"
+        "visual-studio-code@insiders"
       ]
       # https://github.com/NixOS/nixpkgs/issues/254944
       ++ lib.optional personal "1password"
@@ -104,6 +106,12 @@ in {
   # right clicking behaviour (bottom right corner)
   system.defaults.trackpad.TrackpadRightClick = false;
   system.defaults.NSGlobalDomain."com.apple.trackpad.trackpadCornerClickBehavior" = 1;
+
+  # disable pinch-to-zoom
+  # This doesnt take effect, even after restarting the dock
+  system.defaults.CustomUserPreferences = {
+    "com.apple.AppleMultitouchTrackpad".TrackpadPinch = 0;
+  };
 
   system.keyboard = {
     enableKeyMapping = true;
