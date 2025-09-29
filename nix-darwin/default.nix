@@ -42,7 +42,10 @@ in {
         "oversight"
         # https://github.com/warpdotdev/Warp/issues/1991
         "warp"
+        # Insiders is not available in nixpkgs
         "visual-studio-code@insiders"
+        # Cannot allow screensharing with nix package
+        "zoom"
       ]
       # https://github.com/NixOS/nixpkgs/issues/254944
       ++ lib.optional personal "1password"

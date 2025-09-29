@@ -144,7 +144,6 @@ in {
       slack
       tree
       unixtools.watch
-      zoom-us
     ]
     # Languages / Package Managers
     ++ [
