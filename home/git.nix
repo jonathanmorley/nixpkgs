@@ -14,6 +14,7 @@ in {
   programs.git = {
     enable = true;
     delta.enable = true;
+    lfs.enable = true;
     userName = "Jonathan Morley";
     userEmail =
       if cvent
@@ -112,18 +113,8 @@ in {
             };
           }
         ]) [
-          "cvent-internal"
-          "cvent-archive-internal"
-          "cvent-incubator-internal"
-          "cvent-forks-internal"
-          "cvent-test-internal"
+          "*-internal"
           "enabling-services"
-          "icapture-internal"
-          "jifflenow-internal"
-          "SHOFLO-internal"
-          "shoflo-internal"
-          "socialtables-internal"
-          "weddingspot-internal"
           "JMorley_cvent"
           "jmorley_cvent"
         ]

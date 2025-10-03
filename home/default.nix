@@ -119,6 +119,7 @@ in {
   # Tools
     [
       amazon-ecr-credential-helper
+      claude-code
       coreutils
       dasel
       disk-inventory-x
@@ -131,25 +132,25 @@ in {
       gzip
       hex
       ipcalc
+      mitmproxy
       mtr
       nil
       obsidian
       oktaws
+      ollama
       openssl
       pkg-config-unwrapped
       raycast
       slack
       tree
       unixtools.watch
-      vscode
     ]
     # Languages / Package Managers
     ++ [
       nodejs
       python3
       rustup
-    ]
-    ++ lib.optional cvent zoom-us;
+    ];
 
   home.shellAliases = {
     cat = "${pkgs.bat}/bin/bat";
@@ -157,11 +158,19 @@ in {
   };
 
   home.sessionVariables = {
-    PKG_CONFIG_PATH = lib.strings.makeSearchPathOutput "dev" "lib/pkgconfig" [
+    PKG_CONFIG_PATH = lib.strings.makeSearchPathOutput "dev" "lib/pkgconfig" (with pkgs; [
       # For compiling ruby
-      pkgs.libyaml
-      pkgs.openssl
-    ];
+      libyaml
+      openssl
+      # For building the `canvas` npm package
+      pixman
+      cairo
+      libpng
+      pango
+      glib
+      harfbuzz
+      freetype
+    ]);
     # Adapted from batman --export-env
     MANPAGER = "env BATMAN_IS_BEING_MANPAGER=yes ${pkgs.bat-extras.batman}/bin/batman";
     MANROFFOPT = "-c";
