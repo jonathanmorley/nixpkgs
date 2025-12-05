@@ -11,15 +11,13 @@
     rev = "8779ee73af62c669e7ca371aaab8399d87127693";
   };
 in {
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+  };
   programs.git = {
     enable = true;
-    delta.enable = true;
     lfs.enable = true;
-    userName = "Jonathan Morley";
-    userEmail =
-      if cvent
-      then "jmorley@cvent.com"
-      else "morley.jonathan@gmail.com";
     signing = {
       format = "ssh";
       key = specialArgs.sshKeys."github.com";
@@ -29,8 +27,16 @@ in {
       if pkgs.stdenv.isDarwin
       then "macOS"
       else "Linux"
-    }.gitignore");
-    extraConfig = {
+    }.gitignore") ++ [
+      ".claude/settings.local.json"
+    ];
+    settings = {
+      user = {
+        name = "Jonathan Morley";
+        email = if cvent
+          then "jmorley@cvent.com"
+          else "morley.jonathan@gmail.com";
+      };
       # Some from https://blog.gitbutler.com/how-git-core-devs-configure-git/
       branch.sort = "-committerdate";
       column.ui = "auto";

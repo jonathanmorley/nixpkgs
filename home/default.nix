@@ -50,8 +50,19 @@ in {
   programs.ripgrep.enable = true;
   programs.ssh = {
     enable = true;
-    hashKnownHosts = true;
+    enableDefaultConfig = false;
     matchBlocks."*" = {
+      forwardAgent = false;
+      addKeysToAgent = "no";
+      compression = false;
+      serverAliveInterval = 0;
+      serverAliveCountMax = 3;
+      userKnownHostsFile = "~/.ssh/known_hosts";
+      controlMaster = "no";
+      controlPath = "~/.ssh/master-%r@%n:%p";
+      controlPersist = "no";
+
+      hashKnownHosts = true;
       identityFile = lib.mkIf (builtins.hasAttr "ssh" specialArgs.sshKeys) (builtins.toFile "ssh.pub" specialArgs.sshKeys."ssh");
       extraOptions.IdentityAgent = lib.mkIf pkgs.stdenv.isDarwin (
         if cvent
@@ -96,7 +107,7 @@ in {
   };
   programs.zsh = {
     enable = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.xdg.configHome}/zsh";
     history.path = "${config.xdg.dataHome}/zsh/zsh_history";
     autosuggestion.enable = true;
     enableCompletion = true;
@@ -119,12 +130,11 @@ in {
   # Tools
     [
       amazon-ecr-credential-helper
-      claude-code
       coreutils
       dasel
       disk-inventory-x
       dogdns
-      du-dust
+      dust
       duf
       findutils
       gnugrep
@@ -139,6 +149,8 @@ in {
       oktaws
       ollama
       openssl
+      openconnect
+      postgresql
       pkg-config-unwrapped
       raycast
       slack
@@ -148,8 +160,11 @@ in {
     # Languages / Package Managers
     ++ [
       nodejs
+      pnpm
       python3
+      poetry
       rustup
+      uv
     ];
 
   home.shellAliases = {
