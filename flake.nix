@@ -18,6 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
   outputs = inputs @ {
@@ -54,6 +55,7 @@
                     # Custom packages
                     oktaws = oktaws.packages.${prev.system}.default;
                     gig = prev.callPackage ./pkgs/gig {};
+                    bat = nixpkgs-unstable.legacyPackages.${prev.system}.bat; # To get 0.26.1
                   })
                 ];
               };
@@ -91,10 +93,13 @@
     };
   in
     flake-parts.lib.mkFlake {inherit inputs;} {
-      systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
-      perSystem = {pkgs, ...}: {
-        formatter = pkgs.alejandra;
-      };
+      imports = [./treefmt.nix];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
 
       flake = {
         darwinConfigurations = {

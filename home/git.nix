@@ -23,17 +23,20 @@ in {
       key = specialArgs.sshKeys."github.com";
       signByDefault = true;
     };
-    ignores = lib.splitString "\n" (builtins.readFile "${gitignores}/Global/${
-      if pkgs.stdenv.isDarwin
-      then "macOS"
-      else "Linux"
-    }.gitignore") ++ [
-      ".claude/settings.local.json"
-    ];
+    ignores =
+      lib.splitString "\n" (builtins.readFile "${gitignores}/Global/${
+        if pkgs.stdenv.isDarwin
+        then "macOS"
+        else "Linux"
+      }.gitignore")
+      ++ [
+        ".claude/settings.local.json"
+      ];
     settings = {
       user = {
         name = "Jonathan Morley";
-        email = if cvent
+        email =
+          if cvent
           then "jmorley@cvent.com"
           else "morley.jonathan@gmail.com";
       };
