@@ -3,45 +3,29 @@ name: CI
 on:
   pull_request:
     branches: [main]
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
-  formatting:
-    name: Check Formatting
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Nix
-        uses: DeterminateSystems/determinate-nix-action@v3
-      - name: Check Formatting
-        run: nix fmt -- --check .
-
   build:
     strategy:
       matrix:
-        platform:
-          - x86_64-darwin
-          - aarch64-darwin
         include:
-          - platform: x86_64-darwin
-            # this is the last intel runner, needed for smoke
-            runner: macos-13
-          - platform: aarch64-darwin
-            # actually the latest arm64 runner
-            runner: macos-latest
+          - runner: macos-latest
+            system: aarch64-darwin
     runs-on: ${{ matrix.runner }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    - name: Install Nix
-      uses: DeterminateSystems/determinate-nix-action@v3
-    - name: Cache Nix
-      uses: cachix/cachix-action@v16
-      with:
-        name: jonathanmorley
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-    - name: Remove files that will be replaced by nix-darwin
-      run: sudo rm /etc/shells
-    - name: Switch to nix-darwin ci env
-      run: sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.platform }}
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: DeterminateSystems/flake-checker-action@3164002371bc90729c68af0e24d5aacf20d7c9f6 # v12
+      - uses: DeterminateSystems/determinate-nix-action@9a921d81e9a16a9ad8423a63a7b31deb601139a6 # v3.14.0
+      - name: Cache Nix
+        uses: cachix/cachix-action@v16
+        with:
+          name: jonathanmorley
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Remove files that will be replaced by nix-darwin
+        run: sudo rm /etc/shells /etc/zshenv
+      - name: Nix Check
+        run: nix flake check --print-build-logs --no-update-lock-file
+      - name: Switch to nix-darwin ci env
+        run: sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}

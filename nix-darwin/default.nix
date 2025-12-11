@@ -31,6 +31,7 @@ in {
     onActivation.cleanup = "uninstall";
     casks =
       [
+        "claude-code"
         # Not available in nixpkgs
         "eqmac"
         # The 1Password extension does not unlock with biometrics if FF is installed via nix

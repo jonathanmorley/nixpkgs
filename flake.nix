@@ -2,15 +2,15 @@
   description = "Jonathan's Configurations";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-25.05-darwin";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-25.11-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     darwin = {
-      url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+      url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     oktaws = {
@@ -18,6 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-parts.url = "github:hercules-ci/flake-parts";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
   outputs = inputs @ {
@@ -54,6 +55,7 @@
                     # Custom packages
                     oktaws = oktaws.packages.${prev.system}.default;
                     gig = prev.callPackage ./pkgs/gig {};
+                    bat = nixpkgs-unstable.legacyPackages.${prev.system}.bat; # To get 0.26.1
                   })
                 ];
               };
@@ -81,7 +83,7 @@
 
     stateVersions = {
       darwin = "6";
-      homeManager = "25.05";
+      homeManager = "25.11";
     };
 
     keys = {
@@ -91,10 +93,13 @@
     };
   in
     flake-parts.lib.mkFlake {inherit inputs;} {
-      systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
-      perSystem = {pkgs, ...}: {
-        formatter = pkgs.alejandra;
-      };
+      imports = [./treefmt.nix];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
 
       flake = {
         darwinConfigurations = {

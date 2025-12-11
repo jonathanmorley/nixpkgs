@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-  netskopeCert = pkgs.writeText "netskope.crt" ''
+  netskopeCert = ''
     -----BEGIN CERTIFICATE-----
     MIID/DCCAuSgAwIBAgICATgwDQYJKoZIhvcNAQELBQAwgZcxCzAJBgNVBAYTAlVT
     MQswCQYDVQQIEwJDQTEUMBIGA1UEBxMLU2FudGEgQ2xhcmExFjAUBgNVBAoTDU5l
@@ -25,7 +25,10 @@
     tLom62fi7946+fyBmEPu5w==
     -----END CERTIFICATE-----
   '';
+  netskopeCertFile = pkgs.writeText "netskope.crt" netskopeCert;
 in {
-  environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCert}";
-  security.pki.certificateFiles = ["${netskopeCert}"];
+  nix.settings.ssl-cert-file = "${netskopeCertFile}";
+  environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCertFile}";
+  environment.variables.REQUESTS_CA_BUNDLE = "${netskopeCertFile}";
+  security.pki.certificates = [netskopeCert];
 }
