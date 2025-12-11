@@ -24,7 +24,7 @@ jobs:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Remove files that will be replaced by nix-darwin
-        run: sudo rm /etc/shells
+        run: sudo rm /etc/shells /etc/zshenv
       - name: Nix Check
         run: nix flake check --print-build-logs --no-update-lock-file
       - name: Switch to nix-darwin ci env
