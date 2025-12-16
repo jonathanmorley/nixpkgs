@@ -31,4 +31,4 @@ jobs:
         run: sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}
         env:
           # Provide GitHub token for avoiding rate limits
-          NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"
+          NIX_CONFIG: "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }} api.github.com=${{ secrets.GITHUB_TOKEN }}"
