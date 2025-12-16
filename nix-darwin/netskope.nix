@@ -27,8 +27,7 @@
   '';
   netskopeCertFile = pkgs.writeText "netskope.crt" netskopeCert;
 in {
-  nix.settings.ssl-cert-file = "${netskopeCertFile}";
+  security.pki.certificates = [netskopeCert];
   environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCertFile}";
   environment.variables.REQUESTS_CA_BUNDLE = "${netskopeCertFile}";
-  security.pki.certificates = [netskopeCert];
 }

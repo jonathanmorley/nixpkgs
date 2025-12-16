@@ -12,6 +12,13 @@ in {
   # Nix configuration
   nix.enable = false;
 
+  # Manually write custom settings to the designated file
+  environment.etc."nix/nix.custom.conf".text = ''
+    # Your custom Nix configuration settings go here
+    extra-experimental-features = ca-derivations impure-derivations
+    trusted-users = ${specialArgs.username}
+  '';
+
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
   environment.shells = [pkgs.zsh];
