@@ -17,6 +17,9 @@ in {
     # Your custom Nix configuration settings go here
     extra-experimental-features = ca-derivations impure-derivations
     trusted-users = ${specialArgs.username}
+
+    extra-substituters = https://nix-community.cachix.org https://jonathanmorley.cachix.org
+    extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=
   '';
 
   environment.pathsToLink = ["/share/zsh"];

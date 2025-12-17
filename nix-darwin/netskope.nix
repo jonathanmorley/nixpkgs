@@ -26,8 +26,11 @@
     -----END CERTIFICATE-----
   '';
   netskopeCertFile = pkgs.writeText "netskope.crt" netskopeCert;
+  netskopeCombined = builtins.readFile "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt" + "\n" + netskopeCert;
+  netskopeCombinedFile = pkgs.writeText "netskope-combined.crt" netskopeCombined;
 in {
   security.pki.certificates = [netskopeCert];
   environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCertFile}";
   environment.variables.REQUESTS_CA_BUNDLE = "${netskopeCertFile}";
+  environment.variables.SSL_CERT_FILE = "${netskopeCombinedFile}";
 }
