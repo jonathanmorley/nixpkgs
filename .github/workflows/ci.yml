@@ -14,6 +14,9 @@ jobs:
           - runner: macos-latest
             system: aarch64-darwin
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: DeterminateSystems/flake-checker-action@3164002371bc90729c68af0e24d5aacf20d7c9f6 # v12
@@ -25,6 +28,10 @@ jobs:
         with:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - name: Show custom nix config
+        run: |
+          nix show-config
+          cat /etc/nix/nix.custom.conf
       - name: Remove files that will be replaced by nix-darwin
         run: sudo rm /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
       - name: Nix Check
