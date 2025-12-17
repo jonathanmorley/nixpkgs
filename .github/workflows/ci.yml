@@ -28,13 +28,11 @@ jobs:
         with:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Show custom nix config
-        run: |
-          nix show-config
-          cat /etc/nix/nix.custom.conf
-      - name: Remove files that will be replaced by nix-darwin
-        run: sudo rm /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
+      - name: Nix Build
+        run: nix run nix-darwin -- build --flake ${{ github.workspace }}#ci-${{ matrix.system }}
       - name: Nix Check
         run: nix flake check --print-build-logs --no-update-lock-file
+      - name: Remove files that will be replaced by nix-darwin
+        run: sudo rm /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
       - name: Switch to nix-darwin ci env
         run: sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}
