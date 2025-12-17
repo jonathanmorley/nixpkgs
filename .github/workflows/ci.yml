@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  nix:
     strategy:
       matrix:
         include:
@@ -23,16 +23,17 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@9a921d81e9a16a9ad8423a63a7b31deb601139a6 # v3.14.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Cache Nix
+      - name: Set up Cachix
         uses: cachix/cachix-action@v16
         with:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Nix Build
-        run: nix run nix-darwin -- build --flake ${{ github.workspace }}#ci-${{ matrix.system }}
-      - name: Nix Check
+      - name: Check
         run: nix flake check --print-build-logs --no-update-lock-file
-      - name: Remove files that will be replaced by nix-darwin
-        run: sudo rm /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
-      - name: Switch to nix-darwin ci env
-        run: sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}
+      - name: Build
+        run: nix run nix-darwin -- build --flake ${{ github.workspace }}#ci-${{ matrix.system }}
+      - name: Switch
+        run: |
+          # Remove files that will be replaced by nix-darwin
+          sudo rm /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
+          sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}
