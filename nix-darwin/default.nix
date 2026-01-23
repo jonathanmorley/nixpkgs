@@ -46,6 +46,8 @@ in {
         "eqmac"
         # The 1Password extension does not unlock with biometrics if FF is installed via nix
         "firefox"
+        # Not available in nixpkgs. Beta for Tahoe compatability
+        "jordanbaird-ice@beta"
         # Not available in nixpkgs
         "lulu"
         "ollama-app" # For running local AI models

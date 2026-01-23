@@ -35,6 +35,13 @@ in {
     enableBashIntegration = false;
     enableZshIntegration = false;
   };
+  programs.rbw = {
+    enable = true;
+    settings = {
+      email = "jmorley@cvent.com";
+      pinentry = pkgs.pinentry-curses;
+    };
+  };
   programs.ripgrep.enable = true;
   programs.ssh = {
     enable = true;
@@ -104,6 +111,16 @@ in {
       export PATH="''${PATH}:''${HOME}/.cargo/bin"
        # We want shims so that commands executed without a shell still use mise
       eval "$(${lib.getExe pkgs.mise} activate --shims zsh)"
+      ${lib.optionalString cvent ''
+        # Fetch GitHub token from Bitwarden via rbw
+        export GITHUB_PAT="$(${config.programs.rbw.package}/bin/rbw get 'GitHub Token')"
+
+        # Fetch Jira token from Bitwarden via rbw
+        export JIRA_PAT="$(${config.programs.rbw.package}/bin/rbw get 'Jira Token')"
+
+        # Fetch Confluence token from Bitwarden via rbw
+        export CONFLUENCE_PAT="$(${config.programs.rbw.package}/bin/rbw get 'Confluence Token')"
+      ''}
     '';
     oh-my-zsh = {
       enable = true;
@@ -144,15 +161,6 @@ in {
       slack
       tree
       unixtools.watch
-    ]
-    # Languages / Package Managers
-    ++ [
-      nodejs
-      pnpm
-      python3
-      poetry
-      rustup
-      uv
     ];
 
   home.shellAliases = {
