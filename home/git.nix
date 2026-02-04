@@ -159,4 +159,24 @@ in {
     git-filter-repo
   ];
   home.shellAliases.gls = ''${pkgs.git}/bin/git log --pretty='format:' --name-only | ${pkgs.gnugrep}/bin/grep -oP "^''$(${pkgs.git}/bin/git rev-parse --show-prefix)\K.*" | cut -d/ -f1 | sort -u'';
+  home.shellAliases.gcl = ''
+    f() {
+      local url="$1"
+      local org repo target
+      # Handle SSH URLs: git@github.com:org/repo.git
+      if [[ "$url" =~ ^git@github\.com:([^/]+)/([^/]+)(\.git)?$ ]]; then
+        org="''${match[1]}"
+        repo="''${match[2]%.git}"
+      # Handle HTTPS URLs: https://github.com/org/repo.git
+      elif [[ "$url" =~ ^https://github\.com/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
+        org="''${match[1]}"
+        repo="''${match[2]%.git}"
+      else
+        echo "Error: Could not parse GitHub URL: $url" >&2
+        return 1
+      fi
+      target="$HOME/Developer/$org/$repo"
+      mkdir -p "$HOME/Developer/$org"
+      ${pkgs.git}/bin/git clone "$url" "$target" && cd "$target"
+    }; f'';
 }

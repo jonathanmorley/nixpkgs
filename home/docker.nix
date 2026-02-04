@@ -53,6 +53,8 @@
       runtime = "docker";
       vmType = "vz";
       memory = 16;
+      disk = 100;
+      rootDisk = 100;
       rosetta = true;
       network.address = true;
       mounts = [
