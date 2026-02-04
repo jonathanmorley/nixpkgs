@@ -39,7 +39,7 @@ in {
     enable = true;
     settings = {
       email = "jmorley@cvent.com";
-      pinentry = pkgs.pinentry-curses;
+      pinentry = pkgs.pinentry-tty;
     };
   };
   programs.ripgrep.enable = true;
