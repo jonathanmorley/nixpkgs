@@ -39,8 +39,14 @@ in {
   homebrew = {
     enable = true;
     onActivation.cleanup = "uninstall";
+    taps = [
+      "didhd/tap"
+    ];
     casks =
       [
+        # Not available in nixpkgs
+        "didhd/tap/amazon-bedrock-client"
+        # Stay on latest better
         "claude-code"
         # Not available in nixpkgs
         "eqmac"
