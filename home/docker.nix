@@ -18,6 +18,9 @@
     ]
     ++ lib.optional pkgs.stdenv.isDarwin colima;
 
+  # For those tools that don't use the current docker profile.
+  home.sessionVariables.DOCKER_HOST = "unix://${config.home.homeDirectory}/.colima/default/docker.sock";
+
   # Copy the docker config so that docker login can write to it.
   # We can't use `mkOutOfStoreSymlink` because it may contain secrets we don't want to accidentally commit.
   home.activation.writeDockerConfig = let

@@ -32,7 +32,7 @@
   netskopeCombinedFile = pkgs.writeText "netskope-combined.crt" netskopeCombined;
 in {
   security.pki.certificates = [netskopeCert];
-  environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCertFile}";
+  environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCombinedFile}";
   environment.variables.AWS_CA_BUNDLE = "${netskopeCombinedFile}";
   environment.variables.CURL_CA_BUNDLE = "${netskopeCombinedFile}";
   environment.variables.REQUESTS_CA_BUNDLE = "${netskopeCombinedFile}";

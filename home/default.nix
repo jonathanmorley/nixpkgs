@@ -113,7 +113,7 @@ in {
       eval "$(${lib.getExe pkgs.mise} activate --shims zsh)"
       ${lib.optionalString cvent ''
         # Fetch GitHub token from Bitwarden via rbw
-        export GITHUB_PAT="$(${config.programs.rbw.package}/bin/rbw get 'GitHub Token')"
+        export GITHUB_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'GitHub Token')"
 
         # Fetch Jira token from Bitwarden via rbw
         export JIRA_PAT="$(${config.programs.rbw.package}/bin/rbw get 'Jira Token')"
@@ -161,6 +161,9 @@ in {
       slack
       tree
       unixtools.watch
+    ] ++ [
+      # Just to satisfy Zencoder's need for npx
+      nodejs
     ];
 
   home.shellAliases = {
