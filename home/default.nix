@@ -161,7 +161,8 @@ in {
       slack
       tree
       unixtools.watch
-    ] ++ [
+    ]
+    ++ [
       # Just to satisfy Zencoder's need for npx
       nodejs
     ];
