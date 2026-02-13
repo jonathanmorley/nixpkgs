@@ -95,11 +95,10 @@ in {
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
     dock = {
       dashboard-in-overlay = true;
-      persistent-apps =
-        [
-          "/Applications/Warp.app"
-          "/Applications/Firefox.app"
-        ];
+      persistent-apps = [
+        "/Applications/Warp.app"
+        "/Applications/Firefox.app"
+      ];
       show-recents = false;
       wvous-bl-corner = 5; # Start Screen Saver
       wvous-br-corner = 13; # Lock Screen
