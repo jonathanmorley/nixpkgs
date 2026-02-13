@@ -78,6 +78,7 @@
               };
             }
           ]
+          ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/cvent.nix
           ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/netskope.nix;
       };
 

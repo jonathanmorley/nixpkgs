@@ -7,7 +7,6 @@
   ...
 }: let
   personal = builtins.elem "personal" specialArgs.profiles;
-  cvent = builtins.elem "cvent" specialArgs.profiles;
 in {
   # Nix configuration
   nix.enable = false;
@@ -25,10 +24,6 @@ in {
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
   environment.shells = [pkgs.zsh];
-
-  environment.variables = {
-    SSH_AUTH_SOCK = lib.mkIf cvent "/Users/jonathan/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
-  };
 
   fonts.packages = [pkgs.nerd-fonts.fira-code];
 
@@ -48,15 +43,18 @@ in {
         "didhd/tap/amazon-bedrock-client"
         # Stay on latest better
         "claude-code"
+        # Stay on latest better
+        "copilot-cli"
         # Not available in nixpkgs
         "eqmac"
         # The 1Password extension does not unlock with biometrics if FF is installed via nix
         "firefox"
-        # Not available in nixpkgs. Beta for Tahoe compatability
+        # ice-bar is still at 0.11.12. brew beta or 0.11.13 needed for Tahoe compatability
         "jordanbaird-ice@beta"
         # Not available in nixpkgs
         "lulu"
-        "ollama-app" # For running local AI models
+        # For running local AI models
+        "ollama-app"
         # Not available in nixpkgs
         "oversight"
         # https://github.com/warpdotdev/Warp/issues/1991
@@ -72,15 +70,7 @@ in {
       ++ lib.optional personal "tailscale-app"
       ++ lib.optional personal "balenaetcher"
       # Not available in nixpkgs
-      ++ lib.optional cvent "microsoft-outlook"
-      # Not available in nixpkgs
-      ++ lib.optional personal "chrome-remote-desktop-host"
-      # Not available in nixpkgs
-      ++ lib.optional cvent "microsoft-excel";
-    masApps = lib.mkIf cvent {
-      # The firefox extension doesnt unlock with biometrics if bitwarden is installed any other way
-      "bitwarden" = 1352778147;
-    };
+      ++ lib.optional personal "chrome-remote-desktop-host";
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;
@@ -109,9 +99,7 @@ in {
         [
           "/Applications/Warp.app"
           "/Applications/Firefox.app"
-        ]
-        ++ lib.optional cvent "${pkgs.slack}/Applications/Slack.app"
-        ++ lib.optional cvent "/Applications/Microsoft Outlook.app";
+        ];
       show-recents = false;
       wvous-bl-corner = 5; # Start Screen Saver
       wvous-br-corner = 13; # Lock Screen
