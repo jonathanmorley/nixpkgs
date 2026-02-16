@@ -1,4 +1,10 @@
-{pkgs, ...}: let
+# See https://daiderd.com/nix-darwin/manual/index.html#sec-options
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
   netskopeCert = ''
     -----BEGIN CERTIFICATE-----
     MIIEXDCCA0SgAwIBAgIUEiG7Zru2Uzu2s5iMw638xzylDFIwDQYJKoZIhvcNAQEL
@@ -27,14 +33,38 @@
     T/noKStI+zeCvbtHu9g1xA==
     -----END CERTIFICATE-----
   '';
-  netskopeCertFile = pkgs.writeText "netskope.crt" netskopeCert;
   netskopeCombined = builtins.readFile "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt" + "\n" + netskopeCert;
   netskopeCombinedFile = pkgs.writeText "netskope-combined.crt" netskopeCombined;
 in {
+  environment.variables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
+
+  # Netskope proxy certificate
   security.pki.certificates = [netskopeCert];
   environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCombinedFile}";
   environment.variables.AWS_CA_BUNDLE = "${netskopeCombinedFile}";
   environment.variables.CURL_CA_BUNDLE = "${netskopeCombinedFile}";
   environment.variables.REQUESTS_CA_BUNDLE = "${netskopeCombinedFile}";
   environment.variables.SSL_CERT_FILE = "${netskopeCombinedFile}";
+
+  # Any brews/casks MUST be justified as to why they are
+  # not being installed as a nix package.
+  homebrew = {
+    casks = [
+      # Not available in nixpkgs
+      "microsoft-outlook"
+      # Not available in nixpkgs
+      "microsoft-excel"
+    ];
+    masApps = {
+      # The firefox extension doesnt unlock with biometrics if bitwarden is installed any other way
+      "bitwarden" = 1352778147;
+    };
+  };
+
+  system.defaults.dock.persistent-apps = [
+    "${pkgs.slack}/Applications/Slack.app"
+    "/Applications/Microsoft Outlook.app"
+  ];
+
+  home-manager.users.${config.system.primaryUser}.programs.ssh.matchBlocks."*".extraOptions.IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
 }

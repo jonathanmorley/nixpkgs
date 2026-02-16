@@ -40,7 +40,8 @@
         inherit specialArgs system;
         modules =
           [
-            ./nix-darwin
+            ./modules/darwin.nix
+            ./modules/ai/darwin.nix
             {
               system.stateVersion = specialArgs.stateVersions.darwin;
               system.primaryUser = specialArgs.username;
@@ -64,11 +65,14 @@
                 useUserPackages = true;
                 extraSpecialArgs = specialArgs;
                 users.${specialArgs.username} = {
-                  imports = [
-                    ./home
-                    ./home/docker.nix
-                    ./home/git.nix
-                  ];
+                  imports =
+                    [
+                      ./modules/home.nix
+                      ./modules/ai/home.nix
+                      ./modules/docker/home.nix
+                      ./modules/git/home.nix
+                    ]
+                    ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./modules/cvent/home.nix;
                   home = {
                     username = specialArgs.username;
                     homeDirectory = nixpkgs.lib.mkForce "/Users/${specialArgs.username}";
@@ -78,8 +82,8 @@
               };
             }
           ]
-          ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/cvent.nix
-          ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./nix-darwin/netskope.nix;
+          ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./modules/cvent/darwin.nix
+          ++ nixpkgs.lib.optional (builtins.elem "personal" specialArgs.profiles) ./modules/personal/darwin.nix;
       };
 
     stateVersions = {

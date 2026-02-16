@@ -35,5 +35,5 @@ jobs:
       - name: Switch
         run: |
           # Remove files that will be replaced by nix-darwin
-          sudo rm /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
+          sudo rm -f /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
           sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}

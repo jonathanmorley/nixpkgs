@@ -3,7 +3,6 @@
   pkgs,
   lib,
   config,
-  specialArgs,
   ...
 }: {
   home.packages = with pkgs;
@@ -14,7 +13,7 @@
       docker-client
       (writeShellScriptBin "docker-credential-gh" ''
         echo "{\"Username\":\"JMorley_cvent\",\"Secret\":\"$(${lib.getExe pkgs.gh} auth token --user JMorley_cvent)\"}"
-      '')
+      '') # writeShellScriptBin needed here: docker looks up credential helpers by name on PATH
     ]
     ++ lib.optional pkgs.stdenv.isDarwin colima;
 
@@ -72,8 +71,8 @@
           writable = true;
         }
         {
-          location = "/Users/${specialArgs.username}";
-          mountPoint = "/Users/${specialArgs.username}";
+          location = config.home.homeDirectory;
+          mountPoint = config.home.homeDirectory;
           writable = true;
         }
       ];
