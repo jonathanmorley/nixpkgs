@@ -126,20 +126,9 @@ in {
           "enabling-services"
           "JMorley_cvent"
           "jmorley_cvent"
-        ]
-        ++ [
-          # Stash
-          {
-            condition = "hasconfig:remote.*.url:ssh://git@*.cvent.*/**";
-            contents.user.signingKey = specialArgs.sshKeys.cvent;
-          }
         ]);
   };
   programs.ssh = {
-    matchBlocks."stash.cvent.net" = lib.mkIf cvent {
-      identitiesOnly = true;
-      identityFile = builtins.toFile "cvent.pub" specialArgs.sshKeys.cvent;
-    };
     matchBlocks."github.com" = {
       identitiesOnly = true;
       identityFile = builtins.toFile "github.com.pub" specialArgs.sshKeys."github.com";
