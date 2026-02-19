@@ -17,6 +17,7 @@
       url = "github:jonathanmorley/oktaws/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
@@ -31,60 +32,10 @@
     flake-parts,
     ...
   }: let
-    mkDarwinSystem = {
-      system ? "aarch64-darwin",
-      specialArgs,
-      ...
-    }:
-      darwin.lib.darwinSystem {
-        inherit specialArgs system;
-        modules =
-          [
-            ./modules/darwin.nix
-            ./modules/ai/darwin.nix
-            {
-              system.stateVersion = specialArgs.stateVersions.darwin;
-              system.primaryUser = specialArgs.username;
-            }
-            home-manager.darwinModules.home-manager
-            {
-              nixpkgs = {
-                config.allowUnfree = true;
-                config.allowUnsupportedSystem = true;
-                overlays = [
-                  (final: prev: {
-                    # Custom packages
-                    oktaws = oktaws.packages.${prev.system}.default;
-                    gig = prev.callPackage ./pkgs/gig {};
-                    bat = nixpkgs-unstable.legacyPackages.${prev.system}.bat; # To get 0.26.1
-                  })
-                ];
-              };
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = specialArgs;
-                users.${specialArgs.username} = {
-                  imports =
-                    [
-                      ./modules/home.nix
-                      ./modules/ai/home.nix
-                      ./modules/docker/home.nix
-                      ./modules/git/home.nix
-                    ]
-                    ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./modules/cvent/home.nix;
-                  home = {
-                    username = specialArgs.username;
-                    homeDirectory = nixpkgs.lib.mkForce "/Users/${specialArgs.username}";
-                    stateVersion = specialArgs.stateVersions.homeManager;
-                  };
-                };
-              };
-            }
-          ]
-          ++ nixpkgs.lib.optional (builtins.elem "cvent" specialArgs.profiles) ./modules/cvent/darwin.nix
-          ++ nixpkgs.lib.optional (builtins.elem "personal" specialArgs.profiles) ./modules/personal/darwin.nix;
-      };
+    mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
+      inherit darwin home-manager nixpkgs nixpkgs-unstable oktaws;
+      inherit (inputs) determinate;
+    };
 
     stateVersions = {
       darwin = "6";
@@ -100,16 +51,14 @@
     flake-parts.lib.mkFlake {inherit inputs;} {
       imports = [./treefmt.nix];
       systems = [
-        "x86_64-linux"
-        "aarch64-linux"
         "aarch64-darwin"
         "x86_64-darwin"
       ];
 
       flake = {
         darwinConfigurations = {
-          # GitHub CI
-          "ci-aarch64-darwin" = nixpkgs.lib.makeOverridable mkDarwinSystem {
+          # GitHub Actions
+          "gha-aarch64-darwin" = nixpkgs.lib.makeOverridable mkDarwinSystem {
             inherit (nixpkgs) pkgs lib;
             specialArgs = {
               inherit stateVersions;
@@ -117,11 +66,6 @@
               username = "runner";
               sshKeys."github.com" = "";
             };
-          };
-
-          # GitHub CI (x86_64)
-          "ci-x86_64-darwin" = self.darwinConfigurations."ci-aarch64-darwin".override {
-            system = "x86_64-darwin";
           };
 
           # Cvent MacBook Pro

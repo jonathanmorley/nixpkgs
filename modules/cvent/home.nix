@@ -10,6 +10,7 @@
     settings = {
       email = "jmorley@cvent.com";
       pinentry = pkgs.pinentry-tty;
+      lock_timeout = 60 * 60 * 24; # 24 hours
     };
   };
 

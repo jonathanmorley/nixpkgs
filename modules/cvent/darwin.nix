@@ -33,18 +33,35 @@
     T/noKStI+zeCvbtHu9g1xA==
     -----END CERTIFICATE-----
   '';
-  netskopeCombined = builtins.readFile "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt" + "\n" + netskopeCert;
-  netskopeCombinedFile = pkgs.writeText "netskope-combined.crt" netskopeCombined;
-in {
-  environment.variables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
+  customCacert = pkgs.cacert.override {
+    extraCertificateStrings = [netskopeCert];
+  };
 
-  # Netskope proxy certificate
+  certBundle = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
+in {
+  # Override custom packages so their source fetches use a cert bundle that
+  # includes the Netskope proxy cert. Explicit .override chains replace
+  # cacert → fetchurl → fetchzip → fetchFromGitHub for just these packages,
+  # keeping binary cache hits for everything else.
+  nixpkgs.overlays = lib.mkAfter [
+    (final: prev: let
+      corpoFetchurl = prev.fetchurl.override { cacert = customCacert; };
+      corpoFetchzip = prev.fetchzip.override { fetchurl = corpoFetchurl; };
+      corpoFetchFromGitHub = prev.fetchFromGitHub.override { fetchzip = corpoFetchzip; };
+    in {
+      fnox = prev.fnox.override { fetchFromGitHub = corpoFetchFromGitHub; };
+      gig = prev.gig.override { fetchFromGitHub = corpoFetchFromGitHub; };
+      rtk = prev.rtk.override { fetchFromGitHub = corpoFetchFromGitHub; };
+    })
+  ];
+
+  # Netskope proxy certificate for macOS system trust
   security.pki.certificates = [netskopeCert];
-  environment.variables.NODE_EXTRA_CA_CERTS = "${netskopeCombinedFile}";
-  environment.variables.AWS_CA_BUNDLE = "${netskopeCombinedFile}";
-  environment.variables.CURL_CA_BUNDLE = "${netskopeCombinedFile}";
-  environment.variables.REQUESTS_CA_BUNDLE = "${netskopeCombinedFile}";
-  environment.variables.SSL_CERT_FILE = "${netskopeCombinedFile}";
+  # Point CLI tools at the custom bundle (includes Netskope cert)
+  environment.variables.NODE_EXTRA_CA_CERTS = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
+  environment.variables.AWS_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
+  environment.variables.CURL_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
+  environment.variables.REQUESTS_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
@@ -54,6 +71,7 @@ in {
       "microsoft-outlook"
       # Not available in nixpkgs
       "microsoft-excel"
+      "okta-verify"
     ];
     masApps = {
       # The firefox extension doesnt unlock with biometrics if bitwarden is installed any other way
@@ -66,5 +84,6 @@ in {
     "/Applications/Microsoft Outlook.app"
   ];
 
+  environment.variables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
   home-manager.users.${config.system.primaryUser}.programs.ssh.matchBlocks."*".extraOptions.IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
 }

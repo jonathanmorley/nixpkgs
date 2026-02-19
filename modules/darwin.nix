@@ -5,18 +5,16 @@
   config,
   ...
 }: {
-  # Nix is managed by the Determinate Nix Installer, not nix-darwin.
-  nix.enable = false;
-
-  # Manually write custom settings to the designated file
-  environment.etc."nix/nix.custom.conf".text = ''
-    # Your custom Nix configuration settings go here
-    extra-experimental-features = ca-derivations impure-derivations
-    trusted-users = ${config.system.primaryUser}
-
-    extra-substituters = https://nix-community.cachix.org https://jonathanmorley.cachix.org
-    extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=
-  '';
+  # Nix is managed by Determinate Nix — the module sets nix.enable = false
+  # and manages /etc/nix/nix.custom.conf via determinateNix.customSettings.
+  determinateNix = {
+    enable = true;
+    customSettings = {
+      trusted-users = [config.system.primaryUser];
+      extra-substituters = "https://nix-community.cachix.org https://jonathanmorley.cachix.org";
+      extra-trusted-public-keys = "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=";
+    };
+  };
 
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];

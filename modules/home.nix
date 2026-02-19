@@ -93,6 +93,7 @@
       dust
       duf
       findutils
+      fnox
       gnugrep
       gnutar
       gzip
@@ -100,7 +101,7 @@
       ipcalc
       mitmproxy
       mtr
-      nil
+      nixd
       obsidian
       oktaws
       openssl

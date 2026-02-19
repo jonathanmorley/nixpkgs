@@ -31,9 +31,9 @@ jobs:
       - name: Check
         run: nix flake check --print-build-logs --no-update-lock-file
       - name: Build
-        run: nix run nix-darwin -- build --flake ${{ github.workspace }}#ci-${{ matrix.system }}
+        run: nix run nix-darwin -- build --flake ${{ github.workspace }}#gha-${{ matrix.system }}
       - name: Switch
         run: |
           # Remove files that will be replaced by nix-darwin
           sudo rm -f /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
-          sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#ci-${{ matrix.system }}
+          sudo -i nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
