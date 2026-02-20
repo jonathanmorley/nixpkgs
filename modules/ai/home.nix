@@ -6,6 +6,7 @@
 
     I like to keep test-coverage high, and test-driven development is a good way to ensure that.
     I like to match the style and conventions of the codebase I'm working in, even if they don't match other personal preferences.
+    I prefer to use TypeScript for new projects, unless there is a compelling reason to use another language.
 
     ## NodeJS
 
