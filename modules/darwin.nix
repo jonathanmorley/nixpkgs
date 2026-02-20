@@ -3,23 +3,18 @@
   pkgs,
   lib,
   config,
-  specialArgs,
   ...
-}: let
-  personal = builtins.elem "personal" specialArgs.profiles;
-in {
-  # Nix configuration
-  nix.enable = false;
-
-  # Manually write custom settings to the designated file
-  environment.etc."nix/nix.custom.conf".text = ''
-    # Your custom Nix configuration settings go here
-    extra-experimental-features = ca-derivations impure-derivations
-    trusted-users = ${specialArgs.username}
-
-    extra-substituters = https://nix-community.cachix.org https://jonathanmorley.cachix.org
-    extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=
-  '';
+}: {
+  # Nix is managed by Determinate Nix — the module sets nix.enable = false
+  # and manages /etc/nix/nix.custom.conf via determinateNix.customSettings.
+  determinateNix = {
+    enable = true;
+    customSettings = {
+      trusted-users = [config.system.primaryUser];
+      extra-substituters = "https://nix-community.cachix.org https://jonathanmorley.cachix.org";
+      extra-trusted-public-keys = "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=";
+    };
+  };
 
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = [config.homebrew.brewPrefix];
@@ -34,43 +29,24 @@ in {
   homebrew = {
     enable = true;
     onActivation.cleanup = "uninstall";
-    taps = [
-      "didhd/tap"
-    ];
-    casks =
-      [
-        # Not available in nixpkgs
-        "didhd/tap/amazon-bedrock-client"
-        # Stay on latest better
-        "claude-code"
-        # Stay on latest better
-        "copilot-cli"
-        # Not available in nixpkgs
-        "eqmac"
-        # The 1Password extension does not unlock with biometrics if FF is installed via nix
-        "firefox"
-        # ice-bar is still at 0.11.12. brew beta or 0.11.13 needed for Tahoe compatability
-        "jordanbaird-ice@beta"
-        # Not available in nixpkgs
-        "lulu"
-        # For running local AI models
-        "ollama-app"
-        # Not available in nixpkgs
-        "oversight"
-        # https://github.com/warpdotdev/Warp/issues/1991
-        "warp"
-        # Insiders is not available in nixpkgs
-        "visual-studio-code@insiders"
-        # Cannot allow screensharing with nix package
-        "zoom"
-      ]
-      # https://github.com/NixOS/nixpkgs/issues/254944
-      ++ lib.optional personal "1password"
-      # The GUI is not available in nixpkgs
-      ++ lib.optional personal "tailscale-app"
-      ++ lib.optional personal "balenaetcher"
+    casks = [
       # Not available in nixpkgs
-      ++ lib.optional personal "chrome-remote-desktop-host";
+      "eqmac"
+      # The 1Password extension does not unlock with biometrics if FF is installed via nix
+      "firefox"
+      # ice-bar is still at 0.11.12. brew beta or 0.11.13 needed for Tahoe compatability
+      "jordanbaird-ice@beta"
+      # Not available in nixpkgs
+      "lulu"
+      # Not available in nixpkgs
+      "oversight"
+      # https://github.com/warpdotdev/Warp/issues/1991
+      "warp"
+      # Insiders is not available in nixpkgs
+      "visual-studio-code@insiders"
+      # Cannot allow screensharing with nix package
+      "zoom"
+    ];
   };
 
   security.pam.services.sudo_local.touchIdAuth = true;

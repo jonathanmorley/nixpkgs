@@ -4,8 +4,6 @@
   specialArgs,
   ...
 }: let
-  personal = builtins.elem "personal" specialArgs.profiles;
-  cvent = builtins.elem "cvent" specialArgs.profiles;
   gitignores = builtins.fetchGit {
     url = "https://github.com/github/gitignore";
     rev = "8779ee73af62c669e7ca371aaab8399d87127693";
@@ -35,10 +33,7 @@ in {
     settings = {
       user = {
         name = "Jonathan Morley";
-        email =
-          if cvent
-          then "jmorley@cvent.com"
-          else "morley.jonathan@gmail.com";
+        email = lib.mkDefault "morley.jonathan@gmail.com";
       };
       # Some from https://blog.gitbutler.com/how-git-core-devs-configure-git/
       branch.sort = "-committerdate";
@@ -46,7 +41,7 @@ in {
       commit.verbose = true;
       credential."https://github.com".helper = [
         ""
-        "!${pkgs.writeShellScript "credential-helper" ''
+        "!${pkgs.writeShellScript "github-credential-helper" ''
           echo username=jonathanmorley
           echo password=$(${lib.getExe pkgs.gh} auth token --user jonathanmorley)
         ''}"
@@ -64,15 +59,10 @@ in {
       };
       gpg = {
         format = "ssh";
-        ssh.allowedSignersFile = toString (pkgs.writeText "allowed_signers" (
-          lib.strings.concatStringsSep "\n" (
-            [
-              "morley.jonathan@gmail.com namespaces='git' ${specialArgs.sshKeys."github.com"}"
-            ]
-            ++ lib.optional cvent "jmorley@cvent.com namespaces='git' ${specialArgs.sshKeys.cvent}"
-          )
+        ssh.allowedSignersFile = lib.mkDefault (toString (
+          pkgs.writeText "allowed_signers"
+          "morley.jonathan@gmail.com namespaces='git' ${specialArgs.sshKeys."github.com"}"
         ));
-        ssh.program = lib.mkIf (personal && pkgs.stdenv.isDarwin) "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
       };
       help.autocorrect = "prompt";
       http.postBuffer = 2097152000;
@@ -95,49 +85,10 @@ in {
       };
       tag.sort = "version:refname";
     };
-    includes =
-      lib.mkIf cvent
-      (builtins.concatMap (org: [
-          # Internal GitHub (SSH)
-          {
-            condition = "hasconfig:remote.*.url:git@github.com:${org}/**";
-            contents = {
-              url."git@cvent.github.com".insteadOf = "git@github.com";
-              user.signingKey = specialArgs.sshKeys.cvent;
-            };
-          }
-          # Internal GitHub (HTTPS)
-          {
-            condition = "hasconfig:remote.*.url:https://github.com/${org}/**";
-            contents = {
-              credential."https://github.com".helper = [
-                ""
-                # This needs to be an absolute path for the credential helper to work with private homebrew taps, because it removes the PATH env var.
-                "!${pkgs.writeShellScript "credential-helper" ''
-                  echo username=JMorley_cvent
-                  echo password=$(${lib.getExe pkgs.gh} auth token --user JMorley_cvent)
-                ''}"
-              ];
-              user.signingKey = specialArgs.sshKeys.cvent;
-            };
-          }
-        ]) [
-          "*-internal"
-          "enabling-services"
-          "JMorley_cvent"
-          "jmorley_cvent"
-        ]);
   };
-  programs.ssh = {
-    matchBlocks."github.com" = {
-      identitiesOnly = true;
-      identityFile = builtins.toFile "github.com.pub" specialArgs.sshKeys."github.com";
-    };
-    matchBlocks."cvent.github.com" = lib.mkIf cvent {
-      identitiesOnly = true;
-      identityFile = builtins.toFile "cvent.pub" specialArgs.sshKeys.cvent;
-      hostname = "github.com";
-    };
+  programs.ssh.matchBlocks."github.com" = {
+    identitiesOnly = true;
+    identityFile = builtins.toFile "github.com.pub" specialArgs.sshKeys."github.com";
   };
   programs.zsh.oh-my-zsh.plugins = ["gh" "git"];
 
