@@ -4,12 +4,12 @@
 
     ## General
 
-    I like to keep test-coverage high,
-    and test-driven development is a good way to ensure that.
+    I like to keep test-coverage high, and test-driven development is a good way to ensure that.
+    I like to match the style and conventions of the codebase I'm working in, even if they don't match other personal preferences.
 
     ## NodeJS
 
-    I prefer pnpm as a pacakge manager over npm or yarn.
+    I prefer pnpm as a package manager over npm or yarn.
     I prefer `execa` over something like `child_process`.
     I prefer `vitest` over `jest` for testing.
   '';
