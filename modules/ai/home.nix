@@ -12,6 +12,7 @@
     I prefer pnpm as a package manager over npm or yarn.
     I prefer `execa` over something like `child_process`.
     I prefer `vitest` over `jest` for testing.
+    I like to use @tsconfig/... for my TypeScript configuration, and I prefer to extend from those rather than writing my own from scratch.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
