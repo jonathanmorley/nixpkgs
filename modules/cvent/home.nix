@@ -74,9 +74,9 @@
     export GITHUB_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'GitHub Token')"
 
     # Fetch Jira token from Bitwarden via rbw
-    export JIRA_PAT="$(${config.programs.rbw.package}/bin/rbw get 'Jira Token')"
+    export JIRA_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'Jira Token')"
 
     # Fetch Confluence token from Bitwarden via rbw
-    export CONFLUENCE_PAT="$(${config.programs.rbw.package}/bin/rbw get 'Confluence Token')"
+    export CONFLUENCE_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'Confluence Token')"
   '';
 }
