@@ -25,6 +25,6 @@
   ];
 
   programs.zsh.initContent = ''
-    rtk init --global --hook-only --auto-patch
+    rtk init --global --hook-only --auto-patch >/dev/null
   '';
 }
