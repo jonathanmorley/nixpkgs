@@ -1,7 +1,7 @@
 {
   fetchFromGitHub,
   lib,
-  rustPlatform
+  rustPlatform,
 }:
 rustPlatform.buildRustPackage (finalAttrs: rec {
   pname = "rtk";

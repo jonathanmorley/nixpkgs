@@ -45,13 +45,13 @@ in {
   # keeping binary cache hits for everything else.
   nixpkgs.overlays = lib.mkAfter [
     (final: prev: let
-      corpoFetchurl = prev.fetchurl.override { cacert = customCacert; };
-      corpoFetchzip = prev.fetchzip.override { fetchurl = corpoFetchurl; };
-      corpoFetchFromGitHub = prev.fetchFromGitHub.override { fetchzip = corpoFetchzip; };
+      corpoFetchurl = prev.fetchurl.override {cacert = customCacert;};
+      corpoFetchzip = prev.fetchzip.override {fetchurl = corpoFetchurl;};
+      corpoFetchFromGitHub = prev.fetchFromGitHub.override {fetchzip = corpoFetchzip;};
     in {
-      fnox = prev.fnox.override { fetchFromGitHub = corpoFetchFromGitHub; };
-      gig = prev.gig.override { fetchFromGitHub = corpoFetchFromGitHub; };
-      rtk = prev.rtk.override { fetchFromGitHub = corpoFetchFromGitHub; };
+      fnox = prev.fnox.override {fetchFromGitHub = corpoFetchFromGitHub;};
+      gig = prev.gig.override {fetchFromGitHub = corpoFetchFromGitHub;};
+      rtk = prev.rtk.override {fetchFromGitHub = corpoFetchFromGitHub;};
     })
   ];
 
