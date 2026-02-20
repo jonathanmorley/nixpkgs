@@ -11,6 +11,7 @@
 
     I prefer pnpm as a pacakge manager over npm or yarn.
     I prefer `execa` over something like `child_process`.
+    I prefer `vitest` over `jest` for testing.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
