@@ -52,8 +52,7 @@
       ]) [
         "*-internal"
         "enabling-services"
-        "JMorley_cvent"
-        "jmorley_cvent"
+        "*_cvent" # Personal repositories
       ];
   };
 
@@ -63,7 +62,7 @@
       identityFile = builtins.toFile "cvent.pub" specialArgs.sshKeys.cvent;
       hostname = "github.com";
     };
-    matchBlocks."!stash.cvent.net *.cvent.*" = {
+    matchBlocks."*.cvent.*" = {
       user = "jmorley";
       extraOptions.PreferredAuthentications = "password";
     };

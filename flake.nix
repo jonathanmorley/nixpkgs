@@ -49,7 +49,10 @@
     };
   in
     flake-parts.lib.mkFlake {inherit inputs;} {
-      imports = [./treefmt.nix];
+      imports = [
+        ./treefmt.nix
+        ./cert-check.nix
+      ];
       systems = [
         "aarch64-darwin"
         "x86_64-darwin"

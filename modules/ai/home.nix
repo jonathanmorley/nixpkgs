@@ -30,4 +30,8 @@
   programs.zsh.initContent = ''
     rtk init --global --hook-only --auto-patch >/dev/null
   '';
+
+  programs.git.ignores = [
+    ".claude/settings.local.json"
+  ];
 }

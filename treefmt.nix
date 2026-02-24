@@ -10,6 +10,8 @@
       programs.actionlint.enable = true; # github action linter
       programs.alejandra.enable = true; # nix
       programs.mdformat.enable = true; # markdown
+      programs.shfmt.enable = true; # shell
+      programs.shellcheck.enable = true; # shell
     };
   };
 }
