@@ -18,7 +18,7 @@
   programs.jq.enable = true;
   programs.mise = {
     enable = true;
-    enableZshIntegration = false;
+    enableZshIntegration = true;
   };
   programs.neovim = {
     defaultEditor = true;
@@ -71,8 +71,6 @@
     syntaxHighlighting.enable = true;
     initContent = ''
       export PATH="''${PATH}:''${HOME}/.cargo/bin"
-       # We want shims so that commands executed without a shell still use mise
-      eval "$(${lib.getExe pkgs.mise} activate --shims zsh)"
     '';
     oh-my-zsh = {
       enable = true;

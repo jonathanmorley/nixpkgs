@@ -6,6 +6,7 @@
   ...
 }: let
   netskopeCert = ''
+    # Netskope Certificate for ca.cvt.goskope.com
     -----BEGIN CERTIFICATE-----
     MIIEXDCCA0SgAwIBAgIUEiG7Zru2Uzu2s5iMw638xzylDFIwDQYJKoZIhvcNAQEL
     BQAwgZcxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEUMBIGA1UEBxMLU2FudGEg
@@ -33,9 +34,32 @@
     T/noKStI+zeCvbtHu9g1xA==
     -----END CERTIFICATE-----
   '';
-  customCacert = pkgs.cacert.override {
-    extraCertificateStrings = [netskopeCert];
-  };
+
+  # Create custom cacert by appending Netskope cert to the standard bundle
+  # Using a custom derivation because extraCertificateStrings doesn't work in nixpkgs 25.11
+  customCacert = pkgs.runCommand "cacert-with-netskope" {} ''
+        mkdir -p $out/etc/ssl/certs
+
+        # Copy all certs from the base cacert package
+        cp -r ${pkgs.cacert}/etc/ssl/certs/* $out/etc/ssl/certs/
+
+        # Make files writable
+        chmod -R +w $out/etc/ssl/certs
+
+        # Append the Netskope certificate
+        cat >> $out/etc/ssl/certs/ca-bundle.crt << 'EOF'
+
+    ${netskopeCert}
+    EOF
+
+        # Also append to ca-certificates.crt if it exists
+        if [ -f $out/etc/ssl/certs/ca-certificates.crt ]; then
+          cat >> $out/etc/ssl/certs/ca-certificates.crt << 'EOF'
+
+    ${netskopeCert}
+    EOF
+        fi
+  '';
 
   certBundle = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
 in {
@@ -58,6 +82,7 @@ in {
   # Netskope proxy certificate for macOS system trust
   security.pki.certificates = [netskopeCert];
   # Point CLI tools at the custom bundle (includes Netskope cert)
+  environment.variables.NODE_USE_SYSTEM_CA = "1";
   environment.variables.NODE_EXTRA_CA_CERTS = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
   environment.variables.AWS_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
   environment.variables.CURL_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
@@ -71,7 +96,6 @@ in {
       "microsoft-outlook"
       # Not available in nixpkgs
       "microsoft-excel"
-      "okta-verify"
     ];
     masApps = {
       # The firefox extension doesnt unlock with biometrics if bitwarden is installed any other way
