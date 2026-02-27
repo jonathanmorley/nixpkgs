@@ -10,7 +10,7 @@
     settings = {
       email = "jmorley@cvent.com";
       pinentry = pkgs.pinentry-tty;
-      lock_timeout = 60 * 60 * 24; # 24 hours
+      lock_timeout = 60 * 60 * 24 * 7; # 7 days
     };
   };
 
@@ -68,14 +68,28 @@
     };
   };
 
-  programs.zsh.initContent = ''
-    # Fetch GitHub token from Bitwarden via rbw
-    export GITHUB_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'GitHub Token')"
-
-    # Fetch Jira token from Bitwarden via rbw
-    export JIRA_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'Jira Token')"
-
-    # Fetch Confluence token from Bitwarden via rbw
-    export CONFLUENCE_MCP_TOKEN="$(${config.programs.rbw.package}/bin/rbw get 'Confluence Token')"
-  '';
+  home.file."fnox config" = {
+    target = ".config/fnox/config.toml";
+    source = (pkgs.formats.toml {}).generate "default.toml" {
+      default_provider = "bitwarden";
+      providers.bitwarden = {
+        type = "bitwarden";
+        backend = "rbw";
+      };
+      secrets = {
+        GITHUB_MCP_TOKEN = {
+          provider = "bitwarden";
+          value = "GitHub Token";
+        };
+        JIRA_MCP_TOKEN = {
+          provider = "bitwarden";
+          value = "Jira Token";
+        };
+        CONFLUENCE_MCP_TOKEN = {
+          provider = "bitwarden";
+          value = "Confluence Token";
+        };
+      };
+    };
+  };
 }

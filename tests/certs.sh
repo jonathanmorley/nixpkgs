@@ -41,59 +41,27 @@ print_section() {
 # 1. Environment Variables Check
 print_section "1. Environment Variables"
 echo "NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-not set}"
+echo "NODE_USE_SYSTEM_CA: ${NODE_USE_SYSTEM_CA:-not set}"
 echo "AWS_CA_BUNDLE: ${AWS_CA_BUNDLE:-not set}"
 echo "CURL_CA_BUNDLE: ${CURL_CA_BUNDLE:-not set}"
 echo "REQUESTS_CA_BUNDLE: ${REQUESTS_CA_BUNDLE:-not set}"
-echo ""
-
-# Verify files exist and inspect bundle
-if [ -n "$AWS_CA_BUNDLE" ] && [ -f "$AWS_CA_BUNDLE" ]; then
-  print_result 0 "AWS_CA_BUNDLE points to valid file"
-  echo "  File: $AWS_CA_BUNDLE"
-  echo "  Size: $(wc -c <"$AWS_CA_BUNDLE") bytes"
-  CERT_COUNT=$(grep -c "BEGIN CERTIFICATE" "$AWS_CA_BUNDLE")
-  echo "  Total Certs: $CERT_COUNT certificates"
-
-  echo ""
-  echo "Checking for Netskope cert in bundle..."
-  if /usr/bin/grep -q "ca.cvt.goskope.com" "$AWS_CA_BUNDLE"; then
-    print_result 0 "Netskope cert (ca.cvt.goskope.com) found in bundle"
-    # Show context around the cert
-    echo "  Context:"
-    /usr/bin/grep -A 2 -B 1 "ca.cvt.goskope.com" "$AWS_CA_BUNDLE" | head -5 | sed 's/^/    /'
-  else
-    print_result 1 "Netskope cert (ca.cvt.goskope.com) NOT found in bundle"
-    echo "  Last cert in bundle:"
-    tail -15 "$AWS_CA_BUNDLE" | head -10 | sed 's/^/    /'
-  fi
-else
-  print_result 1 "AWS_CA_BUNDLE not set or file missing"
-fi
 
 # 2. Curl Tests
 print_section "2. cURL Tests"
 
-echo "Testing with system default certs..."
+echo "Testing HTTPS to Google..."
 if curl -s -o /dev/null -w "%{http_code}" "$HTTPS_URL" >/dev/null 2>&1; then
-  print_result 0 "curl with system certs"
+  print_result 0 "curl - HTTPS to Google"
 else
-  print_result 1 "curl with system certs"
+  print_result 1 "curl - HTTPS to Google"
 fi
 
 echo ""
-echo "Testing with CURL_CA_BUNDLE..."
-if curl -s -o /dev/null -w "%{http_code}" "$HTTPS_URL" >/dev/null 2>&1; then
-  print_result 0 "curl with CURL_CA_BUNDLE env var"
-else
-  print_result 1 "curl with CURL_CA_BUNDLE env var"
-fi
-
-echo ""
-echo "Testing AWS URL..."
+echo "Testing HTTPS to AWS..."
 if curl -s -o /dev/null -w "%{http_code}" "$AWS_URL" >/dev/null 2>&1; then
-  print_result 0 "curl to AWS"
+  print_result 0 "curl - HTTPS to AWS"
 else
-  print_result 1 "curl to AWS"
+  print_result 1 "curl - HTTPS to AWS"
 fi
 
 # 3. Node.js Tests
@@ -132,13 +100,34 @@ else
   print_result 1 "Node.js HTTPS requests"
 fi
 
+echo ""
+echo "Testing with Node.js 22 (via mise)..."
+if command -v mise &>/dev/null; then
+  NODE22_VERSION=$(mise exec node@22 -- node --version 2>&1)
+  echo "  Node version: $NODE22_VERSION"
+
+  if mise exec node@22 -- node /tmp/test-node-certs.js 2>&1; then
+    print_result 0 "Node.js 22 HTTPS requests"
+  else
+    print_result 1 "Node.js 22 HTTPS requests"
+  fi
+else
+  echo -e "${YELLOW}⊘ SKIP${NC}: mise not available"
+fi
+
+rm -f /tmp/test-node-certs.js
+
 # 4. Python Tests
 print_section "4. Python Tests"
 
-# Test if requests module is available
-if python3 -c "import requests" 2>/dev/null; then
-  # Create temporary Python test script
-  cat >/tmp/test-python-certs.py <<'EOF'
+# Create temporary venv for requests testing
+PYTHON_VENV_DIR=$(mktemp -d)
+echo "Creating temporary Python venv for requests testing..."
+if python3 -m venv "$PYTHON_VENV_DIR" >/dev/null 2>&1; then
+  # Install requests in the venv
+  if "$PYTHON_VENV_DIR/bin/pip" install --quiet requests 2>&1 | grep -v "WARNING"; then
+    # Create temporary Python test script
+    cat >/tmp/test-python-certs.py <<'EOF'
 import sys
 try:
     import requests
@@ -156,13 +145,19 @@ except Exception as e:
     sys.exit(1)
 EOF
 
-  if python3 /tmp/test-python-certs.py 2>&1; then
-    print_result 0 "Python requests library"
+    if "$PYTHON_VENV_DIR/bin/python" /tmp/test-python-certs.py 2>&1; then
+      print_result 0 "Python requests library"
+    else
+      print_result 1 "Python requests library"
+    fi
   else
-    print_result 1 "Python requests library"
+    echo -e "${YELLOW}⊘ SKIP${NC}: Failed to install Python requests module"
   fi
+
+  # Clean up venv
+  rm -rf "$PYTHON_VENV_DIR"
 else
-  echo -e "${YELLOW}⊘ SKIP${NC}: Python requests module not installed"
+  echo -e "${YELLOW}⊘ SKIP${NC}: Failed to create Python virtual environment"
 fi
 
 # Also test with urllib
@@ -208,37 +203,26 @@ else
   print_result 1 "Python urllib (all connections failed)"
 fi
 
-# 5. AWS_CA_BUNDLE specific test
-print_section "5. AWS_CA_BUNDLE Validation"
+# 5. AWS CLI Tests
+print_section "5. AWS CLI Tests"
 
-if [ -n "$AWS_CA_BUNDLE" ]; then
-  echo "Testing explicit AWS_CA_BUNDLE usage with curl..."
-  if curl --cacert "$AWS_CA_BUNDLE" -s -o /dev/null -w "%{http_code}" "$AWS_URL" >/dev/null 2>&1; then
-    print_result 0 "curl with explicit --cacert flag to AWS"
+if command -v aws &>/dev/null; then
+  echo "Testing AWS CLI with public S3 bucket (no credentials required)..."
+  if AWS_S3_OUTPUT=$(aws s3 ls s3://commoncrawl/ --no-sign-request 2>&1 | head -5); then
+    print_result 0 "AWS CLI - public S3 access"
+    echo "  Successfully listed objects in public bucket"
   else
-    print_result 1 "curl with explicit --cacert flag to AWS"
-  fi
-
-  echo ""
-  echo "Testing openssl s_client with bundle..."
-  OPENSSL_OUTPUT=$(echo | timeout 5 openssl s_client -connect www.google.com:443 -CAfile "$AWS_CA_BUNDLE" 2>&1)
-  if echo "$OPENSSL_OUTPUT" | grep -q "Verify return code: 0"; then
-    print_result 0 "openssl s_client verification"
-  else
-    # Check if the failure is due to the bundle file itself
-    if echo "$OPENSSL_OUTPUT" | grep -q "No such file"; then
-      print_result 1 "openssl s_client verification (bundle file not found)"
-    elif echo "$OPENSSL_OUTPUT" | grep -q "Verify return code:"; then
-      VERIFY_CODE=$(echo "$OPENSSL_OUTPUT" | grep "Verify return code:" | head -1)
-      echo -e "${YELLOW}⊘ SKIP${NC}: openssl s_client test ($VERIFY_CODE)"
-      echo "  Note: curl tests passed, so certificate bundle is functional"
+    # Check if it's a certificate error
+    if echo "$AWS_S3_OUTPUT" | grep -qi "certificate\|ssl\|tls"; then
+      print_result 1 "AWS CLI - public S3 (certificate error)"
+      echo "  Error: Certificate validation failed"
     else
-      echo -e "${YELLOW}⊘ SKIP${NC}: openssl s_client test (connection timeout or network issue)"
-      echo "  Note: curl tests passed, so certificate bundle is functional"
+      print_result 1 "AWS CLI - public S3 access"
+      echo "  Error: ${AWS_S3_OUTPUT:0:100}"
     fi
   fi
 else
-  print_result 1 "AWS_CA_BUNDLE not set"
+  echo -e "${YELLOW}⊘ SKIP${NC}: AWS CLI not installed"
 fi
 
 # 6. Additional fetch methods
@@ -246,58 +230,124 @@ print_section "6. Additional Fetch Methods"
 
 # git test (uses certificates for https operations)
 echo "Testing git with HTTPS..."
-if git ls-remote https://github.com/NixOS/nixpkgs.git HEAD >/dev/null 2>&1; then
+if git ls-remote https://github.com/octocat/Hello-World.git HEAD >/dev/null 2>&1; then
   print_result 0 "git ls-remote over HTTPS"
 else
   print_result 1 "git ls-remote over HTTPS"
 fi
 
 echo ""
-echo "Testing GitHub API (MCP server connectivity)..."
-# Test GitHub API endpoints that MCP servers use
-if GITHUB_TEST=$(curl -s -f -H "Accept: application/vnd.github+json" https://api.github.com/zen 2>&1); then
-  print_result 0 "GitHub API connectivity (for MCP servers)"
-  echo "  API response: $(echo "$GITHUB_TEST" | head -c 50)..."
-else
-  print_result 1 "GitHub API connectivity (for MCP servers)"
-  echo "  Error: $GITHUB_TEST" | head -1
-fi
+echo "Testing Claude CLI (Native - Homebrew)..."
+if [ -n "$CLAUDECODE" ]; then
+  echo -e "${YELLOW}⊘ SKIP${NC}: Cannot test Claude CLI from within Claude Code session"
+  echo "  Run this test from a regular terminal to verify Claude CLI certificate handling"
+elif [ -f "/opt/homebrew/bin/claude" ]; then
+  CLAUDE_VERSION=$(/opt/homebrew/bin/claude --version 2>&1)
+  echo "  Native Claude version: $CLAUDE_VERSION"
 
-echo ""
-echo "Testing GitHub raw content (MCP file fetching)..."
-if curl -s -f https://raw.githubusercontent.com/NixOS/nixpkgs/master/README.md >/dev/null 2>&1; then
-  print_result 0 "GitHub raw content access (for MCP)"
-else
-  print_result 1 "GitHub raw content access (for MCP)"
-fi
+  # Create MCP config for testing
+  MCP_CONFIG="{\"mcpServers\":{\"github\":{\"type\":\"http\",\"url\":\"https://api.githubcopilot.com/mcp\",\"headers\":{\"Authorization\":\"Bearer ${GITHUB_MCP_TOKEN}\"}}}}"
 
-echo ""
-echo "Testing native Claude CLI with GitHub MCP..."
-# Test the actual Claude CLI with GitHub MCP server
-if command -v claude &>/dev/null; then
-  # Check Claude version (validates binary works and can access network)
-  if CLAUDE_VERSION=$(claude --version 2>&1); then
-    echo "  Claude installed: $CLAUDE_VERSION"
+  # Test 1: GitHub MCP connectivity
+  if [ -n "$GITHUB_MCP_TOKEN" ]; then
+    echo ""
+    echo "  Testing GitHub MCP connection (streaming output)..."
+    echo "  ---"
+    /opt/homebrew/bin/claude --strict-mcp-config --mcp-config "$MCP_CONFIG" --print "Is the GitHub MCP server connected? Respond with SUCCESS or FAILURE" 2>&1 | tee /tmp/claude-mcp-test.log
+    echo "  ---"
 
-    # Try a simple non-interactive test that would trigger MCP initialization
-    # We use a very short timeout and check for certificate errors
-    echo "  Checking for certificate errors with MCP..."
-    CLAUDE_ERR=$(timeout 5 claude --help 2>&1 | grep -i "certificate\|ssl.*error\|unable to verify")
-
-    if [ -n "$CLAUDE_ERR" ]; then
-      print_result 1 "Claude CLI MCP certificates"
-      echo "  Error detected: $CLAUDE_ERR" | head -1
+    # Check for positive indicators of successful GitHub MCP connection
+    if grep -qi "SUCCESS" /tmp/claude-mcp-test.log; then
+      print_result 0 "Native Claude - GitHub MCP connection"
+    elif grep -qi "certificate\|ssl.*error\|unable to verify" /tmp/claude-mcp-test.log; then
+      print_result 1 "Native Claude - GitHub MCP (certificate error)"
     else
-      echo -e "${YELLOW}⊘ INFO${NC}: Claude CLI executable works"
-      echo "  Manual test: Run 'claude' and try using GitHub MCP to verify full connectivity"
-      echo "  Example: Ask Claude to use GitHub MCP to search for a repository"
+      print_result 1 "Native Claude - GitHub MCP (no successful connection)"
+      echo "  Did not detect SUCCESS response"
     fi
+
+    rm -f /tmp/claude-mcp-test.log
   else
-    print_result 1 "Claude CLI execution failed"
-    echo "  Error: $CLAUDE_VERSION"
+    echo -e "${YELLOW}⊘ SKIP${NC}: GITHUB_MCP_TOKEN not set for MCP test"
   fi
+
+  # Test 2: Web fetch with restricted tools
+  echo ""
+  echo "  Testing web fetch capability (streaming output)..."
+  echo "  ---"
+  /opt/homebrew/bin/claude --tools WebFetch --allowedTools WebFetch --print "Fetch https://www.google.com and tell me if it succeeded. Reply with just SUCCESS or FAILED." 2>&1 | tee /tmp/claude-fetch-test.log
+  echo "  ---"
+
+  # Positive test: only pass if we see SUCCESS
+  if grep -qi "SUCCESS" /tmp/claude-fetch-test.log; then
+    print_result 0 "Native Claude - web fetch"
+  elif grep -qi "certificate\|ssl.*error\|unable to verify" /tmp/claude-fetch-test.log; then
+    print_result 1 "Native Claude - web fetch (certificate error)"
+  else
+    print_result 1 "Native Claude - web fetch (did not succeed)"
+    echo "  Did not detect successful web fetch"
+  fi
+
+  rm -f /tmp/claude-fetch-test.log
 else
-  echo -e "${YELLOW}⊘ SKIP${NC}: Claude CLI not installed (install via: brew install claude)"
+  echo -e "${YELLOW}⊘ SKIP${NC}: Native Claude not installed at /opt/homebrew/bin/claude"
+fi
+
+echo ""
+echo "Testing Claude CLI (Node-based)..."
+if [ -n "$CLAUDECODE" ]; then
+  echo -e "${YELLOW}⊘ SKIP${NC}: Cannot test Claude CLI from within Claude Code session"
+  echo "  Run this test from a regular terminal to verify Claude CLI certificate handling"
+elif command -v npm &>/dev/null; then
+  CLAUDE_VERSION=$(npm exec --package=@anthropic-ai/claude-code --yes -- claude --version 2>&1)
+  echo "  Node Claude version: $CLAUDE_VERSION"
+
+  # Create MCP config for testing
+  MCP_CONFIG="{\"mcpServers\":{\"github\":{\"type\":\"http\",\"url\":\"https://api.githubcopilot.com/mcp\",\"headers\":{\"Authorization\":\"Bearer ${GITHUB_MCP_TOKEN}\"}}}}"
+
+  # Test 1: GitHub MCP connectivity
+  if [ -n "$GITHUB_MCP_TOKEN" ]; then
+    echo ""
+    echo "  Testing GitHub MCP connection (streaming output)..."
+    echo "  ---"
+    npm exec --package=@anthropic-ai/claude-code --yes -- claude --strict-mcp-config --mcp-config "$MCP_CONFIG" --print "Is the GitHub MCP server connected? Respond with SUCCESS or FAILURE" 2>&1 | tee /tmp/claude-node-mcp-test.log
+    echo "  ---"
+
+    # Check for positive indicators of successful GitHub MCP connection
+    if grep -qi "SUCCESS" /tmp/claude-node-mcp-test.log; then
+      print_result 0 "Node Claude - GitHub MCP connection"
+    elif grep -qi "certificate\|ssl.*error\|unable to verify" /tmp/claude-node-mcp-test.log; then
+      print_result 1 "Node Claude - GitHub MCP (certificate error)"
+    else
+      print_result 1 "Node Claude - GitHub MCP (no successful connection)"
+      echo "  Did not detect SUCCESS response"
+    fi
+
+    rm -f /tmp/claude-node-mcp-test.log
+  else
+    echo -e "${YELLOW}⊘ SKIP${NC}: GITHUB_MCP_TOKEN not set for MCP test"
+  fi
+
+  # Test 2: Web fetch with restricted tools
+  echo ""
+  echo "  Testing web fetch capability (streaming output)..."
+  echo "  ---"
+  npm exec --package=@anthropic-ai/claude-code --yes -- claude --tools WebFetch --allowedTools WebFetch --print "Fetch https://www.google.com and tell me if it succeeded. Reply with just SUCCESS or FAILED." 2>&1 | tee /tmp/claude-node-fetch-test.log
+  echo "  ---"
+
+  # Positive test: only pass if we see SUCCESS
+  if grep -qi "SUCCESS" /tmp/claude-node-fetch-test.log; then
+    print_result 0 "Node Claude - web fetch"
+  elif grep -qi "certificate\|ssl.*error\|unable to verify" /tmp/claude-node-fetch-test.log; then
+    print_result 1 "Node Claude - web fetch (certificate error)"
+  else
+    print_result 1 "Node Claude - web fetch (did not succeed)"
+    echo "  Did not detect successful web fetch"
+  fi
+
+  rm -f /tmp/claude-node-fetch-test.log
+else
+  echo -e "${YELLOW}⊘ SKIP${NC}: npx not available"
 fi
 
 # 7. macOS Security Framework Test
@@ -311,7 +361,7 @@ else
 fi
 
 # Clean up
-rm -f /tmp/test-node-certs.js /tmp/test-python-certs.py /tmp/test-python-urllib.py
+rm -f /tmp/test-python-certs.py /tmp/test-python-urllib.py
 
 print_section "Test Suite Complete"
 echo ""

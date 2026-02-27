@@ -81,12 +81,8 @@ in {
 
   # Netskope proxy certificate for macOS system trust
   security.pki.certificates = [netskopeCert];
-  # Point CLI tools at the custom bundle (includes Netskope cert)
+  # Ensure that Node (and Bun) use the system CA (keystore) which includes the Netskope cert.
   environment.variables.NODE_USE_SYSTEM_CA = "1";
-  environment.variables.NODE_EXTRA_CA_CERTS = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
-  environment.variables.AWS_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
-  environment.variables.CURL_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
-  environment.variables.REQUESTS_CA_BUNDLE = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.

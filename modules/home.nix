@@ -71,6 +71,8 @@
     syntaxHighlighting.enable = true;
     initContent = ''
       export PATH="''${PATH}:''${HOME}/.cargo/bin"
+
+      eval "$(fnox activate zsh)"
     '';
     oh-my-zsh = {
       enable = true;
