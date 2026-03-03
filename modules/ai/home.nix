@@ -1,5 +1,8 @@
 {pkgs, ...}: {
   home.file.".claude/CLAUDE.md".text = ''
+    > **This file is managed by Nix.** Do not edit `~/.claude/CLAUDE.md` directly.
+    > Changes should be made in `~/Developer/nixpkgs/modules/ai/home.nix` and applied via your Nix configuration.
+
     # Personal preferences
 
     ## General
