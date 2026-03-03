@@ -20,6 +20,11 @@
     I prefer `vitest` over `jest` for testing.
     I like to use @tsconfig/... for my TypeScript configuration, and I prefer to extend from those rather than writing my own from scratch.
     Place tests in a top-level `tests/` directory, using `*.test.ts` naming.
+
+    ## Claude Code
+
+    When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
+    Commit often to preserve progress, but do not push unless explicitly asked.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
