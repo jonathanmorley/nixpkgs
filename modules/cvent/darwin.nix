@@ -83,6 +83,9 @@ in {
   security.pki.certificates = [netskopeCert];
   # Ensure that Node (and Bun) use the system CA (keystore) which includes the Netskope cert.
   environment.variables.NODE_USE_SYSTEM_CA = "1";
+  # Standalone pnpm (via mise/asdf) bundles its own Node runtime that ignores
+  # NODE_USE_SYSTEM_CA. It needs NODE_EXTRA_CA_CERTS to trust the Netskope cert.
+  environment.variables.NODE_EXTRA_CA_CERTS = certBundle;
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.

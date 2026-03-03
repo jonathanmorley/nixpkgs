@@ -8,6 +8,7 @@ NC='\033[0m' # No Color
 
 # Track failures
 FAILED_TESTS=0
+XFAIL_TESTS=0
 TOTAL_TESTS=0
 
 echo "=========================================="
@@ -27,6 +28,22 @@ print_result() {
   else
     echo -e "${RED}✗ FAIL${NC}: $2"
     FAILED_TESTS=$((FAILED_TESTS + 1))
+  fi
+}
+
+# Expected failure: known issue with an upgrade/fix path.
+# Usage: print_xfail <exit_code> <test_name> <fix_description>
+#   - If the test fails: prints XFAIL (yellow), does not count as a failure
+#   - If the test passes: prints PASS with a note to remove the xfail marker
+print_xfail() {
+  TOTAL_TESTS=$((TOTAL_TESTS + 1))
+  if [ "$1" -eq 0 ]; then
+    echo -e "${GREEN}✓ PASS${NC}: $2"
+    echo -e "  ${YELLOW}^ Expected to fail — remove xfail marker ($3)${NC}"
+  else
+    echo -e "${YELLOW}✗ XFAIL${NC}: $2"
+    echo -e "  ${YELLOW}  Fix: $3${NC}"
+    XFAIL_TESTS=$((XFAIL_TESTS + 1))
   fi
 }
 
@@ -225,8 +242,52 @@ else
   echo -e "${YELLOW}⊘ SKIP${NC}: AWS CLI not installed"
 fi
 
-# 6. Additional fetch methods
-print_section "6. Additional Fetch Methods"
+# 6. pnpm GitHub tarball fetch test
+print_section "6. pnpm - GitHub Tarball Dependency"
+
+# Standalone pnpm (installed via mise/asdf, not corepack) bundles its own Node
+# runtime that ignores NODE_USE_SYSTEM_CA. It needs NODE_EXTRA_CA_CERTS to trust
+# the Netskope proxy cert when fetching GitHub tarballs.
+# Reproduces: cvent-internal/sourcegraph `pnpm install` failing with
+# "FetchError: self-signed certificate in certificate chain"
+
+if command -v mise &>/dev/null; then
+  PNPM_TEST_DIR=$(mktemp -d)
+  cat >"$PNPM_TEST_DIR/package.json" <<'PKGJSON'
+{
+  "private": true,
+  "dependencies": {
+    "prettier-plugin-packagejson": "github:cvent/prettier-plugin-packagejson#f7d8ea1c1bf9b8bcf0dd8119575241f615ebe507"
+  }
+}
+PKGJSON
+
+  # Test with standalone pnpm via mise (not corepack), which is how projects
+  # like sourcegraph actually run pnpm
+  echo "Testing standalone pnpm (via mise) with GitHub-hosted tarball..."
+  PNPM_OUTPUT=$( mise exec pnpm@latest -- pnpm install --dir "$PNPM_TEST_DIR" 2>&1 )
+  PNPM_EXIT=$?
+
+  if [ $PNPM_EXIT -eq 0 ]; then
+    print_result 0 "pnpm install - GitHub tarball (cvent/prettier-plugin-packagejson)"
+  else
+    if echo "$PNPM_OUTPUT" | command grep -qi "self-signed certificate\|certificate"; then
+      print_result 1 "pnpm install - GitHub tarball (certificate error)"
+      echo "  Error: self-signed certificate in certificate chain"
+      echo "  Hint: NODE_EXTRA_CA_CERTS must point to a CA bundle that includes the Netskope cert"
+    else
+      print_result 1 "pnpm install - GitHub tarball"
+      echo "  Error: ${PNPM_OUTPUT:0:200}"
+    fi
+  fi
+
+  rm -rf "$PNPM_TEST_DIR"
+else
+  echo -e "${YELLOW}⊘ SKIP${NC}: mise not available"
+fi
+
+# 7. Additional fetch methods
+print_section "7. Additional Fetch Methods"
 
 # git test (uses certificates for https operations)
 echo "Testing git with HTTPS..."
@@ -350,8 +411,8 @@ else
   echo -e "${YELLOW}⊘ SKIP${NC}: npx not available"
 fi
 
-# 7. macOS Security Framework Test
-print_section "7. macOS System Certificate Store"
+# 8. macOS Security Framework Test
+print_section "8. macOS System Certificate Store"
 
 echo "Checking if Netskope cert is in system keychain..."
 if security find-certificate -c "ca.cvt.goskope.com" -a /Library/Keychains/System.keychain >/dev/null 2>&1; then
@@ -367,12 +428,19 @@ print_section "Test Suite Complete"
 echo ""
 echo "Total tests: $TOTAL_TESTS"
 echo "Failed tests: $FAILED_TESTS"
+if [ $XFAIL_TESTS -gt 0 ]; then
+  echo "Expected failures: $XFAIL_TESTS"
+fi
 echo ""
 
 if [ $FAILED_TESTS -gt 0 ]; then
   echo -e "${RED}FAILED${NC}: $FAILED_TESTS test(s) failed"
   exit 1
 else
-  echo -e "${GREEN}SUCCESS${NC}: All tests passed"
+  if [ $XFAIL_TESTS -gt 0 ]; then
+    echo -e "${GREEN}SUCCESS${NC}: All tests passed (${XFAIL_TESTS} expected failure(s))"
+  else
+    echo -e "${GREEN}SUCCESS${NC}: All tests passed"
+  fi
   exit 0
 fi

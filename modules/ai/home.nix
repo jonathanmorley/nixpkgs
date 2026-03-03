@@ -1,5 +1,8 @@
 {pkgs, ...}: {
   home.file.".claude/CLAUDE.md".text = ''
+    > **This file is managed by Nix.** Do not edit `~/.claude/CLAUDE.md` directly.
+    > Changes should be made in `~/Developer/nixpkgs/modules/ai/home.nix` and applied via your Nix configuration.
+
     # Personal preferences
 
     ## General
@@ -20,6 +23,10 @@
     I prefer `vitest` over `jest` for testing.
     I like to use @tsconfig/... for my TypeScript configuration, and I prefer to extend from those rather than writing my own from scratch.
     Place tests in a top-level `tests/` directory, using `*.test.ts` naming.
+
+    ## Claude Code
+
+    Always run bash commands in the foreground so I can see their output in real-time. Do not use run_in_background.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
