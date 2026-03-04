@@ -24,6 +24,10 @@
     I like to use @tsconfig/... for my TypeScript configuration, and I prefer to extend from those rather than writing my own from scratch.
     Place tests in a top-level `tests/` directory, using `*.test.ts` naming.
 
+    ## Networking
+
+    Some Cvent endpoints are behind VPN. If requests to Cvent services fail or time out, the user may need to connect to the Cvent VPN for them to become accessible.
+
     ## Claude Code
 
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
@@ -42,6 +46,7 @@
   ];
 
   programs.zsh.initContent = ''
+    rbw unlock
     rtk init --global --hook-only --auto-patch >/dev/null
   '';
 
