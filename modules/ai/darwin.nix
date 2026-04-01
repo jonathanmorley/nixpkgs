@@ -12,6 +12,9 @@
       "copilot-cli"
       # For running local AI models
       "ollama-app"
+      # Stay on latest better
+      "claude-code"
+      "claude"
     ];
   };
 }
