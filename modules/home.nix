@@ -101,7 +101,6 @@
       ipcalc
       mitmproxy
       mtr
-      nixd
       obsidian
       oktaws
       openssl
@@ -110,8 +109,16 @@
       pkg-config-unwrapped
       raycast
       slack
+      tmux
       tree
       unixtools.watch
+    ]
+    ++ [
+      # Language Servers
+      jdt-language-server
+      nixd
+      rust-analyzer
+      typescript-language-server
     ];
 
   home.shellAliases = {
