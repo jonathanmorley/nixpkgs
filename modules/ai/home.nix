@@ -33,6 +33,11 @@
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
     Commit often to preserve progress, but do not push unless explicitly asked.
     CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
+    When creating a feature in an external tool or plugin, follow up with a PR to that project's repository to contribute the feature back upstream.
+
+    ## Superpowers Plugin
+
+    When executing plans, always use the 'Subagent-Driven' execution option. Do not prompt for which execution method to use.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
