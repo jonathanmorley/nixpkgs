@@ -7,7 +7,7 @@
       # Not available in nixpkgs
       "didhd/tap/amazon-bedrock-client"
       # Stay on latest better
-      "claude-code"
+      "claude-code@latest"
       # Stay on latest better
       "copilot-cli"
       # For running local AI models
