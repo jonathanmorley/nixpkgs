@@ -106,5 +106,9 @@
   system.activationScripts.extraActivation.text = ''
     # Force reload of preference cache to apply trackpad settings
     killall cfprefsd 2>/dev/null || true
+
+    # Symlink gh into /usr/local/bin so non-Nix-aware apps (e.g. Claude Desktop) can find it
+    mkdir -p /usr/local/bin
+    ln -sf "${lib.getExe pkgs.gh}" /usr/local/bin/gh
   '';
 }
