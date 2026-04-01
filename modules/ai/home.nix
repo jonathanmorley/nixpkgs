@@ -33,7 +33,7 @@
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
     Commit often to preserve progress, but do not push unless explicitly asked.
     CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
-    When creating a feature in an external tool or plugin, follow up with a PR to that project's repository to contribute the feature back upstream.
+    Always create a PR for completed work. PRs are my preferred workflow for reviewing and merging changes.
 
     ## Superpowers Plugin
 
