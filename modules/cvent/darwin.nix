@@ -86,6 +86,7 @@ in {
   # Standalone pnpm (via mise/asdf) bundles its own Node runtime that ignores
   # NODE_USE_SYSTEM_CA. It needs NODE_EXTRA_CA_CERTS to trust the Netskope cert.
   environment.variables.NODE_EXTRA_CA_CERTS = certBundle;
+  environment.variables.UV_NATIVE_TLS = "1";
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.

@@ -1,7 +1,6 @@
 {
   pkgs,
   lib,
-  config,
   specialArgs,
   ...
 }: {
@@ -88,6 +87,10 @@
         CONFLUENCE_MCP_TOKEN = {
           provider = "bitwarden";
           value = "Confluence Token";
+        };
+        SONARQUBE_MCP_TOKEN = {
+          provider = "bitwarden";
+          value = "SonarQube MCP Token";
         };
       };
     };

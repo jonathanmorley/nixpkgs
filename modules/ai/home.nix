@@ -32,6 +32,7 @@
 
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
     Commit often to preserve progress, but do not push unless explicitly asked.
+    CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
@@ -40,17 +41,17 @@
 
   home.packages = with pkgs; [
     ollama
-    rtk
     # Just to satisfy Zencoder's need for npx
     nodejs
   ];
 
   programs.zsh.initContent = ''
     rbw unlock
-    rtk init --global --hook-only --auto-patch >/dev/null
   '';
 
   programs.git.ignores = [
     ".claude/settings.local.json"
   ];
+
+  home.shellAliases.claude = "claude --permission-mode=bypassPermissions --enable-auto-mode --allow-dangerously-skip-permissions";
 }
