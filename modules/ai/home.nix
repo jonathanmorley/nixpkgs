@@ -34,6 +34,11 @@
     Commit often to preserve progress, but do not push unless explicitly asked.
     CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
     When opening a PR, always add the `ai:autofix` label to it (e.g., `gh pr edit --add-label "ai:autofix"`).
+    Always create a PR for completed work. PRs are my preferred workflow for reviewing and merging changes.
+
+    ## Superpowers Plugin
+
+    When executing plans, always use the 'Subagent-Driven' execution option. Do not prompt for which execution method to use.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
