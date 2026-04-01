@@ -112,7 +112,8 @@
       tmux
       tree
       unixtools.watch
-    ] ++ [
+    ]
+    ++ [
       # Language Servers
       jdt-language-server
       nixd
