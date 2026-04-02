@@ -28,6 +28,7 @@
   # not being installed as a nix package.
   homebrew = {
     enable = true;
+    onActivation.autoUpdate = true;
     onActivation.cleanup = "uninstall";
     casks = [
       # Not available in nixpkgs
