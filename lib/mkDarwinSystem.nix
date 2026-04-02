@@ -28,6 +28,7 @@ darwin.lib.darwinSystem {
           config.allowUnsupportedSystem = true;
           config.permittedInsecurePackages = [
             "lima-full-1.2.2"
+            "lima-additional-guestagents-1.2.2"
           ];
           overlays = [
             (final: prev: {
