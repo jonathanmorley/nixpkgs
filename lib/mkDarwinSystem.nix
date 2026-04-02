@@ -29,11 +29,12 @@ darwin.lib.darwinSystem {
           overlays = [
             (final: prev: {
               # Custom packages
-              oktaws = oktaws.packages.${prev.system}.default;
+              oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
               fnox = prev.callPackage ../pkgs/fnox {};
               gig = prev.callPackage ../pkgs/gig {};
               rtk = prev.callPackage ../pkgs/rtk {};
-              bat = nixpkgs-unstable.legacyPackages.${prev.system}.bat; # To get 0.26.1
+              bat = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.bat; # To get 0.26.1
+              colima = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.colima; # lima 1.2.2 in stable is EOL
             })
           ];
         };
