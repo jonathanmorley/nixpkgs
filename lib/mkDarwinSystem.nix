@@ -26,6 +26,9 @@ darwin.lib.darwinSystem {
         nixpkgs = {
           config.allowUnfree = true;
           config.allowUnsupportedSystem = true;
+          config.permittedInsecurePackages = [
+            "lima-full-1.2.2"
+          ];
           overlays = [
             (final: prev: {
               # Custom packages
