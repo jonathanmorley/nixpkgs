@@ -26,10 +26,6 @@ darwin.lib.darwinSystem {
         nixpkgs = {
           config.allowUnfree = true;
           config.allowUnsupportedSystem = true;
-          config.permittedInsecurePackages = [
-            "lima-full-1.2.2"
-            "lima-additional-guestagents-1.2.2"
-          ];
           overlays = [
             (final: prev: {
               # Custom packages
@@ -38,6 +34,7 @@ darwin.lib.darwinSystem {
               gig = prev.callPackage ../pkgs/gig {};
               rtk = prev.callPackage ../pkgs/rtk {};
               bat = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.bat; # To get 0.26.1
+              colima = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.colima; # lima 1.2.2 in stable is EOL
             })
           ];
         };
