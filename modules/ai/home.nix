@@ -61,5 +61,5 @@
     ".claude/settings.local.json"
   ];
 
-  home.shellAliases.claude = "claude --permission-mode=bypassPermissions --enable-auto-mode --allow-dangerously-skip-permissions";
+  home.shellAliases.claude = "claude --permission-mode=auto";
 }
