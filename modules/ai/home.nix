@@ -40,7 +40,6 @@
     ## Superpowers Plugin
 
     When executing plans, always use the 'Subagent-Driven' execution option. Do not prompt for which execution method to use.
-    Before pushing or creating a PR, remove any superpowers artifacts (plan and spec files) from the worktree so they are not included in the commit history.
   '';
 
   # home.file.".github/copilot-instructions.md".text = ''
