@@ -19,6 +19,9 @@
   programs.mise = {
     enable = true;
     enableZshIntegration = true;
+    settings = {
+      trusted_config_paths = [ "~/Developer/cvent-internal" ];
+    };
   };
   programs.neovim = {
     defaultEditor = true;
