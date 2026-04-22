@@ -42,6 +42,7 @@ print_section() {
 print_section "1. Environment Variables"
 echo "NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-not set}"
 echo "NODE_USE_SYSTEM_CA: ${NODE_USE_SYSTEM_CA:-not set}"
+echo "UV_NATIVE_TLS: ${UV_NATIVE_TLS:-not set}"
 echo "AWS_CA_BUNDLE: ${AWS_CA_BUNDLE:-not set}"
 echo "CURL_CA_BUNDLE: ${CURL_CA_BUNDLE:-not set}"
 echo "REQUESTS_CA_BUNDLE: ${REQUESTS_CA_BUNDLE:-not set}"
@@ -201,6 +202,36 @@ if python3 /tmp/test-python-urllib.py 2>&1; then
   print_result 0 "Python urllib"
 else
   print_result 1 "Python urllib (all connections failed)"
+fi
+
+# uv Python package manager test
+# uv uses rustls by default with its own bundled root certificates, which does
+# not include the Netskope proxy cert. UV_NATIVE_TLS=1 switches uv to the
+# platform's native TLS stack (Secure Transport on macOS) so it trusts the
+# system keychain where the Netskope cert is installed.
+echo ""
+echo "Testing uv (via mise) against PyPI..."
+if command -v mise &>/dev/null; then
+  UV_TEST_DIR=$(mktemp -d)
+  echo "requests" >"$UV_TEST_DIR/requirements.in"
+  UV_OUTPUT=$(mise exec uv@latest -- uv pip compile --no-cache "$UV_TEST_DIR/requirements.in" 2>&1)
+  UV_EXIT=$?
+
+  if [ $UV_EXIT -eq 0 ]; then
+    print_result 0 "uv pip compile - PyPI fetch (requests)"
+  else
+    if echo "$UV_OUTPUT" | command grep -qi "certificate\|self-signed\|unable to verify\|invalid peer certificate\|unknownissuer\|not trusted\|tls"; then
+      print_result 1 "uv pip compile - PyPI (certificate error)"
+      echo "  Hint: UV_NATIVE_TLS=1 is required so uv uses the system keychain (Netskope cert)"
+    else
+      print_result 1 "uv pip compile - PyPI fetch"
+      echo "  Error: ${UV_OUTPUT:0:200}"
+    fi
+  fi
+
+  rm -rf "$UV_TEST_DIR"
+else
+  echo -e "${YELLOW}⊘ SKIP${NC}: mise not available"
 fi
 
 # 5. AWS CLI Tests
