@@ -23,14 +23,9 @@ jobs:
       - name: Decode private key
         id: decode-key
         run: |
-          set +x
-          KEY="$(printf '%s' "$FORMATTER_PRIVATE_KEY_BASE64" | tr -d '[:space:]' | base64 -d)"
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          {
-            echo "private-key<<$EOF"
-            echo "$KEY"
-            echo "$EOF"
-          } >> "$GITHUB_OUTPUT"
+          private_key=$(printf '%s' "$FORMATTER_PRIVATE_KEY_BASE64" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
       - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: app-token
         with:
