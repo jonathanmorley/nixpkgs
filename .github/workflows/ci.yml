@@ -18,13 +18,22 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          FORMATTER_APP_ID: op://GitHub Actions/Formatter/username
-          FORMATTER_APP_PRIVATE_KEY: op://GitHub Actions/Formatter/credential
+          FORMATTER_CLIENT_ID: op://GitHub Actions/Formatter/username
+          FORMATTER_PRIVATE_KEY_BASE64: op://GitHub Actions/Formatter/credential
+      - name: Decode private key
+        id: decode-key
+        run: |
+          KEY="$(echo "$FORMATTER_PRIVATE_KEY_BASE64" | base64 -d)"
+          echo "::add-mask::$KEY"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "private-key<<$EOF" >> "$GITHUB_OUTPUT"
+          echo "$KEY" >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
       - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: app-token
         with:
-          app-id: ${{ env.FORMATTER_APP_ID }}
-          private-key: ${{ env.FORMATTER_APP_PRIVATE_KEY }}
+          client-id: ${{ env.FORMATTER_CLIENT_ID }}
+          private-key: ${{ steps.decode-key.outputs.private-key }}
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.head_ref }}
