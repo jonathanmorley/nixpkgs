@@ -7,7 +7,7 @@
       # Not available in nixpkgs
       "didhd/tap/amazon-bedrock-client"
       # Stay on latest better
-      "copilot-cli"
+      "opencode"
       # For running local AI models
       "ollama-app"
       # Stay on latest better
