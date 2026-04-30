@@ -25,9 +25,6 @@ jobs:
         run: |
           set +x
           KEY="$(printf '%s' "$FORMATTER_PRIVATE_KEY_BASE64" | tr -d '[:space:]' | base64 -d)"
-          while IFS= read -r line; do
-            echo "::add-mask::$line"
-          done <<< "$KEY"
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           {
             echo "private-key<<$EOF"
