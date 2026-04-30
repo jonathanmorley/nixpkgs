@@ -10,9 +10,7 @@
       "opencode-desktop"
       # For running local AI models
       "ollama-app"
-      # Stay on latest better
-      "claude-code@latest"
-      "claude"
+
     ];
   };
 }
