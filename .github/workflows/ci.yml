@@ -23,7 +23,7 @@ jobs:
       - name: Decode private key
         id: decode-key
         run: |
-          KEY="$(echo "$FORMATTER_PRIVATE_KEY_BASE64" | base64 -d)"
+          KEY="$(printf '%s' "$FORMATTER_PRIVATE_KEY_BASE64" | tr -d '[:space:]' | base64 -d)"
           echo "::add-mask::$KEY"
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "private-key<<$EOF" >> "$GITHUB_OUTPUT"
