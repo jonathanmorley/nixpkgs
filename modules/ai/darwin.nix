@@ -7,7 +7,7 @@
       # Not available in nixpkgs
       "didhd/tap/amazon-bedrock-client"
       # Stay on latest better
-      "opencode"
+      "opencode-desktop"
       # For running local AI models
       "ollama-app"
       # Stay on latest better
