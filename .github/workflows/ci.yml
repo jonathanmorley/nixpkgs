@@ -13,18 +13,35 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259 # v4.0.0
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          FORMATTER_APP_ID: op://GitHub Actions/Formatter/username
+          FORMATTER_APP_PRIVATE_KEY: op://GitHub Actions/Formatter/credential
+      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: app-token
+        with:
+          app-id: ${{ env.FORMATTER_APP_ID }}
+          private-key: ${{ env.FORMATTER_APP_PRIVATE_KEY }}
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.head_ref }}
+          token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/determinate-nix-action@f4c468f2287f0f14a113841b41f2dc8957119519 # v3.19.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Format
         run: nix fmt
       - name: Commit formatting changes
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          APP_SLUG="$(gh api /apps --method GET -H 'Accept: application/vnd.github+json' --jq '.slug' 2>/dev/null || echo 'formatter')"
+          APP_USER_ID="$(gh api "/users/${APP_SLUG}[bot]" --jq '.id' 2>/dev/null || echo '0')"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${APP_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
           git add -A
           git diff --staged --quiet || git commit -m "style: auto-format with treefmt"
           git push
