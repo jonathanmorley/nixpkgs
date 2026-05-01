@@ -41,16 +41,12 @@ jobs:
       - name: Format
         run: nix fmt
       - name: Commit formatting changes
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          APP_SLUG="$(gh api /apps --method GET -H 'Accept: application/vnd.github+json' --jq '.slug' 2>/dev/null || echo 'formatter')"
-          APP_USER_ID="$(gh api "/users/${APP_SLUG}[bot]" --jq '.id' 2>/dev/null || echo '0')"
-          git config user.name "${APP_SLUG}[bot]"
-          git config user.email "${APP_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
-          git add -A
-          git diff --staged --quiet || git commit -m "style: auto-format with treefmt"
-          git push
+        run: git add -A
+      - uses: pgaskin/push-signed-commits@bade5bde4bb6f40056650ba7bd9160bd74335c97 # v1.0.2
+        with:
+          branch: ${{ github.head_ref }}
+          commit-message: "style: auto-format with treefmt"
+          github-token: ${{ steps.app-token.outputs.token }}
 
   nix:
     needs: format
