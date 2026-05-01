@@ -20,21 +20,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           FORMATTER_CLIENT_ID: op://GitHub Actions/Formatter/username
           FORMATTER_PRIVATE_KEY_BASE64: op://GitHub Actions/Formatter/credential
-      - name: Decode private key
-        id: decode-key
-        run: |
-          private_key=$(printf '%s' "$FORMATTER_PRIVATE_KEY_BASE64" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
-          echo "::add-mask::$private_key"
-          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
-      - uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
-        id: app-token
-        with:
-          client-id: ${{ env.FORMATTER_CLIENT_ID }}
-          private-key: ${{ steps.decode-key.outputs.private-key }}
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.head_ref }}
-          token: ${{ steps.app-token.outputs.token }}
       - uses: DeterminateSystems/determinate-nix-action@f4c468f2287f0f14a113841b41f2dc8957119519 # v3.19.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,7 +34,8 @@ jobs:
         with:
           branch: ${{ github.head_ref }}
           commit-message: "style: auto-format with treefmt"
-          github-token: ${{ steps.app-token.outputs.token }}
+          app-id: ${{ env.FORMATTER_CLIENT_ID }}
+          app-key: ${{ env.FORMATTER_PRIVATE_KEY_BASE64 }}
 
   nix:
     needs: format
