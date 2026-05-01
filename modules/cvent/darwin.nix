@@ -92,6 +92,9 @@ in {
   # not being installed as a nix package.
   homebrew = {
     casks = [
+      # Stay on latest better
+      "claude-code@latest"
+      "claude"
       # Not available in nixpkgs
       "microsoft-outlook"
       # Not available in nixpkgs

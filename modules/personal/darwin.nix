@@ -1,4 +1,9 @@
 {config, ...}: {
+  homebrew.masApps = {
+    # The firefox extension doesnt unlock with biometrics if bitwarden is installed any other way
+    "bitwarden" = 1352778147;
+  };
+
   homebrew.casks = [
     # https://github.com/NixOS/nixpkgs/issues/254944
     "1password"
