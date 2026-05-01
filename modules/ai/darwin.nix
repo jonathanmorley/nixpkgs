@@ -12,7 +12,6 @@
       "didhd/tap/amazon-bedrock-client"
       # For running local AI models
       "ollama-app"
-
     ];
   };
 }
