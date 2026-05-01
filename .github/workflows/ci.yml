@@ -42,13 +42,17 @@ jobs:
       - name: Commit formatting changes
         run: git add -A
       - uses: pgaskin/push-signed-commits@bade5bde4bb6f40056650ba7bd9160bd74335c97 # v1.0.2
+        id: push-format
         with:
           branch: ${{ github.head_ref }}
           commit-message: "style: auto-format with treefmt"
           github-token: ${{ steps.app-token.outputs.token }}
+    outputs:
+      formatting-committed: ${{ steps.push-format.outputs.pushed-oid }}
 
   nix:
     needs: format
+    if: ${{ !needs.format.outputs.formatting-committed }}
     strategy:
       matrix:
         include:
