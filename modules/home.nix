@@ -20,7 +20,7 @@
     enable = true;
     enableZshIntegration = true;
     settings = {
-      trusted_config_paths = [ "~/Developer/cvent-internal" ];
+      trusted_config_paths = ["~/Developer/cvent-internal"];
     };
   };
   programs.neovim = {
