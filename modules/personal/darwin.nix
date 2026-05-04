@@ -10,6 +10,7 @@
     # The GUI is not available in nixpkgs
     "tailscale-app"
     "balenaetcher"
+    "bambu-studio"
     # Not available in nixpkgs
     "chrome-remote-desktop-host"
   ];
