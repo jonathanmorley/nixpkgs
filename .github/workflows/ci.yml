@@ -45,7 +45,7 @@ jobs:
         run: nix fmt
       - name: Commit formatting changes
         run: git add -A
-      - uses: pgaskin/push-signed-commits@bade5bde4bb6f40056650ba7bd9160bd74335c97 # v1.0.2
+      - uses: pgaskin/push-signed-commits@00d248c5c952d45cc5ae0dc5b4ca0c236aee25a7 # v1.1.1
         with:
           branch: ${{ github.head_ref }}
           commit-message: "style: auto-format with treefmt"
