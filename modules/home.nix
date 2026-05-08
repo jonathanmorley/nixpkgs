@@ -115,6 +115,7 @@
       tmux
       tree
       unixtools.watch
+      vscode
     ]
     ++ [
       # Language Servers

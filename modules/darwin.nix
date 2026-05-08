@@ -43,8 +43,6 @@
       "oversight"
       # https://github.com/warpdotdev/Warp/issues/1991
       "warp"
-      # Insiders is not available in nixpkgs
-      "visual-studio-code@insiders"
       # Cannot allow screensharing with nix package
       "zoom"
     ];
