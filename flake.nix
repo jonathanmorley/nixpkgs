@@ -38,7 +38,7 @@
     };
 
     stateVersions = {
-      darwin = "6";
+      darwin = "7";
       homeManager = "26.05";
     };
 

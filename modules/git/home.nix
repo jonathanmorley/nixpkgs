@@ -82,9 +82,9 @@ in {
       tag.sort = "version:refname";
     };
   };
-  programs.ssh.matchBlocks."github.com" = {
-    identitiesOnly = true;
-    identityFile = builtins.toFile "github.com.pub" specialArgs.sshKeys."github.com";
+  programs.ssh.settings."github.com" = {
+    IdentitiesOnly = true;
+    IdentityFile = builtins.toFile "github.com.pub" specialArgs.sshKeys."github.com";
   };
   programs.zsh.oh-my-zsh.plugins = ["gh" "git"];
 
