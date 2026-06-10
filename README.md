@@ -13,6 +13,10 @@
 1. Add host config block to [flake.nix](~/.nixpkgs/flake.nix).
 1. Run `nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake ~/.nixpkgs` to apply changes.
 
+## Nix Caches
+
+This repo configures Nix to use `cache.nixos.org`, `nix-community.cachix.org`, and `jonathanmorley.cachix.org`. Flake inputs and substituters intentionally avoid FlakeHub so local switches and CI do not require FlakeHub credentials.
+
 ## Resources
 
 - https://gist.github.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050

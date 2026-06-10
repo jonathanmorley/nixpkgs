@@ -10,6 +10,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NIX_SUBSTITUTERS: https://cache.nixos.org/ https://nix-community.cachix.org https://jonathanmorley.cachix.org
+  NIX_TRUSTED_SUBSTITUTERS: https://install.determinate.systems
+  NIX_TRUSTED_PUBLIC_KEYS: >-
+    cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+    nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=
+
 jobs:
   format:
     if: github.event_name == 'pull_request'
@@ -42,6 +50,12 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Format
+        env:
+          NIX_CONFIG: |
+            extra-access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            substituters = ${{ env.NIX_SUBSTITUTERS }}
+            trusted-substituters = ${{ env.NIX_TRUSTED_SUBSTITUTERS }}
+            trusted-public-keys = ${{ env.NIX_TRUSTED_PUBLIC_KEYS }}
         run: nix fmt
       - name: Commit formatting changes
         run: git add -A
@@ -74,11 +88,22 @@ jobs:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Check
+        env:
+          NIX_CONFIG: |
+            extra-access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            substituters = ${{ env.NIX_SUBSTITUTERS }}
+            trusted-substituters = ${{ env.NIX_TRUSTED_SUBSTITUTERS }}
+            trusted-public-keys = ${{ env.NIX_TRUSTED_PUBLIC_KEYS }}
         run: nix flake check --print-build-logs --no-update-lock-file
       - name: Switch
+        env:
+          NIX_CONFIG: |
+            extra-access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            substituters = ${{ env.NIX_SUBSTITUTERS }}
+            trusted-substituters = ${{ env.NIX_TRUSTED_SUBSTITUTERS }}
+            trusted-public-keys = ${{ env.NIX_TRUSTED_PUBLIC_KEYS }}
         run: |
           # Remove files that will be replaced by nix-darwin
           sudo rm -f /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
-          # Re-inject the GitHub token via NIX_CONFIG since removing nix.custom.conf
-          # strips the access-tokens that determinate-nix-action configured
-          sudo -i env NIX_CONFIG="extra-access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}" nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
+          # Re-inject the Nix settings that are lost when nix.custom.conf is removed.
+          sudo -i env NIX_CONFIG="$NIX_CONFIG" nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}

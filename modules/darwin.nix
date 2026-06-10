@@ -11,8 +11,19 @@
     enable = true;
     customSettings = {
       trusted-users = [config.system.primaryUser];
-      extra-substituters = "https://nix-community.cachix.org https://jonathanmorley.cachix.org";
-      extra-trusted-public-keys = "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=";
+      # Determinate Nix includes cache.flakehub.com by default, which returns
+      # 401s without FlakeHub credentials. Keep the cache set explicit.
+      substituters = [
+        "https://cache.nixos.org/"
+        "https://nix-community.cachix.org"
+        "https://jonathanmorley.cachix.org"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI="
+      ];
+      trusted-substituters = ["https://install.determinate.systems"];
     };
   };
 
