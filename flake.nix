@@ -32,7 +32,7 @@
     ...
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
-      inherit darwin home-manager nixpkgs nixpkgs-unstable oktaws;
+      inherit darwin home-manager nixpkgs oktaws;
       inherit (inputs) determinate;
     };
 
