@@ -17,19 +17,7 @@
       url = "github:jonathanmorley/oktaws/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    determinate = {
-      url = "github:DeterminateSystems/determinate/v3.21.1";
-      # Keep builds independent of FlakeHub credentials in local switches and CI.
-      inputs = {
-        nix.url = "github:DeterminateSystems/nix-src/v3.21.1";
-        nixpkgs.url = "github:NixOS/nixpkgs/4df1b885d76a54e1aa1a318f8d16fd6005b6401f";
-        nix.inputs = {
-          flake-parts.url = "github:hercules-ci/flake-parts/49f0870db23e8c1ca0b5259734a02cd9e1e371a1";
-          git-hooks-nix.url = "github:cachix/git-hooks.nix/80479b6ec16fefd9c1db3ea13aeb038c60530f46";
-          nixpkgs.url = "github:NixOS/nixpkgs/0590cd39f728e129122770c029970378a79d076a";
-        };
-      };
-    };
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
