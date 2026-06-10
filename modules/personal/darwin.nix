@@ -17,6 +17,6 @@
 
   home-manager.users.${config.system.primaryUser} = {
     programs.git.settings.gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-    programs.ssh.matchBlocks."*".extraOptions.IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
+    programs.ssh.settings."*".IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
   };
 }

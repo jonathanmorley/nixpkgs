@@ -41,13 +41,13 @@
       run chmod a+w ${path}
     '';
 
-  home.shellAliases.dockerv = "${pkgs.docker-client}/bin/docker run ${lib.cli.toGNUCommandLineShell {} {
+  home.shellAliases.dockerv = "${pkgs.docker-client}/bin/docker run ${(lib.cli.toCommandLineShellGNU {} {
     interactive = true;
     tty = true;
     rm = true;
     volume = "$(pwd):$(pwd)";
     workdir = "$(pwd)";
-  }}";
+  })}";
   home.sessionVariables.AWS_ECR_IGNORE_CREDS_STORAGE = "true"; # Allow `docker login` to succeed
   home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
     target = ".colima/_templates/default.yaml";

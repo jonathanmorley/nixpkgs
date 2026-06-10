@@ -17,7 +17,7 @@
   };
 
   environment.pathsToLink = ["/share/zsh"];
-  environment.systemPath = [config.homebrew.brewPrefix];
+  environment.systemPath = ["${config.homebrew.prefix}/bin"];
   environment.shells = [pkgs.zsh];
 
   fonts.packages = [pkgs.nerd-fonts.fira-code];
@@ -28,8 +28,11 @@
   # not being installed as a nix package.
   homebrew = {
     enable = true;
-    onActivation.autoUpdate = true;
-    onActivation.cleanup = "uninstall";
+    onActivation = {
+      autoUpdate = true;
+      cleanup = "uninstall";
+      extraFlags = ["--force-cleanup"];
+    };
     casks = [
       # Not available in nixpkgs
       "eqmac"

@@ -3,7 +3,6 @@
   determinate,
   home-manager,
   nixpkgs,
-  nixpkgs-unstable,
   oktaws,
 }: {
   system ? "aarch64-darwin",
@@ -27,14 +26,11 @@ darwin.lib.darwinSystem {
           config.allowUnfree = true;
           config.allowUnsupportedSystem = true;
           overlays = [
-            (final: prev: {
+            (_final: prev: {
               # Custom packages
               oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
               fnox = prev.callPackage ../pkgs/fnox {};
               gig = prev.callPackage ../pkgs/gig {};
-              rtk = prev.callPackage ../pkgs/rtk {};
-              bat = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.bat; # To get 0.26.1
-              colima = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.colima; # lima 1.2.2 in stable is EOL
             })
           ];
         };

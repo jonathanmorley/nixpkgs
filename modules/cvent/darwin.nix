@@ -68,7 +68,7 @@ in {
   # cacert → fetchurl → fetchzip → fetchFromGitHub for just these packages,
   # keeping binary cache hits for everything else.
   nixpkgs.overlays = lib.mkAfter [
-    (final: prev: let
+    (_final: prev: let
       corpoFetchurl = prev.fetchurl.override {cacert = customCacert;};
       corpoFetchzip = prev.fetchzip.override {fetchurl = corpoFetchurl;};
       corpoFetchFromGitHub = prev.fetchFromGitHub.override {fetchzip = corpoFetchzip;};
@@ -112,5 +112,5 @@ in {
   ];
 
   environment.variables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
-  home-manager.users.${config.system.primaryUser}.programs.ssh.matchBlocks."*".extraOptions.IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
+  home-manager.users.${config.system.primaryUser}.programs.ssh.settings."*".IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
 }

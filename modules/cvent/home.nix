@@ -55,15 +55,15 @@
       ];
   };
 
-  programs.ssh = {
-    matchBlocks."cvent.github.com" = {
-      identitiesOnly = true;
-      identityFile = builtins.toFile "cvent.pub" specialArgs.sshKeys.cvent;
-      hostname = "github.com";
+  programs.ssh.settings = {
+    "cvent.github.com" = {
+      IdentitiesOnly = true;
+      IdentityFile = builtins.toFile "cvent.pub" specialArgs.sshKeys.cvent;
+      Hostname = "github.com";
     };
-    matchBlocks."*.cvent.*" = {
-      user = "jmorley";
-      extraOptions.PreferredAuthentications = "password";
+    "Host *.cvent.*" = {
+      User = "jmorley";
+      PreferredAuthentications = "password";
     };
   };
 
@@ -95,4 +95,8 @@
       };
     };
   };
+
+  programs.zsh.initContent = ''
+    rbw unlock
+  '';
 }
