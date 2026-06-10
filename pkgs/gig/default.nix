@@ -3,7 +3,7 @@
   lib,
   rustPlatform,
 }:
-rustPlatform.buildRustPackage (finalAttrs: rec {
+rustPlatform.buildRustPackage (_finalAttrs: rec {
   pname = "gig";
   version = "0.2.0";
 

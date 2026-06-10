@@ -3,7 +3,7 @@
   lib,
   rustPlatform,
 }:
-rustPlatform.buildRustPackage (finalAttrs: rec {
+rustPlatform.buildRustPackage (_finalAttrs: rec {
   pname = "fnox";
   version = "1.12.1";
 

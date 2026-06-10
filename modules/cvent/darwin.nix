@@ -68,7 +68,7 @@ in {
   # cacert → fetchurl → fetchzip → fetchFromGitHub for just these packages,
   # keeping binary cache hits for everything else.
   nixpkgs.overlays = lib.mkAfter [
-    (final: prev: let
+    (_final: prev: let
       corpoFetchurl = prev.fetchurl.override {cacert = customCacert;};
       corpoFetchzip = prev.fetchzip.override {fetchurl = corpoFetchurl;};
       corpoFetchFromGitHub = prev.fetchFromGitHub.override {fetchzip = corpoFetchzip;};

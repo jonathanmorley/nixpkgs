@@ -4,7 +4,7 @@
   specialArgs,
   ...
 }: let
-  gitignores = builtins.fetchGit {
+  gitignores = fetchGit {
     url = "https://github.com/github/gitignore";
     rev = "8779ee73af62c669e7ca371aaab8399d87127693";
   };
