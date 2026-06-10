@@ -41,7 +41,7 @@ jobs:
           ref: ${{ github.head_ref }}
       - uses: DeterminateSystems/determinate-nix-action@7c4cc317e802185875512bfcb68259257279d767 # v3.19.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
       - uses: DeterminateSystems/flakehub-cache-action@4d48cd3cda2f381a3006ff800e1c1ca0c9809159 # v3.21.1
       - name: Format
         run: nix fmt
@@ -69,7 +69,7 @@ jobs:
       - uses: DeterminateSystems/flake-checker-action@3164002371bc90729c68af0e24d5aacf20d7c9f6 # v12
       - uses: DeterminateSystems/determinate-nix-action@7c4cc317e802185875512bfcb68259257279d767 # v3.19.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
       - uses: DeterminateSystems/flakehub-cache-action@4d48cd3cda2f381a3006ff800e1c1ca0c9809159 # v3.21.1
       - name: Set up Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
@@ -80,7 +80,7 @@ jobs:
         run: nix flake check --print-build-logs --no-update-lock-file
       - name: Switch
         env:
-          NIX_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NIX_GITHUB_TOKEN: ${{ github.token }}
         run: |
           # Remove files that will be replaced by nix-darwin
           sudo rm -f /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
@@ -95,4 +95,7 @@ jobs:
           nix_config="$(printf 'extra-access-tokens = github.com=%s\nnetrc-file = %s\n' "$NIX_GITHUB_TOKEN" "$flakehub_netrc")"
           # Re-inject auth via NIX_CONFIG since removing nix.custom.conf strips
           # the access-tokens and netrc-file that the Determinate actions set up.
-          sudo -i env NIX_CONFIG="$nix_config" nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
+          sudo -i env NIX_CONFIG="$nix_config" \
+            nix run \
+              ${{ github.workspace }}#darwinConfigurations.gha-${{ matrix.system }}.config.system.build.darwin-rebuild \
+              -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
