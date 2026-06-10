@@ -37,7 +37,7 @@ in {
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
-  homebrew = {
+  homebrew = lib.mkIf (config.system.primaryUser != "runner") {
     enable = true;
     onActivation = {
       autoUpdate = true;
