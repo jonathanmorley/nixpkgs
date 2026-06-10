@@ -92,9 +92,23 @@ jobs:
             echo "::error::FlakeHub auth netrc was not created by the Determinate actions"
             exit 1
           fi
-          nix_config="$(printf 'extra-access-tokens = github.com=%s\nnetrc-file = %s\n' "$NIX_GITHUB_TOKEN" "$flakehub_netrc")"
+          if [[ -z "$NIX_GITHUB_TOKEN" ]]; then
+            echo "::error::GitHub token is unavailable"
+            exit 1
+          fi
+
+          switch_netrc="${RUNNER_TEMP}/nix-switch-netrc"
+          cp "$flakehub_netrc" "$switch_netrc"
+          {
+            printf '\n'
+            printf 'machine api.github.com login x-access-token password %s\n' "$NIX_GITHUB_TOKEN"
+            printf 'machine github.com login x-access-token password %s\n' "$NIX_GITHUB_TOKEN"
+          } >> "$switch_netrc"
+          chmod 600 "$switch_netrc"
+
+          nix_config="$(printf 'netrc-file = %s\n' "$switch_netrc")"
           # Re-inject auth via NIX_CONFIG since removing nix.custom.conf strips
-          # the access-tokens and netrc-file that the Determinate actions set up.
+          # the netrc-file that the Determinate actions set up.
           sudo -i env NIX_CONFIG="$nix_config" \
             nix run \
               ${{ github.workspace }}#darwinConfigurations.gha-${{ matrix.system }}.config.system.build.darwin-rebuild \
