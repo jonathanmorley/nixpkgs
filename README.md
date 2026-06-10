@@ -18,7 +18,7 @@
 
 Determinate Nix uses `/nix/var/determinate/netrc` for FlakeHub credentials. Do not edit that file directly; run `determinate-nixd login` when local builds or switches report FlakeHub 401s. You can verify CLI login state with `nix shell "https://flakehub.com/f/DeterminateSystems/fh/*" --command fh status`.
 
-GitHub Actions authenticates to FlakeHub through OIDC. The workflow grants `id-token: write` and runs `DeterminateSystems/flakehub-cache-action`, but FlakeHub still has to authorize this GitHub identity. If CI reports `User is not authorized for this resource`, log in to FlakeHub with the repository owner account, install the FlakeHub GitHub app for the account or organization, and make sure the account or organization has FlakeHub Cache access.
+GitHub Actions authenticates to FlakeHub through OIDC. The workflow grants `id-token: write` and runs `DeterminateSystems/flakehub-cache-action`, but FlakeHub still has to authorize this GitHub identity for the selected cache resource. If CI reports `User is not authorized for this resource`, FlakeHub login succeeded but cache authorization failed. For personal repositories, log in to FlakeHub with the repository owner account and make sure the account has FlakeHub Cache access. For organization repositories, create the FlakeHub organization, install the FlakeHub GitHub app for that GitHub organization, grant it access to this repository, and make sure the organization has FlakeHub Cache access.
 
 ## Resources
 
