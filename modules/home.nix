@@ -4,10 +4,12 @@
   lib,
   config,
   ...
-}: {
+}: let
+  isCiRunner = config.home.username == "runner";
+in {
   programs.awscli.enable = true;
   programs.bat.enable = true;
-  programs.chromium = {
+  programs.chromium = lib.mkIf (!isCiRunner) {
     enable = true;
     package = pkgs.google-chrome;
   };
@@ -96,11 +98,14 @@
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-    initContent = ''
-      export PATH="''${PATH}:''${HOME}/.cargo/bin"
+    initContent =
+      ''
+        export PATH="''${PATH}:''${HOME}/.cargo/bin"
+      ''
+      + lib.optionalString (!isCiRunner) ''
 
-      eval "$(fnox activate zsh)"
-    '';
+        eval "$(fnox activate zsh)"
+      '';
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -113,14 +118,13 @@
   home.packages = with pkgs;
   # Tools
     [
+      cachix
       coreutils
       dasel
-      disk-inventory-x
       doggo
       dust
       duf
       findutils
-      fnox
       gnugrep
       gnutar
       gzip
@@ -128,17 +132,21 @@
       ipcalc
       mitmproxy
       mtr
-      obsidian
-      oktaws
       openssl
       openconnect
       postgresql
       pkg-config-unwrapped
-      raycast
-      slack
       tmux
       tree
       unixtools.watch
+    ]
+    ++ lib.optionals (!isCiRunner) [
+      disk-inventory-x
+      fnox
+      obsidian
+      oktaws
+      raycast
+      slack
       vscode
     ]
     ++ [

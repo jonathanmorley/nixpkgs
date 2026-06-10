@@ -1,4 +1,9 @@
-{...}: let
+{
+  config,
+  lib,
+  ...
+}: let
+  isCiRunner = config.home.username == "runner";
   context = ''
     # Personal preferences
 
@@ -36,27 +41,28 @@
 
     When executing plans, do not prompt for which execution method to use. Use 'Subagent-Driven' execution when tasks are genuinely independent and parallelizable; for linear or small plans, execute inline.
   '';
-in {
-  programs.claude-code = {
-    enable = true;
-    context = context;
-  };
+in
+  lib.mkIf (!isCiRunner) {
+    programs.claude-code = {
+      enable = true;
+      context = context;
+    };
 
-  programs.codex = {
-    enable = true;
-    context = context;
-  };
+    programs.codex = {
+      enable = true;
+      context = context;
+    };
 
-  programs.opencode = {
-    enable = true;
-    context = context;
-  };
+    programs.opencode = {
+      enable = true;
+      context = context;
+    };
 
-  programs.zsh.initContent = ''
-    rbw unlock
-  '';
+    programs.zsh.initContent = ''
+      rbw unlock
+    '';
 
-  programs.git.ignores = [
-    ".claude/settings.local.json"
-  ];
-}
+    programs.git.ignores = [
+      ".claude/settings.local.json"
+    ];
+  }

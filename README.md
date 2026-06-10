@@ -13,6 +13,23 @@
 1. Add host config block to [flake.nix](~/.nixpkgs/flake.nix).
 1. Run `nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake ~/.nixpkgs` to apply changes.
 
+## Binary Caches
+
+This repo uses the official NixOS cache plus Cachix caches, not FlakeHub Cache. The Darwin configuration writes these substituters through Determinate Nix, and CI pins the same cache list in `NIX_CONFIG` so `cache.flakehub.com` is not consulted:
+
+- `https://cache.nixos.org`
+- `https://nix-community.cachix.org`
+- `https://jonathanmorley.cachix.org`
+
+CI uploads and downloads from the `jonathanmorley` Cachix cache through `cachix/cachix-action` and the `CACHIX_AUTH_TOKEN` repository secret.
+
+The `cachix` CLI is installed by the shared Home Manager configuration. Local reads from the configured public caches do not require authentication. To push paths, or to read a private cache, create a Cachix token and run:
+
+```sh
+cachix authtoken <token>
+cachix doctor
+```
+
 ## Resources
 
 - https://gist.github.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050

@@ -10,6 +10,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NIX_CACHE_SUBSTITUTERS: https://cache.nixos.org https://nix-community.cachix.org https://jonathanmorley.cachix.org
+  NIX_CACHE_TRUSTED_PUBLIC_KEYS: >-
+    cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+    nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+    jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=
+
 jobs:
   format:
     if: github.event_name == 'pull_request'
@@ -40,8 +47,17 @@ jobs:
           ref: ${{ github.head_ref }}
       - uses: DeterminateSystems/determinate-nix-action@7c4cc317e802185875512bfcb68259257279d767 # v3.19.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
+      - name: Set up Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: jonathanmorley
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Format
+        env:
+          NIX_CONFIG: |
+            substituters = ${{ env.NIX_CACHE_SUBSTITUTERS }}
+            trusted-public-keys = ${{ env.NIX_CACHE_TRUSTED_PUBLIC_KEYS }}
         run: nix fmt
       - name: Commit formatting changes
         run: git add -A
@@ -61,24 +77,48 @@ jobs:
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: DeterminateSystems/flake-checker-action@3164002371bc90729c68af0e24d5aacf20d7c9f6 # v12
       - uses: DeterminateSystems/determinate-nix-action@7c4cc317e802185875512bfcb68259257279d767 # v3.19.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
       - name: Set up Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Check
+        env:
+          NIX_CONFIG: |
+            substituters = ${{ env.NIX_CACHE_SUBSTITUTERS }}
+            trusted-public-keys = ${{ env.NIX_CACHE_TRUSTED_PUBLIC_KEYS }}
         run: nix flake check --print-build-logs --no-update-lock-file
       - name: Switch
+        env:
+          NIX_GITHUB_TOKEN: ${{ github.token }}
         run: |
           # Remove files that will be replaced by nix-darwin
           sudo rm -f /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
-          # Re-inject the GitHub token via NIX_CONFIG since removing nix.custom.conf
-          # strips the access-tokens that determinate-nix-action configured
-          sudo -i env NIX_CONFIG="extra-access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}" nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
+          if [[ -z "$NIX_GITHUB_TOKEN" ]]; then
+            echo "::error::GitHub token is unavailable"
+            exit 1
+          fi
+
+          switch_netrc="${RUNNER_TEMP}/nix-switch-netrc"
+          {
+            printf 'machine api.github.com login x-access-token password %s\n' "$NIX_GITHUB_TOKEN"
+            printf 'machine github.com login x-access-token password %s\n' "$NIX_GITHUB_TOKEN"
+          } > "$switch_netrc"
+          chmod 600 "$switch_netrc"
+
+          # Re-inject cache and GitHub auth since removing nix.custom.conf
+          # strips the settings that the actions set up.
+          sudo -i env \
+            nix \
+              --option substituters "$NIX_CACHE_SUBSTITUTERS" \
+              --option trusted-public-keys "$NIX_CACHE_TRUSTED_PUBLIC_KEYS" \
+              --option netrc-file "$switch_netrc" \
+              run \
+              ${{ github.workspace }}#darwinConfigurations.gha-${{ matrix.system }}.config.system.build.darwin-rebuild \
+              -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}

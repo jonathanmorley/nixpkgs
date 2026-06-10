@@ -1,9 +1,11 @@
 {
+  config,
   pkgs,
   lib,
   specialArgs,
   ...
 }: let
+  isCiRunner = config.home.username == "runner";
   gitignores = fetchGit {
     url = "https://github.com/github/gitignore";
     rev = "8779ee73af62c669e7ca371aaab8399d87127693";
@@ -88,12 +90,15 @@ in {
   };
   programs.zsh.oh-my-zsh.plugins = ["gh" "git"];
 
-  home.packages = with pkgs; [
-    gig
-    gh
-    gitify
-    git-filter-repo
-  ];
+  home.packages = with pkgs;
+    lib.optionals (!isCiRunner) [
+      gig
+    ]
+    ++ [
+      gh
+      gitify
+      git-filter-repo
+    ];
   home.shellAliases.gls = ''${pkgs.git}/bin/git log --pretty='format:' --name-only | ${pkgs.gnugrep}/bin/grep -oP "^''$(${pkgs.git}/bin/git rev-parse --show-prefix)\K.*" | cut -d/ -f1 | sort -u'';
   home.shellAliases.gcl = ''
     f() {

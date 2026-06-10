@@ -4,15 +4,26 @@
   lib,
   config,
   ...
-}: {
+}: let
+  substituters = [
+    "https://cache.nixos.org"
+    "https://nix-community.cachix.org"
+    "https://jonathanmorley.cachix.org"
+  ];
+  trustedPublicKeys = [
+    "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+    "jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI="
+  ];
+in {
   # Nix is managed by Determinate Nix — the module sets nix.enable = false
   # and manages /etc/nix/nix.custom.conf via determinateNix.customSettings.
   determinateNix = {
     enable = true;
     customSettings = {
       trusted-users = [config.system.primaryUser];
-      extra-substituters = "https://nix-community.cachix.org https://jonathanmorley.cachix.org";
-      extra-trusted-public-keys = "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI=";
+      inherit substituters;
+      trusted-public-keys = trustedPublicKeys;
     };
   };
 
@@ -26,7 +37,7 @@
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
-  homebrew = {
+  homebrew = lib.mkIf (config.system.primaryUser != "runner") {
     enable = true;
     onActivation = {
       autoUpdate = true;
