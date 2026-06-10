@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259 # v4.0.0
         with:
@@ -41,6 +42,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@7c4cc317e802185875512bfcb68259257279d767 # v3.19.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/flakehub-cache-action@4d48cd3cda2f381a3006ff800e1c1ca0c9809159 # v3.21.1
       - name: Format
         run: nix fmt
       - name: Commit formatting changes
@@ -68,6 +70,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@7c4cc317e802185875512bfcb68259257279d767 # v3.19.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/flakehub-cache-action@4d48cd3cda2f381a3006ff800e1c1ca0c9809159 # v3.21.1
       - name: Set up Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:

@@ -11,7 +11,12 @@
    - CLI: `curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
 1. Clone the repository: `git clone https://github.com/jonathanmorley/nixpkgs.git ~/.nixpkgs`
 1. Add host config block to [flake.nix](~/.nixpkgs/flake.nix).
+1. Authenticate with FlakeHub: `determinate-nixd login`
 1. Run `nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake ~/.nixpkgs` to apply changes.
+
+## FlakeHub Authentication
+
+Determinate Nix uses `/nix/var/determinate/netrc` for FlakeHub credentials. Do not edit that file directly; run `determinate-nixd login` when local builds or switches report FlakeHub 401s. You can verify CLI login state with `nix shell "https://flakehub.com/f/DeterminateSystems/fh/*" --command fh status`.
 
 ## Resources
 
