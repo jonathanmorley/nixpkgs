@@ -11,6 +11,27 @@
     enable = true;
     package = pkgs.google-chrome;
   };
+  targets.darwin = lib.mkIf pkgs.stdenv.isDarwin {
+    # Home Manager 26.05 defaults to copyApps, which needs macOS App
+    # Management permission to mutate copied .app bundles. That permission is
+    # flaky for Warp, so keep the older symlink-based behavior.
+    copyApps.enable = false;
+    linkApps.enable = true;
+  };
+  home.activation.migrateCopiedDarwinApps = lib.mkIf (pkgs.stdenv.isDarwin && config.targets.darwin.linkApps.enable) (
+    lib.hm.dag.entryBefore ["checkLinkTargets"] ''
+      target="$HOME/${config.targets.darwin.linkApps.directory}"
+
+      if [[ -d "$target" && ! -L "$target" ]]; then
+        backup="$target.copyApps-backup"
+        if [[ -e "$backup" ]]; then
+          backup="$backup.$(${pkgs.coreutils}/bin/date +%Y%m%d%H%M%S)"
+        fi
+
+        run mv "$target" "$backup"
+      fi
+    ''
+  );
   programs.direnv.enable = true;
   programs.eza.enable = true;
   programs.fd.enable = true;
@@ -19,8 +40,11 @@
   programs.mise = {
     enable = true;
     enableZshIntegration = true;
-    settings = {
-      trusted_config_paths = ["~/Developer/cvent-internal"];
+    globalConfig.settings = {
+      trusted_config_paths = [
+        "~/Developer/cvent-internal"
+        "~/.codex/worktrees"
+      ];
     };
   };
   programs.neovim = {
@@ -92,7 +116,7 @@
       coreutils
       dasel
       disk-inventory-x
-      dogdns
+      doggo
       dust
       duf
       findutils

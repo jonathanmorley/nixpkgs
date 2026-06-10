@@ -47,7 +47,7 @@
   # '';
 
   home.packages = with pkgs; [
-    ollama
+    # Installed via the Homebrew cask; the nixpkgs Darwin build requires Xcode's Metal toolchain.
     # Just to satisfy Zencoder's need for npx
     nodejs
   ];
