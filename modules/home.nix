@@ -82,10 +82,10 @@
         ];
       };
       commands = lib.optionalAttrs pkgs.stdenv.isDarwin {
-        Nix = "darwin-rebuild switch ${lib.cli.toGNUCommandLineShell {} {
+        Nix = "darwin-rebuild switch ${(lib.cli.toCommandLineShellGNU {} {
           refresh = true;
           flake = "github:jonathanmorley/nixpkgs";
-        }}";
+        })}";
       };
     };
   };
