@@ -79,9 +79,20 @@ jobs:
       - name: Check
         run: nix flake check --print-build-logs --no-update-lock-file
       - name: Switch
+        env:
+          NIX_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Remove files that will be replaced by nix-darwin
           sudo rm -f /etc/shells /etc/zshenv /etc/nix/nix.custom.conf
-          # Re-inject the GitHub token via NIX_CONFIG since removing nix.custom.conf
-          # strips the access-tokens that determinate-nix-action configured
-          sudo -i env NIX_CONFIG="extra-access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}" nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
+          flakehub_netrc="${RUNNER_TEMP}/determinate-nix-installer-netrc"
+          if [[ ! -f "$flakehub_netrc" ]]; then
+            flakehub_netrc="${RUNNER_TEMP}/magic-nix-cache-netrc"
+          fi
+          if [[ ! -f "$flakehub_netrc" ]]; then
+            echo "::error::FlakeHub auth netrc was not created by the Determinate actions"
+            exit 1
+          fi
+          nix_config="$(printf 'extra-access-tokens = github.com=%s\nnetrc-file = %s\n' "$NIX_GITHUB_TOKEN" "$flakehub_netrc")"
+          # Re-inject auth via NIX_CONFIG since removing nix.custom.conf strips
+          # the access-tokens and netrc-file that the Determinate actions set up.
+          sudo -i env NIX_CONFIG="$nix_config" nix run nix-darwin -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
