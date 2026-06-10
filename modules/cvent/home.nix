@@ -95,4 +95,8 @@
       };
     };
   };
+
+  programs.zsh.initContent = ''
+    rbw unlock
+  '';
 }
