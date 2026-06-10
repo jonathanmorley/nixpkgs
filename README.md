@@ -23,6 +23,13 @@ This repo uses the official NixOS cache plus Cachix caches, not FlakeHub Cache. 
 
 CI uploads and downloads from the `jonathanmorley` Cachix cache through `cachix/cachix-action` and the `CACHIX_AUTH_TOKEN` repository secret.
 
+The `cachix` CLI is installed by the shared Home Manager configuration. Local reads from the configured public caches do not require authentication. To push paths, or to read a private cache, create a Cachix token and run:
+
+```sh
+cachix authtoken <token>
+cachix doctor
+```
+
 ## Resources
 
 - https://gist.github.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050

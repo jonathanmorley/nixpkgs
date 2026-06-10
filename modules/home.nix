@@ -113,6 +113,7 @@
   home.packages = with pkgs;
   # Tools
     [
+      cachix
       coreutils
       dasel
       disk-inventory-x

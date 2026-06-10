@@ -112,10 +112,13 @@ jobs:
           } > "$switch_netrc"
           chmod 600 "$switch_netrc"
 
-          nix_config="$(printf 'substituters = %s\ntrusted-public-keys = %s\nnetrc-file = %s\n' "$NIX_CACHE_SUBSTITUTERS" "$NIX_CACHE_TRUSTED_PUBLIC_KEYS" "$switch_netrc")"
-          # Re-inject cache and GitHub auth via NIX_CONFIG since removing
-          # nix.custom.conf strips the settings that the actions set up.
-          sudo -i env NIX_CONFIG="$nix_config" \
-            nix run \
+          # Re-inject cache and GitHub auth since removing nix.custom.conf
+          # strips the settings that the actions set up.
+          sudo -i env \
+            nix \
+              --option substituters "$NIX_CACHE_SUBSTITUTERS" \
+              --option trusted-public-keys "$NIX_CACHE_TRUSTED_PUBLIC_KEYS" \
+              --option netrc-file "$switch_netrc" \
+              run \
               ${{ github.workspace }}#darwinConfigurations.gha-${{ matrix.system }}.config.system.build.darwin-rebuild \
               -- switch --flake ${{ github.workspace }}#gha-${{ matrix.system }}
