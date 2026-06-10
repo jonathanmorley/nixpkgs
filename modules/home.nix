@@ -98,11 +98,14 @@ in {
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-    initContent = ''
-      export PATH="''${PATH}:''${HOME}/.cargo/bin"
+    initContent =
+      ''
+        export PATH="''${PATH}:''${HOME}/.cargo/bin"
+      ''
+      + lib.optionalString (!isCiRunner) ''
 
-      eval "$(fnox activate zsh)"
-    '';
+        eval "$(fnox activate zsh)"
+      '';
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -122,7 +125,6 @@ in {
       dust
       duf
       findutils
-      fnox
       gnugrep
       gnutar
       gzip
@@ -130,7 +132,6 @@ in {
       ipcalc
       mitmproxy
       mtr
-      oktaws
       openssl
       openconnect
       postgresql
@@ -141,7 +142,9 @@ in {
     ]
     ++ lib.optionals (!isCiRunner) [
       disk-inventory-x
+      fnox
       obsidian
+      oktaws
       raycast
       slack
       vscode
