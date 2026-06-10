@@ -24,7 +24,6 @@
 
   outputs = inputs @ {
     nixpkgs,
-    nixpkgs-unstable,
     home-manager,
     darwin,
     oktaws,
