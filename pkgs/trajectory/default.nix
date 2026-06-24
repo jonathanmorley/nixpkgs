@@ -12,15 +12,15 @@
     aarch64-linux = "trajectory-linux-arm64";
   };
   hashes = {
-    aarch64-darwin = "sha256-SCmBitXIe3TwaAA23VMI0mQ70CAC48Bl4sFkOEvxnok=";
-    x86_64-darwin = "sha256-ROlpYCw6TAD+JAeA2/Ex/tt/DYmqGVI4IOxxqdq7lSI=";
-    x86_64-linux = "sha256-nwqY6xc7YgUxV4usoAj+4L0primlT8AqQuXc7m8e4HY=";
-    aarch64-linux = "sha256-MFm/vYDo6N8eVcEjQ7gN4CmJvgv25n2meODLxPv71eo=";
+    aarch64-darwin = "sha256-uvn8YIGdglolPuE/wRWot/Xnue2V0t8SD5xqVoqm6Uo=";
+    x86_64-darwin = "sha256-A8B4i80uxN0+H+JOV34bN0cki3COeAzNXCuTY6ydayA=";
+    x86_64-linux = "sha256-RqpI4qJc1fdb+G8aYyZCF96Q7pzNUADZmA76B8koOb0=";
+    aarch64-linux = "sha256-pAcEJBSj3JXPu6wj1RQ9MXp65jwpPfDyBhbRYFSm/M8=";
   };
 in
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "trajectory";
-    version = "0.5.15";
+    version = "0.5.16";
 
     asset = assets.${system} or (throw "Unsupported Trajectory platform: ${system}");
 

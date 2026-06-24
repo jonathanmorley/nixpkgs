@@ -72,6 +72,7 @@ echo "=========================================="
 echo ""
 
 assert_file_exists "pkgs/trajectory/default.nix" "Trajectory package exists"
+assert_contains "pkgs/trajectory/default.nix" 'version = "0.5.16";' "Trajectory package is pinned to the current stable release"
 assert_contains "pkgs/trajectory/default.nix" "TRAJECTORY_AUTO_UPDATE" "Trajectory package disables automatic self-update checks"
 assert_contains "pkgs/trajectory/default.nix" "managed by Nix" "Trajectory package blocks in-place self-updates"
 assert_contains "lib/mkDarwinSystem.nix" "trajectory = prev.callPackage ../pkgs/trajectory {};" "Trajectory is exposed through the package overlay"
