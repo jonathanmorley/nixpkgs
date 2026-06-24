@@ -29,12 +29,30 @@ in
       hash = hashes.${system};
     };
 
+    interceptShared = fetchurl {
+      url = "https://raw.githubusercontent.com/datadog-labs/trajectory/v${version}/intercepts/intercept-shared.mjs";
+      hash = "sha256-jWZPXBqisMxKptqInz9TRgta3C25ua754oG5YiF2Z+w=";
+    };
+
+    bunLlmIntercept = fetchurl {
+      url = "https://raw.githubusercontent.com/datadog-labs/trajectory/v${version}/intercepts/bun-llm-intercept.mjs";
+      hash = "sha256-gt63ohuoZfeccTuaM7CmQFNzxsCKoB/76hSxenGEo8E=";
+    };
+
+    nodeLlmSpy = fetchurl {
+      url = "https://raw.githubusercontent.com/datadog-labs/trajectory/v${version}/intercepts/node-llm-spy.cjs";
+      hash = "sha256-LqEK5lQ+ZI5rNNUzi81xduA9bW7N5wC7EHE5xs1SLkc=";
+    };
+
     dontUnpack = true;
 
     installPhase = ''
       runHook preInstall
 
       install -Dm755 "$src" "$out/libexec/trajectory"
+      install -Dm644 "$interceptShared" "$out/share/trajectory/intercepts/intercept-shared.mjs"
+      install -Dm644 "$bunLlmIntercept" "$out/share/trajectory/intercepts/bun-llm-intercept.mjs"
+      install -Dm644 "$nodeLlmSpy" "$out/share/trajectory/intercepts/node-llm-spy.cjs"
 
       mkdir -p "$out/bin"
       cat > "$out/bin/trajectory" <<EOF

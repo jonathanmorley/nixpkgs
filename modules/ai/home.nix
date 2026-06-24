@@ -77,6 +77,21 @@ in
       '';
     };
 
+    home.file.".trajectory/intercepts/intercept-shared.mjs" = {
+      force = true;
+      source = "${pkgs.trajectory}/share/trajectory/intercepts/intercept-shared.mjs";
+    };
+
+    home.file.".trajectory/intercepts/bun-llm-intercept.mjs" = {
+      force = true;
+      source = "${pkgs.trajectory}/share/trajectory/intercepts/bun-llm-intercept.mjs";
+    };
+
+    home.file.".trajectory/intercepts/node-llm-spy.cjs" = {
+      force = true;
+      source = "${pkgs.trajectory}/share/trajectory/intercepts/node-llm-spy.cjs";
+    };
+
     programs.git.ignores = [
       ".claude/settings.local.json"
     ];
