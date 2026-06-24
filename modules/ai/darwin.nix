@@ -11,12 +11,10 @@
     '';
   claudeLapdog = mkLapdogWrapper "claude-lapdog" "claude";
   codexLapdog = mkLapdogWrapper "codex-lapdog" "codex";
-  lapdogCleanup = pkgs.writeShellScriptBin "lapdog-cleanup" (builtins.readFile ./lapdog-cleanup.sh);
 in {
   environment.systemPackages = [
     claudeLapdog
     codexLapdog
-    lapdogCleanup
   ];
 
   # Any brews/casks MUST be justified as to why they are
@@ -43,9 +41,4 @@ in {
   };
 
   launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY = "${claudeLapdog}/bin/claude-lapdog";
-
-  system.activationScripts.extraActivation.text = ''
-    /usr/bin/sudo --user=${config.system.primaryUser} -- /bin/launchctl unsetenv CODEX_CLI_PATH || true
-    ${lapdogCleanup}/bin/lapdog-cleanup install
-  '';
 }

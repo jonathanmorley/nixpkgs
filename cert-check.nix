@@ -11,15 +11,6 @@
         ''}";
         meta.description = "Run certificate validation tests";
       };
-      test-lapdog-desktop-hooks = {
-        type = "app";
-        program = "${pkgs.writeShellScript "test-lapdog-desktop-hooks" ''
-          #!/usr/bin/env bash
-          cd ${self}
-          REPO_ROOT=${self} exec ${./tests/lapdog-desktop-hooks.sh}
-        ''}";
-        meta.description = "Run Lapdog desktop hook tests";
-      };
     };
   };
 }
