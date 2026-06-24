@@ -17,6 +17,13 @@
     TRAJECTORY_SELF_UPDATE_URL=https://raw.githubusercontent.com/datadog-labs/trajectory/main/RELEASES.json
     EOF
 
+    mkdir -p "$trajectory_home/bin"
+    cat > "$trajectory_home/bin/trajectory" <<'EOF'
+    #!/bin/sh
+    exec "/etc/profiles/per-user/${config.system.primaryUser}/bin/trajectory" "$@"
+    EOF
+    chmod +x "$trajectory_home/bin/trajectory"
+
     ${pkgs.trajectory}/bin/trajectory setup --clients cc --non-interactive
     ${pkgs.trajectory}/bin/trajectory setup --clients codex --non-interactive
   '';
