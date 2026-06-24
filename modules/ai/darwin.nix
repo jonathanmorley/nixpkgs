@@ -1,22 +1,27 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }: let
-  lapdogDesktopHooks = pkgs.writeShellScriptBin "lapdog-desktop-hooks" (builtins.readFile ./lapdog-desktop-hooks.sh);
-  enableLapdogHooks = config.system.primaryUser != "runner";
-  lapdogSslCertFile =
-    config.environment.variables.SSL_CERT_FILE
-    or (config.environment.variables.NIX_SSL_CERT_FILE or "/etc/ssl/certs/ca-certificates.crt");
+  lapdogWrapperPath = "/etc/profiles/per-user/${config.system.primaryUser}/bin:${config.homebrew.prefix}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+  mkLapdogWrapper = name: command:
+    pkgs.writeShellScriptBin name ''
+      export PATH="${lapdogWrapperPath}:''${PATH:-}"
+      exec "${config.homebrew.prefix}/bin/lapdog" ${command} "$@"
+    '';
+  claudeLapdog = mkLapdogWrapper "claude-lapdog" "claude";
+  codexLapdog = mkLapdogWrapper "codex-lapdog" "codex";
+  lapdogCleanup = pkgs.writeShellScriptBin "lapdog-cleanup" (builtins.readFile ./lapdog-cleanup.sh);
 in {
   environment.systemPackages = [
-    lapdogDesktopHooks
+    claudeLapdog
+    codexLapdog
+    lapdogCleanup
   ];
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
-  homebrew = lib.mkIf enableLapdogHooks {
+  homebrew = {
     taps = [
       {
         name = "datadog/lapdog";
@@ -37,14 +42,10 @@ in {
     ];
   };
 
-  launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY = lib.mkIf enableLapdogHooks "/usr/local/bin/claude-lapdog-desktop";
-  launchd.user.envVariables.CODEX_CLI_PATH = lib.mkIf enableLapdogHooks "/usr/local/bin/codex-lapdog-app";
+  launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY = "${claudeLapdog}/bin/claude-lapdog";
+  launchd.user.envVariables.CODEX_CLI_PATH = "${codexLapdog}/bin/codex-lapdog";
 
-  system.activationScripts.extraActivation.text = lib.mkIf enableLapdogHooks ''
-    PRIMARY_USER="${config.system.primaryUser}" \
-    HOMEBREW_PREFIX="${config.homebrew.prefix}" \
-    LAPDOG_BIN="${config.homebrew.prefix}/bin/lapdog" \
-    LAPDOG_SSL_CERT_FILE="${lapdogSslCertFile}" \
-      ${lib.getExe lapdogDesktopHooks} install
+  system.activationScripts.extraActivation.text = ''
+    ${lapdogCleanup}/bin/lapdog-cleanup install
   '';
 }

@@ -61,37 +61,12 @@ in
     programs.zsh.initContent = ''
       rbw unlock
 
-      _lapdog_cert_path() {
-        if [[ -n ''${SSL_CERT_FILE:-} ]]; then
-          print -r -- "$SSL_CERT_FILE"
-        elif [[ -n ''${NIX_SSL_CERT_FILE:-} ]]; then
-          print -r -- "$NIX_SSL_CERT_FILE"
-        elif [[ -f /etc/ssl/certs/ca-certificates.crt ]]; then
-          print -r -- /etc/ssl/certs/ca-certificates.crt
-        fi
-      }
-
-      _lapdog_run() {
-        local _lapdog_cert_file
-
-        _lapdog_cert_file="$(_lapdog_cert_path)"
-        if [[ -n $_lapdog_cert_file ]]; then
-          SSL_CERT_FILE="$_lapdog_cert_file" \
-            REQUESTS_CA_BUNDLE="''${REQUESTS_CA_BUNDLE:-$_lapdog_cert_file}" \
-            NODE_EXTRA_CA_CERTS="''${NODE_EXTRA_CA_CERTS:-$_lapdog_cert_file}" \
-            NODE_USE_SYSTEM_CA="''${NODE_USE_SYSTEM_CA:-1}" \
-            command lapdog "$@"
-        else
-          command lapdog "$@"
-        fi
-      }
-
       claude-raw() {
         command claude "$@"
       }
 
       claude() {
-        _lapdog_run claude "$@"
+        command claude-lapdog "$@"
       }
 
       codex-raw() {
@@ -99,7 +74,7 @@ in
       }
 
       codex() {
-        _lapdog_run codex "$@"
+        command codex-lapdog "$@"
       }
     '';
 

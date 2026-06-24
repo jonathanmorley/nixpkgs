@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="${REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-script="$repo_root/modules/ai/lapdog-desktop-hooks.sh"
+script="$repo_root/modules/ai/lapdog-cleanup.sh"
 
 fail() {
   printf 'FAIL: %s\n' "$*" >&2
@@ -49,14 +49,6 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 mkdir -p "$tmp_dir/Codex Lapdog.app/Contents"
-mkdir -p "$tmp_dir/bin"
-
-lapdog_bin="$tmp_dir/lapdog"
-printf '#!/usr/bin/env bash\nprintf "lapdog %%s\\n" "$*"\n' >"$lapdog_bin"
-chmod +x "$lapdog_bin"
-
-ca_bundle="$tmp_dir/ca-bundle.crt"
-printf 'test ca\n' >"$ca_bundle"
 
 cat >"$tmp_dir/Codex Lapdog.app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -69,42 +61,32 @@ cat >"$tmp_dir/Codex Lapdog.app/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-LAPDOG_BIN="$lapdog_bin" \
-  LOCAL_BIN_DIR="$tmp_dir/bin" \
-  CODEX_LAPDOG_APP="$tmp_dir/Codex Lapdog.app" \
-  LAPDOG_SSL_CERT_FILE="$ca_bundle" \
-  "$script" install
-
-claude_wrapper="$tmp_dir/bin/claude-lapdog-desktop"
-codex_wrapper="$tmp_dir/bin/codex-lapdog-app"
-
-[[ -x $claude_wrapper ]] || fail "Claude wrapper was not executable"
-[[ -x $codex_wrapper ]] || fail "Codex wrapper was not executable"
-
-assert_file_contains "$claude_wrapper" "exec \"$lapdog_bin\" claude \"\$@\""
-assert_file_contains "$codex_wrapper" "exec \"$lapdog_bin\" codex \"\$@\""
-assert_file_not_contains "$codex_wrapper" "codex app"
-assert_file_contains "$claude_wrapper" "$ca_bundle"
-assert_file_contains "$claude_wrapper" "REQUESTS_CA_BUNDLE"
-assert_file_contains "$claude_wrapper" "NODE_EXTRA_CA_CERTS"
-assert_file_contains "$codex_wrapper" "$ca_bundle"
-assert_file_contains "$codex_wrapper" "REQUESTS_CA_BUNDLE"
-
+CODEX_LAPDOG_APP="$tmp_dir/Codex Lapdog.app" "$script" install
 [[ ! -e "$tmp_dir/Codex Lapdog.app" ]] || fail "legacy Codex Lapdog app was not removed"
-assert_file_not_contains "$script" "ENABLE_CLAUDE_DESKTOP_ASAR_PATCH"
-assert_file_not_contains "$script" "patch_claude_asar"
-assert_file_not_contains "$script" "patch_claude_plist"
-assert_file_not_contains "$script" "LSEnvironment:CLAUDE_CODE_LOCAL_BINARY"
-assert_file_contains "$script" "local.lapdog.codex"
 
-assert_home_config_contains "_lapdog_cert_file"
+assert_file_contains "$script" "local.lapdog.codex"
+assert_file_not_contains "$script" "claude-lapdog-desktop"
+assert_file_not_contains "$script" "codex-lapdog-app"
+assert_file_not_contains "$script" "exec "
+
+assert_darwin_config_contains 'mkLapdogWrapper "claude-lapdog" "claude"'
+assert_darwin_config_contains 'mkLapdogWrapper "codex-lapdog" "codex"'
 # shellcheck disable=SC2016
-assert_home_config_contains 'SSL_CERT_FILE="$_lapdog_cert_file"'
-# shellcheck disable=SC2016
-assert_home_config_contains 'command lapdog "$@"'
+assert_darwin_config_contains 'exec "${config.homebrew.prefix}/bin/lapdog"'
 assert_darwin_config_contains "launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY"
-assert_darwin_config_contains "/usr/local/bin/claude-lapdog-desktop"
 assert_darwin_config_contains "launchd.user.envVariables.CODEX_CLI_PATH"
-assert_darwin_config_contains "/usr/local/bin/codex-lapdog-app"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "/usr/local/bin/claude-lapdog-desktop"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "/usr/local/bin/codex-lapdog-app"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "enableLapdogHooks"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" 'config.system.primaryUser != "runner"'
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "SSL_CERT_FILE"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "NIX_SSL_CERT_FILE"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "REQUESTS_CA_BUNDLE"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "NODE_EXTRA_CA_CERTS"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "NODE_USE_SYSTEM_CA"
+
+assert_home_config_contains 'command claude-lapdog "$@"'
+assert_home_config_contains 'command codex-lapdog "$@"'
+assert_file_not_contains "$repo_root/modules/ai/home.nix" "command lapdog"
 
 printf 'PASS: lapdog desktop hooks\n'
