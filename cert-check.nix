@@ -11,6 +11,15 @@
         ''}";
         meta.description = "Run certificate validation tests";
       };
+      test-trajectory = {
+        type = "app";
+        program = "${pkgs.writeShellScript "test-trajectory" ''
+          #!/usr/bin/env bash
+          cd ${self}
+          exec ${pkgs.bash}/bin/bash ${./tests/trajectory.sh}
+        ''}";
+        meta.description = "Run Trajectory AI instrumentation tests";
+      };
     };
   };
 }

@@ -60,22 +60,6 @@ in
 
     programs.zsh.initContent = ''
       rbw unlock
-
-      claude-raw() {
-        command claude "$@"
-      }
-
-      claude() {
-        command claude-lapdog "$@"
-      }
-
-      codex-raw() {
-        command codex "$@"
-      }
-
-      codex() {
-        command codex-lapdog "$@"
-      }
     '';
 
     programs.git.ignores = [
