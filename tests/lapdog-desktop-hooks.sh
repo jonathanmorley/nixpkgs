@@ -74,7 +74,8 @@ assert_darwin_config_contains 'mkLapdogWrapper "codex-lapdog" "codex"'
 # shellcheck disable=SC2016
 assert_darwin_config_contains 'exec "${config.homebrew.prefix}/bin/lapdog"'
 assert_darwin_config_contains "launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY"
-assert_darwin_config_contains "launchd.user.envVariables.CODEX_CLI_PATH"
+assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "launchd.user.envVariables.CODEX_CLI_PATH"
+assert_darwin_config_contains "launchctl unsetenv CODEX_CLI_PATH"
 assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "/usr/local/bin/claude-lapdog-desktop"
 assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "/usr/local/bin/codex-lapdog-app"
 assert_file_not_contains "$repo_root/modules/ai/darwin.nix" "enableLapdogHooks"

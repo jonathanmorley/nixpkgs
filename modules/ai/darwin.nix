@@ -43,9 +43,9 @@ in {
   };
 
   launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY = "${claudeLapdog}/bin/claude-lapdog";
-  launchd.user.envVariables.CODEX_CLI_PATH = "${codexLapdog}/bin/codex-lapdog";
 
   system.activationScripts.extraActivation.text = ''
+    /usr/bin/sudo --user=${config.system.primaryUser} -- /bin/launchctl unsetenv CODEX_CLI_PATH || true
     ${lapdogCleanup}/bin/lapdog-cleanup install
   '';
 }
