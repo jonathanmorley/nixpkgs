@@ -42,10 +42,26 @@ print_section() {
 print_section "1. Environment Variables"
 echo "NODE_EXTRA_CA_CERTS: ${NODE_EXTRA_CA_CERTS:-not set}"
 echo "NODE_USE_SYSTEM_CA: ${NODE_USE_SYSTEM_CA:-not set}"
+echo "SSL_CERT_FILE: ${SSL_CERT_FILE:-not set}"
 echo "UV_NATIVE_TLS: ${UV_NATIVE_TLS:-not set}"
 echo "AWS_CA_BUNDLE: ${AWS_CA_BUNDLE:-not set}"
 echo "CURL_CA_BUNDLE: ${CURL_CA_BUNDLE:-not set}"
 echo "REQUESTS_CA_BUNDLE: ${REQUESTS_CA_BUNDLE:-not set}"
+
+check_file_env_var() {
+  local name="$1"
+  local value="${!name:-}"
+
+  if [ -n "$value" ] && [ -f "$value" ]; then
+    print_result 0 "$name points to an existing CA bundle"
+  else
+    print_result 1 "$name points to an existing CA bundle"
+  fi
+}
+
+check_file_env_var "NODE_EXTRA_CA_CERTS"
+check_file_env_var "SSL_CERT_FILE"
+check_file_env_var "REQUESTS_CA_BUNDLE"
 
 # 2. Curl Tests
 print_section "2. cURL Tests"
@@ -202,6 +218,43 @@ if python3 /tmp/test-python-urllib.py 2>&1; then
   print_result 0 "Python urllib"
 else
   print_result 1 "Python urllib (all connections failed)"
+fi
+
+echo ""
+echo "Testing Homebrew Python/OpenSSL against Anthropic API..."
+HOMEBREW_PYTHON=""
+for candidate in \
+  /opt/homebrew/opt/lapdog/libexec/bin/python \
+  /opt/homebrew/Cellar/lapdog/*/libexec/bin/python \
+  /opt/homebrew/opt/python@3.13/bin/python3.13 \
+  /opt/homebrew/bin/python3.13; do
+  if [ -x "$candidate" ]; then
+    HOMEBREW_PYTHON="$candidate"
+    break
+  fi
+done
+
+if [ -n "$HOMEBREW_PYTHON" ]; then
+  if "$HOMEBREW_PYTHON" - <<'EOF'; then
+import sys
+import urllib.error
+import urllib.request
+
+try:
+    with urllib.request.urlopen('https://api.anthropic.com', timeout=10) as response:
+        print(f"Anthropic API: {response.status}")
+except urllib.error.HTTPError as e:
+    print(f"Anthropic API: HTTP {e.code} (TLS succeeded)")
+except Exception as e:
+    print(f"Anthropic API error: {e}")
+    sys.exit(1)
+EOF
+    print_result 0 "Homebrew Python/OpenSSL - Anthropic API TLS"
+  else
+    print_result 1 "Homebrew Python/OpenSSL - Anthropic API TLS"
+  fi
+else
+  echo -e "${YELLOW}⊘ SKIP${NC}: Homebrew Python not available"
 fi
 
 # uv Python package manager test
