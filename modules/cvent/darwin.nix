@@ -86,6 +86,10 @@ in {
   # Standalone pnpm (via mise/asdf) bundles its own Node runtime that ignores
   # NODE_USE_SYSTEM_CA. It needs NODE_EXTRA_CA_CERTS to trust the Netskope cert.
   environment.variables.NODE_EXTRA_CA_CERTS = certBundle;
+  # Homebrew Python/OpenSSL does not read NIX_SSL_CERT_FILE. Export the same
+  # bundle through the variables used by Python's ssl module and Requests.
+  environment.variables.SSL_CERT_FILE = certBundle;
+  environment.variables.REQUESTS_CA_BUNDLE = certBundle;
   environment.variables.UV_NATIVE_TLS = "1";
 
   # Any brews/casks MUST be justified as to why they are
