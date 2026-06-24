@@ -44,7 +44,6 @@ in {
     HOMEBREW_PREFIX="${config.homebrew.prefix}" \
     LAPDOG_BIN="${config.homebrew.prefix}/bin/lapdog" \
     LAPDOG_SSL_CERT_FILE="${lapdogSslCertFile}" \
-    PYTHON_BIN="${pkgs.python3}/bin/python3" \
       ${lib.getExe lapdogDesktopHooks} install
   '';
 }

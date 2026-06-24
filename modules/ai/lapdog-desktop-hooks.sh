@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-log() {
-  printf '[lapdog-hooks] %s\n' "$*" >&2
-}
-
 warn() {
   printf '[lapdog-hooks] warning: %s\n' "$*" >&2
 }
@@ -22,16 +18,11 @@ fi
 
 PRIMARY_USER="${PRIMARY_USER:-${SUDO_USER:-${USER:-jonathan}}}"
 LOCAL_BIN_DIR="${LOCAL_BIN_DIR:-/usr/local/bin}"
-CLAUDE_APP="${CLAUDE_APP:-/Applications/Claude.app}"
 CODEX_APP="${CODEX_APP:-/Applications/Codex.app}"
 CODEX_LAPDOG_APP="${CODEX_LAPDOG_APP:-/Applications/Codex Lapdog.app}"
-PYTHON_BIN="${PYTHON_BIN:-python3}"
-PLISTBUDDY="${PLISTBUDDY:-/usr/libexec/PlistBuddy}"
 PLUTIL="${PLUTIL:-/usr/bin/plutil}"
 CODESIGN="${CODESIGN:-/usr/bin/codesign}"
-LSREGISTER="${LSREGISTER:-/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister}"
 LAPDOG_SSL_CERT_FILE="${LAPDOG_SSL_CERT_FILE:-${SSL_CERT_FILE:-${NIX_SSL_CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}}}"
-ENABLE_CLAUDE_DESKTOP_ASAR_PATCH="${ENABLE_CLAUDE_DESKTOP_ASAR_PATCH:-0}"
 
 if [[ -z ${HOMEBREW_PREFIX:-} ]]; then
   if [[ -x /opt/homebrew/bin/brew ]]; then
@@ -117,184 +108,13 @@ sign_app() {
   fi
 
   if [[ ! -x $CODESIGN ]]; then
-    warn "codesign not found at $CODESIGN; $name may not launch after patching"
+    warn "codesign not found at $CODESIGN; $name may not launch"
     return
   fi
 
   if ! "$CODESIGN" --force --deep --sign - "$app" >/dev/null 2>&1; then
     warn "failed to ad-hoc sign $name at $app"
   fi
-}
-
-ensure_plist_dict() {
-  local plist="$1"
-  local key="$2"
-
-  if ! "$PLISTBUDDY" -c "Print $key" "$plist" >/dev/null 2>&1; then
-    "$PLISTBUDDY" -c "Add $key dict" "$plist" >/dev/null
-  fi
-}
-
-set_plist_string() {
-  local plist="$1"
-  local key="$2"
-  local value="$3"
-
-  if ! "$PLISTBUDDY" -c "Set $key $value" "$plist" >/dev/null 2>&1; then
-    "$PLISTBUDDY" -c "Add $key string $value" "$plist" >/dev/null
-  fi
-}
-
-update_asar_hash() {
-  local plist="$1"
-  local asar_path="$2"
-  local hash
-
-  hash="$(shasum -a 256 "$asar_path" | awk '{print $1}')"
-  ensure_plist_dict "$plist" ":ElectronAsarIntegrity"
-  ensure_plist_dict "$plist" ":ElectronAsarIntegrity:Resources/app.asar"
-  set_plist_string "$plist" ":ElectronAsarIntegrity:Resources/app.asar:algorithm" "SHA256"
-  set_plist_string "$plist" ":ElectronAsarIntegrity:Resources/app.asar:hash" "$hash"
-}
-
-patch_claude_plist() {
-  local plist="$CLAUDE_APP/Contents/Info.plist"
-
-  if [[ ! -f $plist ]]; then
-    warn "Claude Info.plist not found at $plist; skipping Claude plist patch"
-    return
-  fi
-
-  ensure_plist_dict "$plist" ":LSEnvironment"
-  set_plist_string "$plist" ":LSEnvironment:CLAUDE_CODE_LOCAL_BINARY" "$CLAUDE_WRAPPER"
-  "$PLUTIL" -lint "$plist" >/dev/null
-}
-
-patch_claude_asar() {
-  local asar_path="$CLAUDE_APP/Contents/Resources/app.asar"
-
-  if [[ ! -f $asar_path ]]; then
-    warn "Claude app.asar not found at $asar_path; skipping Claude ASAR patch"
-    return
-  fi
-
-  LAPDOG_ASAR_PATH="$asar_path" "$PYTHON_BIN" <<'PY'
-import hashlib
-import json
-import os
-import stat
-import struct
-import tempfile
-
-asar_path = os.environ["LAPDOG_ASAR_PATH"]
-target = (".vite", "build", "index.js")
-old = b"process.env.CLAUDE_CODE_LOCAL_BINARY"
-new = (
-    b"this.localBinaryInitPromise=process.env.CLAUDE_CODE_LOCAL_BINARY?"
-    b"this.initLocalBinary(process.env.CLAUDE_CODE_LOCAL_BINARY):null"
-)
-block_size = 4194304
-
-
-def padding_for(size):
-    return (4 - (size % 4)) % 4
-
-
-def walk(files, prefix=()):
-    for name, entry in files.items():
-        current = prefix + (name,)
-        if "files" in entry:
-            yield from walk(entry["files"], current)
-        elif "offset" in entry and "size" in entry:
-            yield current, entry
-
-
-def integrity_for(content):
-    blocks = [
-        hashlib.sha256(content[index : index + block_size]).hexdigest()
-        for index in range(0, len(content), block_size)
-    ]
-    if not blocks:
-        blocks = [hashlib.sha256(b"").hexdigest()]
-    return {
-        "algorithm": "SHA256",
-        "hash": hashlib.sha256(content).hexdigest(),
-        "blockSize": block_size,
-        "blocks": blocks,
-    }
-
-
-with open(asar_path, "rb") as f:
-    original = f.read()
-
-if len(original) < 16:
-    raise SystemExit(f"{asar_path} is too small to be an ASAR archive")
-
-json_size = struct.unpack_from("<I", original, 12)[0]
-padding = padding_for(json_size)
-header_start = 16
-header_end = header_start + json_size
-data_start = header_end + padding
-header = json.loads(original[header_start:header_end])
-
-entries = sorted(walk(header["files"]), key=lambda item: int(item[1]["offset"]))
-contents = {}
-for path, entry in entries:
-    offset = int(entry["offset"])
-    size = int(entry["size"])
-    contents[path] = original[data_start + offset : data_start + offset + size]
-
-if target not in contents:
-    raise SystemExit("Claude ASAR does not contain .vite/build/index.js")
-
-index_js = contents[target]
-if new in index_js:
-    changed = False
-elif old in index_js:
-    contents[target] = index_js.replace(old, new, 1)
-    changed = True
-else:
-    raise SystemExit("Claude ASAR does not contain the expected CLAUDE_CODE_LOCAL_BINARY hook point")
-
-if not changed:
-    raise SystemExit(0)
-
-data = bytearray()
-offset = 0
-for path, entry in entries:
-    content = contents[path]
-    entry["offset"] = str(offset)
-    entry["size"] = len(content)
-    if "integrity" in entry:
-        entry["integrity"] = integrity_for(content)
-    data.extend(content)
-    offset += len(content)
-
-payload = json.dumps(header, separators=(",", ":")).encode()
-payload_padding = padding_for(len(payload))
-prefix = struct.pack(
-    "<IIII",
-    4,
-    len(payload) + payload_padding + 8,
-    len(payload) + payload_padding + 4,
-    len(payload),
-)
-rebuilt = prefix + payload + (b"\0" * payload_padding) + bytes(data)
-
-current_mode = stat.S_IMODE(os.stat(asar_path).st_mode)
-directory = os.path.dirname(asar_path)
-fd, tmp_path = tempfile.mkstemp(prefix=".app.asar.", dir=directory)
-try:
-    with os.fdopen(fd, "wb") as f:
-        f.write(rebuilt)
-    os.chmod(tmp_path, current_mode)
-    os.replace(tmp_path, asar_path)
-finally:
-    if os.path.exists(tmp_path):
-        os.unlink(tmp_path)
-PY
-
-  update_asar_hash "$CLAUDE_APP/Contents/Info.plist" "$asar_path"
 }
 
 create_codex_lapdog_app() {
@@ -344,30 +164,9 @@ PLIST
   "$PLUTIL" -lint "$info_plist" >/dev/null
 }
 
-register_apps() {
-  if [[ -x $LSREGISTER ]]; then
-    [[ $ENABLE_CLAUDE_DESKTOP_ASAR_PATCH == "1" && -d $CLAUDE_APP ]] &&
-      "$LSREGISTER" -f "$CLAUDE_APP" >/dev/null 2>&1 || true
-    [[ -d $CODEX_LAPDOG_APP ]] && "$LSREGISTER" -f "$CODEX_LAPDOG_APP" >/dev/null 2>&1 || true
-  fi
-}
-
-install_claude_desktop_hook() {
-  if [[ $ENABLE_CLAUDE_DESKTOP_ASAR_PATCH != "1" ]]; then
-    log "skipped Claude Desktop ASAR patch; set ENABLE_CLAUDE_DESKTOP_ASAR_PATCH=1 to opt in"
-    return
-  fi
-
-  patch_claude_plist
-  patch_claude_asar
-  sign_app "$CLAUDE_APP" "Claude"
-}
-
 write_claude_wrapper
 write_codex_wrapper
-install_claude_desktop_hook
 create_codex_lapdog_app
 sign_app "$CODEX_LAPDOG_APP" "Codex Lapdog"
-register_apps
 
-log "installed Lapdog hooks"
+printf '[lapdog-hooks] installed Lapdog hooks\n' >&2
