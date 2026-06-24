@@ -18,10 +18,8 @@ fi
 
 PRIMARY_USER="${PRIMARY_USER:-${SUDO_USER:-${USER:-jonathan}}}"
 LOCAL_BIN_DIR="${LOCAL_BIN_DIR:-/usr/local/bin}"
-CODEX_APP="${CODEX_APP:-/Applications/Codex.app}"
 CODEX_LAPDOG_APP="${CODEX_LAPDOG_APP:-/Applications/Codex Lapdog.app}"
-PLUTIL="${PLUTIL:-/usr/bin/plutil}"
-CODESIGN="${CODESIGN:-/usr/bin/codesign}"
+PLISTBUDDY="${PLISTBUDDY:-/usr/libexec/PlistBuddy}"
 LAPDOG_SSL_CERT_FILE="${LAPDOG_SSL_CERT_FILE:-${SSL_CERT_FILE:-${NIX_SSL_CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}}}"
 
 if [[ -z ${HOMEBREW_PREFIX:-} ]]; then
@@ -94,79 +92,34 @@ write_codex_wrapper() {
   mkdir -p "$LOCAL_BIN_DIR"
   {
     write_wrapper_header
-    printf 'exec "%s" codex app "$@"\n' "$LAPDOG_BIN"
+    printf 'exec "%s" codex "$@"\n' "$LAPDOG_BIN"
   } >"$CODEX_WRAPPER"
   chmod 0755 "$CODEX_WRAPPER"
 }
 
-sign_app() {
-  local app="$1"
-  local name="$2"
-
-  if [[ ! -d $app ]]; then
-    return
-  fi
-
-  if [[ ! -x $CODESIGN ]]; then
-    warn "codesign not found at $CODESIGN; $name may not launch"
-    return
-  fi
-
-  if ! "$CODESIGN" --force --deep --sign - "$app" >/dev/null 2>&1; then
-    warn "failed to ad-hoc sign $name at $app"
-  fi
-}
-
-create_codex_lapdog_app() {
-  local executable_name="Codex Lapdog"
+remove_legacy_codex_lapdog_app() {
   local info_plist="$CODEX_LAPDOG_APP/Contents/Info.plist"
-  local executable="$CODEX_LAPDOG_APP/Contents/MacOS/$executable_name"
-  local icon_source="$CODEX_APP/Contents/Resources/electron.icns"
-  local icon_target="$CODEX_LAPDOG_APP/Contents/Resources/electron.icns"
+  local bundle_id
 
-  mkdir -p "$CODEX_LAPDOG_APP/Contents/MacOS" "$CODEX_LAPDOG_APP/Contents/Resources"
-
-  cat >"$info_plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleDisplayName</key>
-  <string>Codex Lapdog</string>
-  <key>CFBundleExecutable</key>
-  <string>$executable_name</string>
-  <key>CFBundleIconFile</key>
-  <string>electron.icns</string>
-  <key>CFBundleIdentifier</key>
-  <string>local.lapdog.codex</string>
-  <key>CFBundleInfoDictionaryVersion</key>
-  <string>6.0</string>
-  <key>CFBundleName</key>
-  <string>Codex Lapdog</string>
-  <key>CFBundlePackageType</key>
-  <string>APPL</string>
-  <key>LSMinimumSystemVersion</key>
-  <string>12.0</string>
-</dict>
-</plist>
-PLIST
-
-  {
-    printf '#!/bin/zsh\n'
-    printf 'exec "%s" "$@"\n' "$CODEX_WRAPPER"
-  } >"$executable"
-  chmod 0755 "$executable"
-
-  if [[ -f $icon_source ]]; then
-    cp -f "$icon_source" "$icon_target"
+  if [[ ! -d $CODEX_LAPDOG_APP ]]; then
+    return
   fi
 
-  "$PLUTIL" -lint "$info_plist" >/dev/null
+  if [[ ! -f $info_plist || ! -x $PLISTBUDDY ]]; then
+    warn "skipping removal of $CODEX_LAPDOG_APP; cannot verify generated bundle id"
+    return
+  fi
+
+  bundle_id="$("$PLISTBUDDY" -c "Print :CFBundleIdentifier" "$info_plist" 2>/dev/null || true)"
+  if [[ $bundle_id == "local.lapdog.codex" ]]; then
+    rm -rf "$CODEX_LAPDOG_APP"
+  else
+    warn "skipping removal of $CODEX_LAPDOG_APP; unexpected bundle id: ${bundle_id:-missing}"
+  fi
 }
 
 write_claude_wrapper
 write_codex_wrapper
-create_codex_lapdog_app
-sign_app "$CODEX_LAPDOG_APP" "Codex Lapdog"
+remove_legacy_codex_lapdog_app
 
 printf '[lapdog-hooks] installed Lapdog hooks\n' >&2

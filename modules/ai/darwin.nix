@@ -38,6 +38,7 @@ in {
   };
 
   launchd.user.envVariables.CLAUDE_CODE_LOCAL_BINARY = lib.mkIf enableLapdogHooks "/usr/local/bin/claude-lapdog-desktop";
+  launchd.user.envVariables.CODEX_CLI_PATH = lib.mkIf enableLapdogHooks "/usr/local/bin/codex-lapdog-app";
 
   system.activationScripts.extraActivation.text = lib.mkIf enableLapdogHooks ''
     PRIMARY_USER="${config.system.primaryUser}" \
