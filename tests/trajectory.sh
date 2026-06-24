@@ -43,6 +43,18 @@ assert_contains() {
   fi
 }
 
+assert_file_not_contains() {
+  local file="$1"
+  local pattern="$2"
+  local description="$3"
+
+  if grep -Fq "$pattern" "$ROOT/$file"; then
+    print_result 1 "$description"
+  else
+    print_result 0 "$description"
+  fi
+}
+
 assert_not_contains() {
   local pattern="$1"
   local description="$2"
@@ -65,16 +77,19 @@ assert_contains "pkgs/trajectory/default.nix" "managed by Nix" "Trajectory packa
 assert_contains "lib/mkDarwinSystem.nix" "trajectory = prev.callPackage ../pkgs/trajectory {};" "Trajectory is exposed through the package overlay"
 assert_contains "modules/ai/darwin.nix" "pkgs.trajectory" "Trajectory binary is installed by the AI Darwin module"
 assert_contains "modules/ai/darwin.nix" "trajectory-setup-ai" "AI Darwin module exposes a setup helper"
-assert_contains "modules/ai/darwin.nix" "TRAJECTORY_INSTALL_OWNER=nix" "Setup helper writes a Nix-owned Trajectory self-update policy"
-assert_contains "modules/ai/darwin.nix" "TRAJECTORY_SELF_UPDATE=disabled" "Setup helper disables Trajectory self-updates"
-assert_contains "modules/ai/darwin.nix" 'mkdir -p "$trajectory_home/bin"' "Setup helper creates Trajectory installer-layout bin directory"
-assert_contains "modules/ai/darwin.nix" 'cat > "$trajectory_home/bin/trajectory"' "Setup helper writes the Trajectory installer-layout binary shim"
-assert_contains "modules/ai/darwin.nix" '/etc/profiles/per-user/${config.system.primaryUser}/bin/trajectory' "Trajectory binary shim resolves through the stable Nix profile path"
+assert_contains "modules/ai/home.nix" 'home.file.".trajectory/bin/trajectory"' "Home Manager owns the Trajectory installer-layout binary shim"
+assert_contains "modules/ai/home.nix" 'home.file.".trajectory/selfupdate.conf"' "Home Manager owns the Trajectory self-update policy"
+assert_contains "modules/ai/home.nix" "force = true;" "Home Manager takes ownership of existing Trajectory generated files"
+assert_contains "modules/ai/home.nix" "TRAJECTORY_INSTALL_OWNER=nix" "Trajectory self-update policy is Nix-owned"
+assert_contains "modules/ai/home.nix" "TRAJECTORY_SELF_UPDATE=disabled" "Trajectory self-update policy disables self-updates"
+# shellcheck disable=SC2016
+assert_contains "modules/ai/home.nix" '${pkgs.trajectory}/libexec/trajectory' "Trajectory binary shim targets the signed Nix binary"
+# shellcheck disable=SC2016
+assert_file_not_contains "modules/ai/darwin.nix" 'cat > "$trajectory_home/bin/trajectory"' "Setup helper does not write the managed Trajectory binary shim"
+assert_file_not_contains "modules/ai/darwin.nix" "selfupdate.conf" "Setup helper does not write the managed Trajectory self-update policy"
 assert_contains "modules/ai/darwin.nix" "trajectory setup --clients cc --non-interactive" "Setup helper configures Claude Code"
 assert_contains "modules/ai/darwin.nix" "trajectory setup --clients codex --non-interactive" "Setup helper configures Codex"
-assert_contains "modules/ai/darwin.nix" "CLAUDE_CODE_LOCAL_BINARY" "Claude Desktop still points at the native Claude CLI"
-# shellcheck disable=SC2016
-assert_contains "modules/ai/darwin.nix" '/etc/profiles/per-user/${config.system.primaryUser}/bin/claude' "Claude Desktop binary path is managed by Nix"
+assert_file_not_contains "modules/ai/darwin.nix" "CLAUDE_CODE_LOCAL_BINARY" "Claude Desktop binary override is not set for Trajectory"
 assert_contains "cert-check.nix" "test-trajectory" "Trajectory static test is exposed as a flake app"
 
 assert_not_contains "lapdog" "Lapdog references are removed"

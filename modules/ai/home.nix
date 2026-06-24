@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   isCiRunner = config.home.username == "runner";
@@ -61,6 +62,20 @@ in
     programs.zsh.initContent = ''
       rbw unlock
     '';
+
+    home.file.".trajectory/bin/trajectory" = {
+      force = true;
+      source = "${pkgs.trajectory}/libexec/trajectory";
+    };
+
+    home.file.".trajectory/selfupdate.conf" = {
+      force = true;
+      text = ''
+        TRAJECTORY_INSTALL_OWNER=nix
+        TRAJECTORY_SELF_UPDATE=disabled
+        TRAJECTORY_SELF_UPDATE_URL=https://raw.githubusercontent.com/datadog-labs/trajectory/main/RELEASES.json
+      '';
+    };
 
     programs.git.ignores = [
       ".claude/settings.local.json"
