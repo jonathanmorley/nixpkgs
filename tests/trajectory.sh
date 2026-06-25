@@ -72,7 +72,7 @@ echo "=========================================="
 echo ""
 
 assert_file_exists "pkgs/trajectory/default.nix" "Trajectory package exists"
-assert_contains "pkgs/trajectory/default.nix" 'version = "0.5.16";' "Trajectory package is pinned to the current stable release"
+assert_contains "pkgs/trajectory/default.nix" 'version = "0.5.16";' "Trajectory package is pinned to the expected release"
 assert_contains "pkgs/trajectory/default.nix" "intercept-shared.mjs" "Trajectory package includes shared intercept asset"
 assert_contains "pkgs/trajectory/default.nix" "bun-llm-intercept.mjs" "Trajectory package includes Bun intercept asset"
 assert_contains "pkgs/trajectory/default.nix" "node-llm-spy.cjs" "Trajectory package includes Node intercept asset"

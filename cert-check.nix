@@ -16,7 +16,7 @@
         program = "${pkgs.writeShellScript "test-trajectory" ''
           #!/usr/bin/env bash
           cd ${self}
-          exec ${pkgs.bash}/bin/bash ${./tests/trajectory.sh}
+          exec ${./tests/trajectory.sh}
         ''}";
         meta.description = "Run Trajectory AI instrumentation tests";
       };

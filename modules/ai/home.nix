@@ -73,7 +73,6 @@ in
       text = ''
         TRAJECTORY_INSTALL_OWNER=nix
         TRAJECTORY_SELF_UPDATE=disabled
-        TRAJECTORY_SELF_UPDATE_URL=https://raw.githubusercontent.com/datadog-labs/trajectory/main/RELEASES.json
       '';
     };
 
