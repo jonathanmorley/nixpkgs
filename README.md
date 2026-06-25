@@ -30,6 +30,13 @@ cachix authtoken <token>
 cachix doctor
 ```
 
+## AI Instrumentation
+
+The shared Darwin AI module installs Trajectory for Claude Code and Codex capture.
+After switching a machine, run `trajectory-setup-ai` from a regular shell to let Trajectory install or refresh the agent hooks for those clients.
+
+The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
+
 ## Resources
 
 - https://gist.github.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050

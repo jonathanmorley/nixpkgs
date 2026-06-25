@@ -66,6 +66,36 @@ assert_not_contains() {
   fi
 }
 
+assert_home_file_forced() {
+  local path="$1"
+  local description="$2"
+
+  if awk -v declaration="home.file.\"$path\" = {" '
+    index($0, declaration) {
+      in_block = 1
+      seen = 1
+      next
+    }
+
+    in_block && /force = true;/ {
+      forced = 1
+    }
+
+    in_block && /^    \};$/ {
+      done = 1
+      in_block = 0
+    }
+
+    END {
+      exit (seen && done && forced) ? 0 : 1
+    }
+  ' "$ROOT/modules/ai/home.nix"; then
+    print_result 0 "$description"
+  else
+    print_result 1 "$description"
+  fi
+}
+
 echo "=========================================="
 echo "Trajectory AI Instrumentation Test Suite"
 echo "=========================================="
@@ -87,7 +117,12 @@ assert_contains "modules/ai/home.nix" 'home.file.".trajectory/config.defaults.ya
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/intercepts/intercept-shared.mjs"' "Home Manager owns the shared Trajectory intercept"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/intercepts/bun-llm-intercept.mjs"' "Home Manager owns the Bun Trajectory intercept"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/intercepts/node-llm-spy.cjs"' "Home Manager owns the Node Trajectory intercept"
-assert_contains "modules/ai/home.nix" "force = true;" "Home Manager takes ownership of existing Trajectory generated files"
+assert_home_file_forced ".trajectory/bin/trajectory" "Home Manager force-owns the Trajectory binary shim"
+assert_home_file_forced ".trajectory/selfupdate.conf" "Home Manager force-owns the Trajectory self-update policy"
+assert_home_file_forced ".trajectory/config.defaults.yaml" "Home Manager force-owns the Trajectory managed defaults"
+assert_home_file_forced ".trajectory/intercepts/intercept-shared.mjs" "Home Manager force-owns the shared Trajectory intercept"
+assert_home_file_forced ".trajectory/intercepts/bun-llm-intercept.mjs" "Home Manager force-owns the Bun Trajectory intercept"
+assert_home_file_forced ".trajectory/intercepts/node-llm-spy.cjs" "Home Manager force-owns the Node Trajectory intercept"
 assert_contains "modules/ai/home.nix" "TRAJECTORY_INSTALL_OWNER=nix" "Trajectory self-update policy is Nix-owned"
 assert_contains "modules/ai/home.nix" "TRAJECTORY_SELF_UPDATE=disabled" "Trajectory self-update policy disables self-updates"
 assert_contains "modules/ai/home.nix" "include_headless_agents: true" "Trajectory managed defaults enable headless Claude Code capture"
@@ -99,7 +134,7 @@ assert_file_not_contains "modules/ai/darwin.nix" "selfupdate.conf" "Setup helper
 assert_contains "modules/ai/darwin.nix" "trajectory setup --clients cc --non-interactive" "Setup helper configures Claude Code"
 assert_contains "modules/ai/darwin.nix" "trajectory setup --clients codex --non-interactive" "Setup helper configures Codex"
 assert_file_not_contains "modules/ai/darwin.nix" "CLAUDE_CODE_LOCAL_BINARY" "Claude Desktop binary override is not set for Trajectory"
-assert_contains "cert-check.nix" "test-trajectory" "Trajectory static test is exposed as a flake app"
+assert_contains "cert-check.nix" "checks.trajectory" "Trajectory static test is exposed as a flake check"
 
 assert_not_contains "lapdog" "Lapdog references are removed"
 assert_not_contains "datadog/lapdog" "Datadog Lapdog Homebrew tap is removed"
