@@ -1,5 +1,11 @@
 {self, ...}: {
   perSystem = {pkgs, ...}: {
+    checks.trajectory = pkgs.runCommand "trajectory-tests" {} ''
+      cd ${self}
+      ${./tests/trajectory.sh}
+      touch "$out"
+    '';
+
     apps = {
       # Certificate testing app - runs the bash script in your local environment
       test-certs = {

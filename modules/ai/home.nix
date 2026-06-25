@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   isCiRunner = config.home.username == "runner";
@@ -60,23 +61,43 @@ in
 
     programs.zsh.initContent = ''
       rbw unlock
-
-      claude-raw() {
-        command claude "$@"
-      }
-
-      claude() {
-        command claude-lapdog "$@"
-      }
-
-      codex-raw() {
-        command codex "$@"
-      }
-
-      codex() {
-        command codex-lapdog "$@"
-      }
     '';
+
+    home.file.".trajectory/bin/trajectory" = {
+      force = true;
+      source = "${pkgs.trajectory}/libexec/trajectory";
+    };
+
+    home.file.".trajectory/selfupdate.conf" = {
+      force = true;
+      text = ''
+        TRAJECTORY_INSTALL_OWNER=nix
+        TRAJECTORY_SELF_UPDATE=disabled
+      '';
+    };
+
+    home.file.".trajectory/config.defaults.yaml" = {
+      force = true;
+      text = ''
+        capture:
+          include_headless_agents: true
+      '';
+    };
+
+    home.file.".trajectory/intercepts/intercept-shared.mjs" = {
+      force = true;
+      source = "${pkgs.trajectory}/share/trajectory/intercepts/intercept-shared.mjs";
+    };
+
+    home.file.".trajectory/intercepts/bun-llm-intercept.mjs" = {
+      force = true;
+      source = "${pkgs.trajectory}/share/trajectory/intercepts/bun-llm-intercept.mjs";
+    };
+
+    home.file.".trajectory/intercepts/node-llm-spy.cjs" = {
+      force = true;
+      source = "${pkgs.trajectory}/share/trajectory/intercepts/node-llm-spy.cjs";
+    };
 
     programs.git.ignores = [
       ".claude/settings.local.json"

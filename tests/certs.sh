@@ -224,8 +224,6 @@ echo ""
 echo "Testing Homebrew Python/OpenSSL against Anthropic API..."
 HOMEBREW_PYTHON=""
 for candidate in \
-  /opt/homebrew/opt/lapdog/libexec/bin/python \
-  /opt/homebrew/Cellar/lapdog/*/libexec/bin/python \
   /opt/homebrew/opt/python@3.13/bin/python3.13 \
   /opt/homebrew/bin/python3.13; do
   if [ -x "$candidate" ]; then
