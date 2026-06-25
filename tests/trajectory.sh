@@ -83,12 +83,14 @@ assert_contains "modules/ai/darwin.nix" "pkgs.trajectory" "Trajectory binary is 
 assert_contains "modules/ai/darwin.nix" "trajectory-setup-ai" "AI Darwin module exposes a setup helper"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/bin/trajectory"' "Home Manager owns the Trajectory installer-layout binary shim"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/selfupdate.conf"' "Home Manager owns the Trajectory self-update policy"
+assert_contains "modules/ai/home.nix" 'home.file.".trajectory/config.defaults.yaml"' "Home Manager owns Trajectory managed defaults"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/intercepts/intercept-shared.mjs"' "Home Manager owns the shared Trajectory intercept"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/intercepts/bun-llm-intercept.mjs"' "Home Manager owns the Bun Trajectory intercept"
 assert_contains "modules/ai/home.nix" 'home.file.".trajectory/intercepts/node-llm-spy.cjs"' "Home Manager owns the Node Trajectory intercept"
 assert_contains "modules/ai/home.nix" "force = true;" "Home Manager takes ownership of existing Trajectory generated files"
 assert_contains "modules/ai/home.nix" "TRAJECTORY_INSTALL_OWNER=nix" "Trajectory self-update policy is Nix-owned"
 assert_contains "modules/ai/home.nix" "TRAJECTORY_SELF_UPDATE=disabled" "Trajectory self-update policy disables self-updates"
+assert_contains "modules/ai/home.nix" "include_headless_agents: true" "Trajectory managed defaults enable headless Claude Code capture"
 # shellcheck disable=SC2016
 assert_contains "modules/ai/home.nix" '${pkgs.trajectory}/libexec/trajectory' "Trajectory binary shim targets the signed Nix binary"
 # shellcheck disable=SC2016

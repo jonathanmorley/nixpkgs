@@ -77,6 +77,14 @@ in
       '';
     };
 
+    home.file.".trajectory/config.defaults.yaml" = {
+      force = true;
+      text = ''
+        capture:
+          include_headless_agents: true
+      '';
+    };
+
     home.file.".trajectory/intercepts/intercept-shared.mjs" = {
       force = true;
       source = "${pkgs.trajectory}/share/trajectory/intercepts/intercept-shared.mjs";
