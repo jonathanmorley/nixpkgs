@@ -16,7 +16,7 @@
 - Do not switch the current machine as part of this repository change.
 - Run the repository formatter and complete flake checks before publication.
 
----
+______________________________________________________________________
 
 ### Task 1: Add Failing Trust-Anchor Regression Checks
 
@@ -29,6 +29,7 @@
 **Interfaces:**
 
 - Consumes: `modules/cvent` as the source directory under test.
+
 - Produces: flake check `checks.<system>.certificates` and post-switch Bundler assertions.
 
 - [ ] **Step 1: Create the static certificate regression test**
@@ -119,7 +120,7 @@ nix build .#checks.aarch64-darwin.certificates --print-build-logs --no-link
 
 Expected: FAIL with `missing Netskope root certificate` because production still embeds only the intermediate.
 
----
+______________________________________________________________________
 
 ### Task 2: Install and Route the Netskope Root
 
@@ -132,6 +133,7 @@ Expected: FAIL with `missing Netskope root certificate` because production still
 **Interfaces:**
 
 - Consumes: standalone PEM trust anchor.
+
 - Produces: `certBundle` and machine-wide `BUNDLE_SSL_CA_CERT`, `SSL_CERT_FILE`, `REQUESTS_CA_BUNDLE`, and `NODE_EXTRA_CA_CERTS` values.
 
 - [ ] **Step 1: Add the verified self-signed root PEM**
@@ -218,7 +220,7 @@ git add cert-check.nix modules/cvent/darwin.nix modules/cvent/netskope-root.pem 
 git commit -m "fix: trust Netskope root certificate"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Document and Verify the Machine-Wide Change
 
@@ -229,6 +231,7 @@ git commit -m "fix: trust Netskope root certificate"
 **Interfaces:**
 
 - Consumes: completed certificate configuration and checks.
+
 - Produces: operator-facing verification and rollout instructions.
 
 - [ ] **Step 1: Document certificate verification**
@@ -287,7 +290,7 @@ git add README.md
 git commit -m "docs: explain Netskope certificate checks"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Publish the Required Pull Request
 
@@ -296,6 +299,7 @@ git commit -m "docs: explain Netskope certificate checks"
 **Interfaces:**
 
 - Consumes: verified commits on `codex/fix-netskope-root`.
+
 - Produces: labeled pull request with automatic squash merge enabled.
 
 - [ ] **Step 1: Push the branch**
