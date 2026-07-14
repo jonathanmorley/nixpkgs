@@ -1,5 +1,10 @@
 {self, ...}: {
   perSystem = {pkgs, ...}: {
+    checks.certificates = pkgs.runCommand "certificate-tests" {nativeBuildInputs = [pkgs.openssl];} ''
+      ${./tests/certs-static.sh} ${./modules/cvent}
+      touch "$out"
+    '';
+
     checks.trajectory = pkgs.runCommand "trajectory-tests" {} ''
       cd ${self}
       ${./tests/trajectory.sh}
