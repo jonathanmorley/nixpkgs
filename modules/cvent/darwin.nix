@@ -6,6 +6,7 @@
   ...
 }: let
   netskopeRootCert = builtins.readFile ./netskope-root.pem;
+  netskopeRootFingerprint = "EA0D6091E2A2B9509FDF9E9145517BE4DBEE6A915169C3EF2DF0D102165F7E37";
 
   # Create custom cacert by appending the Netskope root to the standard bundle
   # Using a custom derivation because extraCertificateStrings doesn't work in nixpkgs 25.11
@@ -51,8 +52,17 @@ in {
     })
   ];
 
-  # Netskope trust anchor for macOS system trust
+  # Netskope trust anchor for the Nix/OpenSSL system CA bundle
   security.pki.certificates = [netskopeRootCert];
+  # security.pki only manages the PEM bundle, so install and trust the same
+  # root in the macOS System Keychain for SecureTransport clients.
+  system.activationScripts.extraActivation.text = lib.mkAfter ''
+    if ! /usr/bin/security find-certificate -c "certadmin" -a -Z /Library/Keychains/System.keychain 2>/dev/null \
+      | ${pkgs.gnugrep}/bin/grep -Fq "SHA-256 hash: ${netskopeRootFingerprint}" \
+      || ! /usr/bin/security verify-cert -c ${./netskope-root.pem} -p ssl -L -l -k /Library/Keychains/System.keychain -q; then
+      /usr/bin/security add-trusted-cert -d -r trustRoot -p ssl -k /Library/Keychains/System.keychain ${./netskope-root.pem}
+    fi
+  '';
   # Ensure that Node (and Bun) use the system CA (keystore) which includes the Netskope cert.
   environment.variables.NODE_USE_SYSTEM_CA = "1";
   # Standalone pnpm (via mise/asdf) bundles its own Node runtime that ignores

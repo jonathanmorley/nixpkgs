@@ -33,8 +33,14 @@ The resulting bundle will remain the source for Nix fetch overrides,
 `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE`, and `REQUESTS_CA_BUNDLE`. The same path
 will also be exported as `BUNDLE_SSL_CA_CERT`, because Bundler supports a
 dedicated PEM trust-bundle setting and its Ruby/OpenSSL path did not reliably
-consume `SSL_CERT_FILE` in the reproduced environment. `security.pki.certificates`
-will install the root in the macOS system trust store.
+consume `SSL_CERT_FILE` in the reproduced environment.
+
+In the pinned nix-darwin revision, `security.pki.certificates` only manages an
+OpenSSL-compatible PEM bundle; it does not add certificates to the macOS System
+Keychain. An idempotent activation step will therefore verify the exact
+fingerprint and TLS trust state, then use
+`security add-trusted-cert -d -r trustRoot -p ssl` when the expected root is
+absent or untrusted.
 
 ## Data Flow
 
@@ -42,23 +48,31 @@ will install the root in the macOS system trust store.
 netskope-root.pem
   -> custom Mozilla CA bundle
   -> Nix fetchers
-  -> macOS system trust
   -> Node.js, Python, Requests, and Bundler environment variables
+  -> nix-darwin OpenSSL trust bundle
+  -> macOS activation -> System Keychain trustRoot
 ```
 
 ## Verification
 
-Add a flake check that validates the stored PEM before any machine is switched:
+Add a flake check that validates the stored PEM and evaluated Cvent
+configuration before any machine is switched:
 
 - it parses as an X.509 certificate;
 - it is currently valid;
 - its subject and issuer are equal;
-- it verifies against itself;
+- its self-signature verifies;
 - its SHA-256 fingerprint matches the expected Netskope root.
+- the generated bundle and evaluated system certificate list contain exactly
+  that root and no Netskope intermediate;
+- all configured CA consumers use the generated bundle;
+- the evaluated activation script installs the expected fingerprint as
+  `trustRoot` for the TLS policy.
 
 Extend the runtime certificate test to require `BUNDLE_SSL_CA_CERT` to reference
-an existing file and to run `bundle doctor ssl --host rubygems.org` when Bundler
-is available. The test passes only when the diagnostic reports
+an existing file, run `bundle doctor ssl --host rubygems.org` when Bundler is
+available, and verify that the exact root fingerprint is trusted in the System
+Keychain. The Bundler test passes only when the diagnostic reports
 `Bundler: success`; RubyGems and raw `net/http` results are outside this
 Bundler-specific assertion.
 

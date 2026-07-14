@@ -48,6 +48,7 @@ echo "AWS_CA_BUNDLE: ${AWS_CA_BUNDLE:-not set}"
 echo "CURL_CA_BUNDLE: ${CURL_CA_BUNDLE:-not set}"
 echo "REQUESTS_CA_BUNDLE: ${REQUESTS_CA_BUNDLE:-not set}"
 echo "BUNDLE_SSL_CA_CERT: ${BUNDLE_SSL_CA_CERT:-not set}"
+echo "NETSKOPE_ROOT_CERT: ${NETSKOPE_ROOT_CERT:-not set}"
 
 check_file_env_var() {
   local name="$1"
@@ -64,6 +65,7 @@ check_file_env_var "NODE_EXTRA_CA_CERTS"
 check_file_env_var "SSL_CERT_FILE"
 check_file_env_var "REQUESTS_CA_BUNDLE"
 check_file_env_var "BUNDLE_SSL_CA_CERT"
+check_file_env_var "NETSKOPE_ROOT_CERT"
 
 # 2. Curl Tests
 print_section "2. cURL Tests"
@@ -497,10 +499,14 @@ fi
 print_section "9. macOS System Certificate Store"
 
 echo "Checking if Netskope root is in system keychain..."
-if security find-certificate -c "certadmin" -a /Library/Keychains/System.keychain >/dev/null 2>&1; then
-  print_result 0 "Netskope root in system keychain"
+NETSKOPE_ROOT_FINGERPRINT="EA0D6091E2A2B9509FDF9E9145517BE4DBEE6A915169C3EF2DF0D102165F7E37"
+
+if [ -f "${NETSKOPE_ROOT_CERT:-}" ] &&
+  security find-certificate -c "certadmin" -a -Z /Library/Keychains/System.keychain 2>/dev/null | grep -Fq "SHA-256 hash: $NETSKOPE_ROOT_FINGERPRINT" &&
+  security verify-cert -c "$NETSKOPE_ROOT_CERT" -p ssl -L -l -k /Library/Keychains/System.keychain -q; then
+  print_result 0 "Netskope root trusted by system keychain"
 else
-  print_result 1 "Netskope root not in system keychain"
+  print_result 1 "Netskope root trusted by system keychain"
 fi
 
 # Clean up

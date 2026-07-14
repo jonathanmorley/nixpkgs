@@ -16,6 +16,25 @@
 - Do not switch the current machine as part of this repository change.
 - Run the repository formatter and complete flake checks before publication.
 
+## Review Amendments
+
+Independent review of the first implementation confirmed that the pinned
+nix-darwin `security.pki.certificates` option manages only the PEM bundle and
+does not import certificates into the macOS System Keychain. The implementation
+therefore extends the original steps in two ways:
+
+- the flake check evaluates the Cvent Darwin configuration and verifies the
+  generated bundle, system certificate list, every CA consumer variable, and
+  activation script rather than relying only on source greps;
+- an idempotent activation step verifies the exact root fingerprint and trust
+  state, then imports it into the System Keychain as `trustRoot` for the TLS
+  policy when needed;
+- the certificate derivation is exposed only for `aarch64-darwin`, matching the
+  evaluated Cvent configuration and avoiding foreign-system dependencies.
+
+These amendments supersede the simplified static-test and system-trust snippets
+below while preserving the root-only and peer-verification constraints.
+
 ______________________________________________________________________
 
 ### Task 1: Add Failing Trust-Anchor Regression Checks
