@@ -2,6 +2,7 @@
   imports = [inputs.treefmt-nix.flakeModule];
   perSystem = {...}: {
     treefmt = {
+      settings.global.excludes = ["modules/cvent/netskope-root.pem"];
       settings.on-unmatched = "fatal"; # Ensure 100% coverage
       programs.actionlint.enable = true; # github action linter
       programs.alejandra.enable = true; # nix

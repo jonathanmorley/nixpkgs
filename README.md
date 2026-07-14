@@ -37,6 +37,18 @@ After switching a machine, run `trajectory-setup-ai` from a regular shell to let
 
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
+## Certificate Trust
+
+Cvent machines add the Netskope root certificate to the standard Mozilla CA
+bundle and use that bundle for Nix fetchers, Node.js, Python, Requests, and
+Bundler. An idempotent activation step also installs the exact root in the
+macOS System Keychain with trust constrained to TLS clients. Bundler reads the
+bundle through `BUNDLE_SSL_CA_CERT`.
+
+`nix flake check` validates the stored root certificate and its fingerprint.
+After switching a Cvent machine, run `nix run .#test-certs` to exercise the
+configured TLS clients against live endpoints.
+
 ## Resources
 
 - https://gist.github.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050
