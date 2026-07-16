@@ -14,6 +14,7 @@
   '';
 in {
   environment.systemPackages = [
+    pkgs.mempalace
     pkgs.trajectory
     trajectorySetupAi
   ];

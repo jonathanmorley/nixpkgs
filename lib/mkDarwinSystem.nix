@@ -31,6 +31,7 @@ darwin.lib.darwinSystem {
               oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
               fnox = prev.callPackage ../pkgs/fnox {};
               gig = prev.callPackage ../pkgs/gig {};
+              mempalace = prev.callPackage ../pkgs/mempalace {};
               trajectory = prev.callPackage ../pkgs/trajectory {};
             })
           ];
