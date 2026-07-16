@@ -22,6 +22,10 @@ in {
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
   homebrew = {
+    brews = [
+      # ollama's launchd service integration is only available via Homebrew on macOS.
+      "ollama"
+    ];
     casks = [
       # Codex Desktop is distributed as a Homebrew cask.
       "codex-app"

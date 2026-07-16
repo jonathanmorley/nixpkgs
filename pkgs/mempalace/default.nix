@@ -28,7 +28,7 @@ python3Packages.buildPythonApplication {
     python-dateutil
   ];
 
-  pythonImportsCheck = [ "mempalace" ];
+  pythonImportsCheck = ["mempalace"];
 
   meta = {
     description = "Give your AI a memory — mine projects and conversations into a searchable palace";
