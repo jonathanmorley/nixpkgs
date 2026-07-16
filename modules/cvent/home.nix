@@ -80,14 +80,6 @@
           provider = "bitwarden";
           value = "GitHub Token";
         };
-        JIRA_MCP_TOKEN = {
-          provider = "bitwarden";
-          value = "Jira Token";
-        };
-        CONFLUENCE_MCP_TOKEN = {
-          provider = "bitwarden";
-          value = "Confluence Token";
-        };
         SONARQUBE_MCP_TOKEN = {
           provider = "bitwarden";
           value = "SonarQube MCP Token";
