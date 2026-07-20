@@ -19,6 +19,10 @@
     Run the project's formatter and linter before considering a task done.
     I use Nx as a build system and monorepo tool.
 
+    ## Testing
+
+    Avoid tests that only assert static file contents. For skills, prefer evaluations that exercise the skill's behavior and validate its outcomes.
+
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
     Commit often to preserve progress, but do not push unless explicitly asked.
     CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
