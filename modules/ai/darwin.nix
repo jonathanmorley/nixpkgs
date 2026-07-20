@@ -29,6 +29,9 @@ in {
     casks = [
       # Codex Desktop is distributed as a Homebrew cask.
       "codex-app"
+      # GitHub Copilot CLI and desktop app are distributed as Homebrew casks.
+      "copilot-cli"
+      "github-copilot-app"
     ];
   };
 }

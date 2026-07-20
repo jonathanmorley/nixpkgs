@@ -45,6 +45,7 @@ in {
     globalConfig.settings = {
       trusted_config_paths = [
         "~/Developer/cvent-internal"
+        "~/Developer/copilot-worktrees"
         "~/.codex/worktrees"
       ];
     };
