@@ -90,7 +90,6 @@ in {
       ];
       show-recents = false;
       wvous-bl-corner = 5; # Start Screen Saver
-      wvous-br-corner = 13; # Lock Screen
       wvous-tl-corner = 2; # Mission Control
       wvous-tr-corner = 4; # Desktop
     };
