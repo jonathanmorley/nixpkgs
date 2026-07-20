@@ -99,5 +99,11 @@ in {
   ];
 
   environment.variables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
-  home-manager.users.${config.system.primaryUser}.programs.ssh.settings."*".IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
+  home-manager.users.${config.system.primaryUser} = {
+    programs.git.settings.gpg.ssh.program = toString (pkgs.writeShellScript "bw-ssh-sign" ''
+      export SSH_AUTH_SOCK="/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock"
+      exec ${lib.getExe' pkgs.openssh "ssh-keygen"} "$@"
+    '');
+    programs.ssh.settings."*".IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
+  };
 }
