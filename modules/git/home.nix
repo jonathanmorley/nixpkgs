@@ -28,10 +28,7 @@ in {
         if pkgs.stdenv.isDarwin
         then "macOS"
         else "Linux"
-      }.gitignore")
-      ++ [
-        "/.worktrees/"
-      ];
+      }.gitignore");
     settings = {
       user = {
         name = "Jonathan Morley";

@@ -29,8 +29,7 @@ in {
     casks = [
       # Codex Desktop is distributed as a Homebrew cask.
       "codex-app"
-      # GitHub Copilot CLI and desktop app are distributed as Homebrew casks.
-      "copilot-cli"
+      # GitHub Copilot desktop app is distributed as Homebrew casks.
       "github-copilot-app"
       # OpenCode Desktop is distributed as a Homebrew cask.
       "opencode-desktop"
