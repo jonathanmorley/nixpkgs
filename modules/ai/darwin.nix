@@ -32,6 +32,8 @@ in {
       # GitHub Copilot CLI and desktop app are distributed as Homebrew casks.
       "copilot-cli"
       "github-copilot-app"
+      # OpenCode Desktop is distributed as a Homebrew cask.
+      "opencode-desktop"
     ];
   };
 }
