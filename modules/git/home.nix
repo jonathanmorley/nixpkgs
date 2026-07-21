@@ -23,12 +23,11 @@ in {
       key = specialArgs.sshKeys."github.com";
       signByDefault = true;
     };
-    ignores =
-      lib.splitString "\n" (builtins.readFile "${gitignores}/Global/${
-        if pkgs.stdenv.isDarwin
-        then "macOS"
-        else "Linux"
-      }.gitignore");
+    ignores = lib.splitString "\n" (builtins.readFile "${gitignores}/Global/${
+      if pkgs.stdenv.isDarwin
+      then "macOS"
+      else "Linux"
+    }.gitignore");
     settings = {
       user = {
         name = "Jonathan Morley";
