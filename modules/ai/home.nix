@@ -63,6 +63,64 @@ in
       context = context;
     };
 
+    home.file.".config/opencode/opencode.json" = {
+      source = pkgs.writers.writeJSON "opencode.json" {
+        "$schema" = "https://opencode.ai/config.json";
+        disabled_providers = ["opencode"];
+        enabled_providers = ["github-copilot"];
+        model = "github-copilot/gpt-5.6-terra";
+        small_model = "github-copilot/gpt-5.6-luna";
+        plugin = [
+          "oh-my-openagent@4.19.0"
+          "@warp-dot-dev/opencode-warp"
+          "superpowers@git+https://github.com/obra/superpowers.git"
+        ];
+        mcp.datadog = {
+          type = "remote";
+          url = "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp";
+        };
+      };
+    };
+
+    home.file.".config/opencode/oh-my-openagent.jsonc" = {
+      source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
+        "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
+        agents = {
+          hephaestus = {
+            model = "github-copilot/gpt-5.6-sol";
+            fallback_models = ["github-copilot/gpt-5.6-terra"];
+          };
+          oracle = {
+            model = "github-copilot/gpt-5.6-sol";
+            fallback_models = ["github-copilot/gpt-5.6-terra"];
+          };
+          momus = {
+            model = "github-copilot/gpt-5.6-terra";
+            fallback_models = ["github-copilot/gpt-5.6-sol"];
+          };
+          explore = {
+            model = "github-copilot/gpt-5.6-luna";
+            fallback_models = ["github-copilot/gpt-5.6-terra"];
+          };
+          librarian = {
+            model = "github-copilot/gpt-5.6-luna";
+            fallback_models = ["github-copilot/gpt-5.6-terra"];
+          };
+        };
+        categories = {
+          deep = {
+            model = "github-copilot/gpt-5.6-terra";
+            fallback_models = ["github-copilot/gpt-5.6-sol"];
+          };
+          ultrabrain = {
+            model = "github-copilot/gpt-5.6-sol";
+            fallback_models = ["github-copilot/gpt-5.6-terra"];
+          };
+        };
+        runtime_fallback = true;
+      };
+    };
+
     programs.zsh.initContent = ''
       rbw unlock
     '';
