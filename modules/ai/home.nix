@@ -19,6 +19,14 @@
     Run the project's formatter and linter before considering a task done.
     I use Nx as a build system and monorepo tool.
 
+    ## System Configuration
+
+    This computer is managed by Nix. The flake with configuration derivations is in `~/.nixpkgs`.
+
+    ## Worktrees
+
+    I prefer using an isolated Git worktree for all code changes. When creating one, use the repository-root `.worktrees/` directory.
+
     ## Testing
 
     Avoid tests that only assert static file contents. For skills, prefer evaluations that exercise the skill's behavior and validate its outcomes.
