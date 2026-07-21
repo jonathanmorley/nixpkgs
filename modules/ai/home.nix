@@ -59,6 +59,64 @@ in
     programs.claude-code = {
       enable = true;
       context = context;
+      settings = {
+        env = {
+          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+        };
+        permissions = {
+          defaultMode = "auto";
+        };
+        model = "sonnet";
+        enabledPlugins = {
+          "typescript-lsp@claude-plugins-official" = true;
+          "rust-analyzer-lsp@claude-plugins-official" = true;
+          "jdtls-lsp@claude-plugins-official" = true;
+          "superpowers@claude-plugins-official" = false;
+          "nx@cvent-mcp" = true;
+          "aide-agents@cvent-mcp" = true;
+          "development@cvent-technology" = true;
+          "datadog@cvent-mcp" = false;
+          "mise@cvent-mcp" = true;
+          "sourcegraph@cvent-mcp" = false;
+          "warp@cvent-technology" = true;
+          "pr-review-toolkit@claude-plugins-official" = true;
+          "github@cvent-mcp" = true;
+          "trajectory@trajectory" = true;
+          "pr-sentinel@cvent-acp" = true;
+        };
+        extraKnownMarketplaces = {
+          "cvent-technology" = {
+            "source" = {
+              "source" = "github";
+              "repo" = "cvent-internal/cvent-ai-marketplace";
+              "ref" = "cvent-technology/v1";
+            };
+          };
+          "cvent-mcp" = {
+            "source" = {
+              "source" = "github";
+              "repo" = "cvent-internal/cvent-ai-marketplace";
+              "ref" = "cvent-mcp/v1";
+            };
+          };
+          "trajectory" = {
+            "source" = {
+              "source" = "directory";
+              "path" = "/Users/jonathan/.trajectory/claude-marketplace";
+            };
+          };
+          "cvent-acp" = {
+            "source" = {
+              "source" = "directory";
+              "path" = "/Users/jonathan/Developer/cvent-internal/cvent-ai-marketplace/marketplaces/cvent-acp";
+            };
+          };
+        };
+        "alwaysThinkingEnabled" = true;
+        "skipDangerousModePermissionPrompt" = true;
+        "theme" = "dark";
+        "skipAutoPermissionPrompt" = true;
+      };
     };
 
     programs.codex = {
@@ -69,11 +127,7 @@ in
     programs.opencode = {
       enable = true;
       context = context;
-    };
-
-    xdg.configFile."opencode/opencode.json" = {
-      source = pkgs.writers.writeJSON "opencode.json" {
-        "$schema" = "https://opencode.ai/config.json";
+      settings = {
         disabled_providers = ["opencode"];
         enabled_providers = ["github-copilot"];
         model = "github-copilot/gpt-5.6-terra";
@@ -87,6 +141,15 @@ in
           type = "remote";
           url = "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp";
         };
+      };
+    };
+
+    programs.github-copilot-cli = {
+      enable = true;
+      context = context;
+      settings = {
+        model = "gpt-5.6-terra";
+        effortLevel = "medium";
       };
     };
 
@@ -171,6 +234,8 @@ in
 
     programs.git.ignores = [
       ".claude/settings.local.json"
+      "/.worktrees/"
+      ".omo"
     ];
 
     # Disable fsmonitor for git, as it can cause worktree operations to hang indefinitely on macOS. See
