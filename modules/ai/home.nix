@@ -106,4 +106,8 @@ in
     programs.git.ignores = [
       ".claude/settings.local.json"
     ];
+
+    # Disable fsmonitor for git, as it can cause worktree operations to hang indefinitely on macOS. See
+    # See https://github.com/anthropics/claude-code/issues/75781
+    programs.git.settings.core.fsmonitor = false;
   }
