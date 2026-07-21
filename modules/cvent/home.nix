@@ -84,6 +84,10 @@
           provider = "bitwarden";
           value = "SonarQube MCP Token";
         };
+        SOURCEGRAPH_MCP_TOKEN = {
+          provider = "bitwarden";
+          value = "Sourcegraph MCP Token";
+        };
       };
     };
   };

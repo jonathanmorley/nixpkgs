@@ -31,6 +31,13 @@
 
     Avoid tests that only assert static file contents. For skills, prefer evaluations that exercise the skill's behavior and validate its outcomes.
 
+    ## Execution Efficiency
+
+    For focused changes, work directly: do not create plans, specs, worktrees, or subagents unless the task is ambiguous, risky, or genuinely benefits from them.
+    During iteration, run the smallest relevant test, typecheck, or lint command. Run dependency-graph builds only once as a final confidence gate when they add meaningful coverage.
+    Use low-noise Nx output for broad checks (for example, `NX_TUI=false pnpm nx <target> <project> --outputStyle=dynamic-legacy`) and capture successful verbose output rather than placing it in the conversation. Inspect captured logs only on failure.
+    Do not broaden scope or investigate unrelated paths without a concrete dependency on the requested change.
+
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
     Commit often to preserve progress, but do not push unless explicitly asked.
     CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
@@ -141,16 +148,19 @@ in
           type = "remote";
           url = "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp";
         };
+        mcp.sourcegraph = {
+          type = "remote";
+          url = "https://sourcegraph.private.cvent-management.cvent.cloud/.api/mcp";
+          headers = {
+            "Authorization" = "token \${SOURCEGRAPH_MCP_TOKEN}";
+          };
+        };
       };
     };
 
     programs.github-copilot-cli = {
       enable = true;
       context = context;
-      settings = {
-        model = "gpt-5.6-terra";
-        effortLevel = "medium";
-      };
     };
 
     xdg.configFile."opencode/oh-my-openagent.jsonc" = {
