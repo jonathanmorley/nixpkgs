@@ -63,7 +63,7 @@ in
       context = context;
     };
 
-    home.file.".config/opencode/opencode.json" = {
+    xdg.configFile."opencode/opencode.json" = {
       source = pkgs.writers.writeJSON "opencode.json" {
         "$schema" = "https://opencode.ai/config.json";
         disabled_providers = ["opencode"];
@@ -82,7 +82,7 @@ in
       };
     };
 
-    home.file.".config/opencode/oh-my-openagent.jsonc" = {
+    xdg.configFile."opencode/oh-my-openagent.jsonc" = {
       source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
         "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
         agents = {
