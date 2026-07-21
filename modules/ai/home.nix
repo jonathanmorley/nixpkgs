@@ -148,16 +148,19 @@ in
           type = "remote";
           url = "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp";
         };
+        mcp.sourcegraph = {
+          type = "remote";
+          url = "https://sourcegraph.private.cvent-management.cvent.cloud/.api/mcp";
+          headers = {
+            "Authorization" = "token \${SOURCEGRAPH_MCP_TOKEN}";
+          };
+        };
       };
     };
 
     programs.github-copilot-cli = {
       enable = true;
       context = context;
-      settings = {
-        model = "gpt-5.6-terra";
-        effortLevel = "medium";
-      };
     };
 
     xdg.configFile."opencode/oh-my-openagent.jsonc" = {
