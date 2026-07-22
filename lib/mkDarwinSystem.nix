@@ -3,6 +3,7 @@
   determinate,
   home-manager,
   nixpkgs,
+  opencode,
   oktaws,
 }: {
   system ? "aarch64-darwin",
@@ -10,7 +11,8 @@
   ...
 }:
 darwin.lib.darwinSystem {
-  inherit specialArgs system;
+  inherit system;
+  specialArgs = specialArgs // {inherit opencode;};
   modules =
     [
       determinate.darwinModules.default
@@ -26,14 +28,19 @@ darwin.lib.darwinSystem {
           config.allowUnfree = true;
           config.allowUnsupportedSystem = true;
           overlays = [
-            (_final: prev: {
-              # Custom packages
-              oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
-              fnox = prev.callPackage ../pkgs/fnox {};
-              gig = prev.callPackage ../pkgs/gig {};
-              mempalace = prev.callPackage ../pkgs/mempalace {};
-              trajectory = prev.callPackage ../pkgs/trajectory {};
-            })
+            (_final: prev:
+              {
+                # Custom packages
+                oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
+                fnox = prev.callPackage ../pkgs/fnox {};
+                gig = prev.callPackage ../pkgs/gig {};
+                mempalace = prev.callPackage ../pkgs/mempalace {};
+                trajectory = prev.callPackage ../pkgs/trajectory {};
+              }
+              // {
+                opencode = opencode.packages.${system}.opencode;
+                opencode-desktop = opencode.packages.${system}.opencode-desktop;
+              })
           ];
         };
         home-manager = {

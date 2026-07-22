@@ -3,6 +3,7 @@
   pkgs,
   lib,
   config,
+  opencode,
   ...
 }: let
   netskopeRootCert = builtins.readFile ./netskope-root.pem;
@@ -35,6 +36,18 @@
   '';
 
   certBundle = "${customCacert}/etc/ssl/certs/ca-bundle.crt";
+  upstreamOpencode = opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+  cventNodeModules = upstreamOpencode.node_modules.overrideAttrs (old: {
+    buildPhase =
+      lib.replaceStrings
+      ["bun install"]
+      ["bun install --cafile \"${certBundle}\""]
+      old.buildPhase;
+  });
+  cventOpencode = upstreamOpencode.override {node_modules = cventNodeModules;};
+  cventOpencodeDesktop = opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode-desktop.override {
+    opencode = cventOpencode;
+  };
 in {
   # Override custom packages so their source fetches use a cert bundle that
   # includes the Netskope proxy cert. Explicit .override chains replace
@@ -49,6 +62,10 @@ in {
       fnox = prev.fnox.override {fetchFromGitHub = corpoFetchFromGitHub;};
       gig = prev.gig.override {fetchFromGitHub = corpoFetchFromGitHub;};
       rtk = prev.rtk.override {fetchFromGitHub = corpoFetchFromGitHub;};
+    })
+    (_final: _prev: {
+      opencode = cventOpencode;
+      opencode-desktop = cventOpencodeDesktop;
     })
   ];
 
