@@ -115,7 +115,5 @@ in {
     "/Applications/Microsoft Outlook.app"
   ];
 
-  environment.variables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
-  launchd.user.envVariables.SSH_AUTH_SOCK = "/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock";
   home-manager.users.${config.system.primaryUser}.programs.ssh.settings."*".IdentityAgent = "\"/Users/${config.system.primaryUser}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock\"";
 }

@@ -135,8 +135,6 @@ in
       enable = true;
       context = context;
       settings = {
-        disabled_providers = ["opencode"];
-        enabled_providers = ["github-copilot"];
         model = "github-copilot/gpt-5.6-terra";
         small_model = "github-copilot/gpt-5.6-luna";
         plugin = [
@@ -150,9 +148,10 @@ in
         };
         mcp.sourcegraph = {
           type = "remote";
-          url = "https://sourcegraph.private.cvent-management.cvent.cloud/.api/mcp";
+          url = "https://sourcegraph.private.cvent-management.cvent.cloud/mcp";
+          oauth = false;
           headers = {
-            "Authorization" = "token \${SOURCEGRAPH_MCP_TOKEN}";
+            "Authorization" = "token \${env:SOURCEGRAPH_MCP_TOKEN}";
           };
         };
       };
