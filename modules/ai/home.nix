@@ -151,7 +151,7 @@ in
           url = "https://sourcegraph.private.cvent-management.cvent.cloud/mcp";
           oauth = false;
           headers = {
-            "Authorization" = "token \${env:SOURCEGRAPH_MCP_TOKEN}";
+            "Authorization" = "token {env:SOURCEGRAPH_MCP_TOKEN}";
           };
         };
       };
