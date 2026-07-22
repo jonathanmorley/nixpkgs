@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    opencode.url = "github:anomalyco/opencode/v1.18.4";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -24,6 +24,7 @@
 
   outputs = inputs @ {
     nixpkgs,
+    opencode,
     home-manager,
     darwin,
     oktaws,
@@ -31,7 +32,7 @@
     ...
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
-      inherit darwin home-manager nixpkgs oktaws;
+      inherit darwin home-manager nixpkgs opencode oktaws;
       inherit (inputs) determinate;
     };
 
