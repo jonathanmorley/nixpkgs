@@ -65,7 +65,28 @@ in {
     })
     (_final: _prev: {
       opencode = cventOpencode;
-      opencode-desktop = cventOpencodeDesktop;
+      opencode-desktop =
+        if _final.stdenv.hostPlatform.isAarch64
+        then
+          cventOpencodeDesktop.overrideAttrs (old: {
+            nativeBuildInputs = (old.nativeBuildInputs or []) ++ [_final.makeBinaryWrapper];
+            postInstall =
+              (old.postInstall or "")
+              + ''
+                app="$out/Applications/OpenCode.app/Contents/MacOS/OpenCode"
+                original="$out/Applications/OpenCode.app/Contents/MacOS/.OpenCode-unwrapped"
+
+                mv "$app" "$original"
+
+                makeBinaryWrapper ${lib.getExe _final.fnox} "$app" \
+                  --inherit-argv0 \
+                  --prefix PATH : "/etc/profiles/per-user/${config.system.primaryUser}/bin" \
+                  --add-flags "exec" \
+                  --add-flags "--" \
+                  --add-flags "$original"
+              '';
+          })
+        else cventOpencodeDesktop;
     })
   ];
 

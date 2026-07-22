@@ -17,6 +17,7 @@
   opencodeDesktopOverlay = final: prev:
     lib.optionalAttrs prev.stdenv.hostPlatform.isAarch64 {
       opencode-desktop = prev.opencode-desktop.overrideAttrs (old: {
+        nativeBuildInputs = (old.nativeBuildInputs or []) ++ [final.makeBinaryWrapper];
         postInstall =
           (old.postInstall or "")
           + ''
@@ -27,6 +28,7 @@
 
             makeBinaryWrapper ${lib.getExe final.fnox} "$app" \
               --inherit-argv0 \
+              --prefix PATH : "/etc/profiles/per-user/${config.system.primaryUser}/bin" \
               --add-flags "exec" \
               --add-flags "--" \
               --add-flags "$original"
