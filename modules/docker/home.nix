@@ -1,0 +1,86 @@
+# See https://nix-community.github.io/home-manager/options.xhtml
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}: {
+  options.docker.credentialHelpers = lib.mkOption {
+    type = lib.types.listOf lib.types.package;
+    default = [];
+    description = "Extra Docker credential-helper packages.";
+  };
+
+  config = {
+    home.packages = with pkgs;
+      [
+        amazon-ecr-credential-helper
+        docker-buildx
+        docker-client
+      ]
+      ++ config.docker.credentialHelpers
+      ++ lib.optional stdenv.isDarwin colima;
+
+    # For those tools that don't use the current docker profile.
+    home.sessionVariables.DOCKER_HOST = "unix://${config.home.homeDirectory}/.colima/default/docker.sock";
+
+    # Copy the docker config so that docker login can write to it.
+    # We can't use `mkOutOfStoreSymlink` because it may contain secrets we don't want to accidentally commit.
+    home.activation.writeDockerConfig = let
+      contents = (pkgs.formats.json {}).generate "config.json" ({
+          credHelpers."ghcr.io" = "gh";
+          # CDK has a hardcoded `docker login` that _still_ doesn't play nice with the ECR docker credential helper,
+          # even when using AWS_ECR_IGNORE_CREDS_STORAGE, so we can't use it as a catch-all until that is addressed.
+          # See https://github.com/aws/aws-cdk/issues/32925.
+          # credsStore = "ecr-login";
+        }
+        // lib.optionalAttrs pkgs.stdenv.isDarwin {
+          currentContext = "colima";
+        });
+      path = "${config.home.homeDirectory}/.docker/config.json";
+    in
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        run mkdir -p $(dirname ${path})
+        run cp -f ${contents} ${path}
+        run chmod a+w ${path}
+      '';
+
+    home.shellAliases.dockerv = "${pkgs.docker-client}/bin/docker run ${(lib.cli.toCommandLineShellGNU {} {
+      interactive = true;
+      tty = true;
+      rm = true;
+      volume = "$(pwd):$(pwd)";
+      workdir = "$(pwd)";
+    })}";
+    home.sessionVariables.AWS_ECR_IGNORE_CREDS_STORAGE = "true"; # Allow `docker login` to succeed
+    home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
+      target = ".colima/_templates/default.yaml";
+      source = (pkgs.formats.yaml {}).generate "default.yaml" {
+        runtime = "docker";
+        vmType = "vz";
+        memory = 16;
+        disk = 100;
+        rootDisk = 100;
+        rosetta = true;
+        network.address = true;
+        mounts = [
+          {
+            location = "/tmp/colima";
+            mountPoint = "/tmp/colima";
+            writable = true;
+          }
+          {
+            location = "/private/var/folders";
+            mountPoint = "/private/var/folders";
+            writable = true;
+          }
+          {
+            location = config.home.homeDirectory;
+            mountPoint = config.home.homeDirectory;
+            writable = true;
+          }
+        ];
+      };
+    };
+  };
+}
