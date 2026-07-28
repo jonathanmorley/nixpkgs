@@ -3,8 +3,8 @@
   determinate,
   home-manager,
   nixpkgs,
-  opencode ? null,
   oktaws,
+  fnox,
 }: {
   system ? "aarch64-darwin",
   specialArgs,
@@ -13,13 +13,14 @@
   ...
 }:
 darwin.lib.darwinSystem {
-  inherit system;
-  specialArgs = specialArgs // nixpkgs.lib.optionalAttrs (opencode != null) {inherit opencode;};
+  inherit system specialArgs;
   modules =
     [
       determinate.darwinModules.default
       ../modules/darwin.nix
       ../modules/ai/darwin.nix
+      ../modules/secrets/bitwarden.darwin.nix
+      ../modules/secrets/1password.darwin.nix
       {
         system.stateVersion = specialArgs.stateVersions.darwin;
         system.primaryUser = specialArgs.username;
@@ -30,19 +31,14 @@ darwin.lib.darwinSystem {
           config.allowUnfree = true;
           config.allowUnsupportedSystem = true;
           overlays = [
-            (_final: prev:
-              {
-                # Custom packages
-                oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
-                fnox = prev.callPackage ../pkgs/fnox {};
-                gig = prev.callPackage ../pkgs/gig {};
-                mempalace = prev.callPackage ../pkgs/mempalace {};
-                trajectory = prev.callPackage ../pkgs/trajectory {};
-              }
-              // nixpkgs.lib.optionalAttrs (opencode != null) {
-                opencode = opencode.packages.${prev.stdenv.hostPlatform.system}.opencode;
-                opencode-desktop = opencode.packages.${prev.stdenv.hostPlatform.system}.opencode-desktop;
-              })
+            (_final: prev: {
+              # Custom packages
+              fnox = fnox.packages.${prev.stdenv.hostPlatform.system}.default;
+              oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
+              gig = prev.callPackage ../pkgs/gig {};
+              mempalace = prev.callPackage ../pkgs/mempalace {};
+              trajectory = prev.callPackage ../pkgs/trajectory {};
+            })
           ];
         };
         home-manager = {
@@ -56,6 +52,7 @@ darwin.lib.darwinSystem {
                 ../modules/ai/home.nix
                 ../modules/docker/home.nix
                 ../modules/git/home.nix
+                ../modules/secrets/fnox.home.nix
               ]
               ++ extraHomeModules;
             home = {

@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    opencode.url = "github:anomalyco/opencode/v1.18.4";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -16,6 +15,10 @@
     };
     oktaws = {
       url = "github:jonathanmorley/oktaws/v0.23.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    fnox = {
+      url = "github:jdx/fnox/v1.31.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
@@ -30,11 +33,11 @@
     darwin,
     oktaws,
     flake-parts,
+    fnox,
     ...
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
-      inherit darwin home-manager nixpkgs oktaws;
-      inherit (inputs) opencode;
+      inherit darwin home-manager nixpkgs oktaws fnox;
       inherit (inputs) determinate;
     };
 
@@ -58,20 +61,6 @@
       ];
 
       perSystem = {pkgs, ...}: {
-        checks.opencode =
-          pkgs.runCommand "opencode-tests" {
-            nativeBuildInputs = [
-              pkgs.nix
-              pkgs.jq
-            ];
-          } ''
-            cd ${self}
-            export HOME="$TMPDIR"
-            export XDG_CACHE_HOME="$TMPDIR"
-            ${./tests/opencode.sh}
-            touch "$out"
-          '';
-
         checks.trajectory = pkgs.runCommand "trajectory-tests" {} ''
           cd ${self}
           ${./tests/trajectory.sh}
@@ -100,6 +89,7 @@
             specialArgs = {
               inherit stateVersions;
               profiles = ["personal"];
+              sshProvider = "1password";
               username = "jonathan";
               sshKeys."github.com" = keys.personal;
             };
@@ -112,6 +102,7 @@
             specialArgs = {
               inherit stateVersions;
               profiles = ["personal"];
+              sshProvider = "1password";
               username = "jonathan";
               sshKeys."github.com" = keys.personal;
             };

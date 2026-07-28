@@ -1,11 +1,9 @@
 {
-  config,
   pkgs,
   lib,
   specialArgs,
   ...
 }: let
-  isCiRunner = config.home.username == "runner";
   gitignores = fetchGit {
     url = "https://github.com/github/gitignore";
     rev = "8779ee73af62c669e7ca371aaab8399d87127693";
@@ -18,11 +16,6 @@ in {
   programs.git = {
     enable = true;
     lfs.enable = true;
-    signing = {
-      format = "ssh";
-      key = specialArgs.sshKeys."github.com";
-      signByDefault = true;
-    };
     ignores = lib.splitString "\n" (builtins.readFile "${gitignores}/Global/${
       if pkgs.stdenv.isDarwin
       then "macOS"
@@ -37,13 +30,6 @@ in {
       branch.sort = "-committerdate";
       column.ui = "auto";
       commit.verbose = true;
-      credential."https://github.com".helper = [
-        ""
-        "!${pkgs.writeShellScript "github-credential-helper" ''
-          echo username=jonathanmorley
-          echo password=$(${lib.getExe pkgs.gh} auth token --user jonathanmorley)
-        ''}"
-      ];
       diff = {
         algorithm = "histogram";
         colorMoved = "plain";
@@ -54,13 +40,6 @@ in {
         prune = true;
         pruneTags = true;
         all = true;
-      };
-      gpg = {
-        format = "ssh";
-        ssh.allowedSignersFile = lib.mkDefault (toString (
-          pkgs.writeText "allowed_signers"
-          "morley.jonathan@gmail.com namespaces='git' ${specialArgs.sshKeys."github.com"}"
-        ));
       };
       help.autocorrect = "prompt";
       http.postBuffer = 2097152000;
@@ -84,21 +63,41 @@ in {
       tag.sort = "version:refname";
     };
   };
+  programs.zsh.oh-my-zsh.plugins = ["gh" "git" "gitignore"];
+
+  # Commit Signing
+  programs.git.signing = {
+    format = "ssh";
+    key = specialArgs.sshKeys."github.com";
+    signByDefault = true;
+  };
+  programs.git.settings.gpg = {
+    format = "ssh";
+    ssh.allowedSignersFile = lib.mkDefault (toString (
+      pkgs.writeText "allowed_signers"
+      "morley.jonathan@gmail.com namespaces='git' ${specialArgs.sshKeys."github.com"}"
+    ));
+  };
+
+  # Authentication (HTTPS)
+  programs.git.settings.credential."https://github.com".helper = [
+    ""
+    "!${pkgs.writeShellScript "github-credential-helper" ''
+      echo username=jonathanmorley
+      echo password=$(${lib.getExe pkgs.gh} auth token --user jonathanmorley)
+    ''}"
+  ];
+  # Authentication (SSH)
   programs.ssh.settings."github.com" = {
     IdentitiesOnly = true;
     IdentityFile = builtins.toFile "github.com.pub" specialArgs.sshKeys."github.com";
   };
-  programs.zsh.oh-my-zsh.plugins = ["gh" "git"];
 
-  home.packages = with pkgs;
-    lib.optionals (!isCiRunner) [
-      gig
-    ]
-    ++ [
-      gh
-      gitify
-      git-filter-repo
-    ];
+  home.packages = with pkgs; [
+    gh
+    gitify
+    git-filter-repo
+  ];
   home.shellAliases.gls = ''${pkgs.git}/bin/git log --pretty='format:' --name-only | ${pkgs.gnugrep}/bin/grep -oP "^''$(${pkgs.git}/bin/git rev-parse --show-prefix)\K.*" | cut -d/ -f1 | sort -u'';
   home.shellAliases.gcl = ''
     f() {
