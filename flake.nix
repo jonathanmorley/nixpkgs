@@ -59,6 +59,8 @@
       systems = [
         "aarch64-darwin"
         "x86_64-darwin"
+        # kept for CI format check (ubuntu-latest runner)
+        "x86_64-linux"
       ];
 
       perSystem = {
