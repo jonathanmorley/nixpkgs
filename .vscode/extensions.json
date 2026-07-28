@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "mkhl.direnv",
+    "VanCoding.vscode-treefmt-nix"
+  ]
+}
