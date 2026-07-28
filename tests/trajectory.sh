@@ -90,7 +90,7 @@ assert_home_file_forced() {
       forced = 1
     }
 
-    in_block && /^    \};$/ {
+    in_block && /^  \};$/ {
       done = 1
       in_block = 0
     }
@@ -143,7 +143,7 @@ assert_file_not_contains "modules/ai/darwin.nix" "selfupdate.conf" "Setup helper
 assert_contains "modules/ai/darwin.nix" "trajectory setup --clients cc --non-interactive" "Setup helper configures Claude Code"
 assert_contains "modules/ai/darwin.nix" "trajectory setup --clients codex --non-interactive" "Setup helper configures Codex"
 assert_file_not_contains "modules/ai/darwin.nix" "CLAUDE_CODE_LOCAL_BINARY" "Claude Desktop binary override is not set for Trajectory"
-assert_contains "flake.nix" "checks.trajectory" "Trajectory static test is exposed as a flake check"
+assert_contains "flake.nix" 'trajectory = pkgs.runCommand "trajectory-tests"' "Trajectory static test is exposed as a flake check"
 
 assert_not_contains "lapdog" "Lapdog references are removed"
 assert_not_contains "datadog/lapdog" "Datadog Lapdog Homebrew tap is removed"

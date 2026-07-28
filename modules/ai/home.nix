@@ -1,10 +1,8 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }: let
-  isCiRunner = config.home.username == "runner";
   contextPrefix = lib.removeSuffix "\n" ''
     # Personal preferences
 
@@ -52,161 +50,93 @@
 
     When executing plans, do not prompt for which execution method to use. Use 'Subagent-Driven' execution when tasks are genuinely independent and parallelizable; for linear or small plans, execute inline.
   '';
-in
-  lib.mkIf (!isCiRunner) {
-    programs.claude-code = {
-      enable = true;
-      context = lib.mkMerge [
-        (lib.mkOrder 1000 contextPrefix)
-        (lib.mkOrder 2000 contextSuffix)
+in {
+  programs.opencode = {
+    enable = true;
+    context = contextPrefix + "\n" + contextSuffix;
+    settings = {
+      plugin = [
+        "oh-my-openagent@4.19.0"
+        "@warp-dot-dev/opencode-warp"
+        "superpowers@git+https://github.com/obra/superpowers.git"
       ];
-      settings = {
-        env = {
-          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
-        };
-        permissions = {
-          defaultMode = "auto";
-        };
-        model = "sonnet";
-        enabledPlugins = {
-          "typescript-lsp@claude-plugins-official" = true;
-          "rust-analyzer-lsp@claude-plugins-official" = true;
-          "jdtls-lsp@claude-plugins-official" = true;
-          "superpowers@claude-plugins-official" = false;
-          "pr-review-toolkit@claude-plugins-official" = true;
-          "trajectory@trajectory" = true;
-        };
-        extraKnownMarketplaces = {
-          "trajectory" = {
-            "source" = {
-              "source" = "directory";
-              "path" = "/Users/jonathan/.trajectory/claude-marketplace";
-            };
-          };
-        };
-        "alwaysThinkingEnabled" = true;
-        "skipDangerousModePermissionPrompt" = true;
-        "theme" = "dark";
-        "skipAutoPermissionPrompt" = true;
-      };
     };
+  };
 
-    programs.codex = {
-      enable = true;
-      context = contextPrefix + "\n" + contextSuffix;
-    };
-
-    programs.opencode = {
-      enable = true;
-      context = contextPrefix + "\n" + contextSuffix;
-      settings = {
-        disabled_providers = ["opencode"];
-        enabled_providers = ["github-copilot"];
-        model = "github-copilot/gpt-5.6-terra";
-        small_model = "github-copilot/gpt-5.6-luna";
-        plugin = [
-          "oh-my-openagent@4.19.0"
-          "@warp-dot-dev/opencode-warp"
-          "superpowers@git+https://github.com/obra/superpowers.git"
-        ];
-        mcp.datadog = {
-          type = "remote";
-          url = "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp";
+  xdg.configFile."opencode/oh-my-openagent.jsonc" = {
+    source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
+      "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
+      agents = {
+        hephaestus = {
+          model = "opencode/big-pickle";
+        };
+        oracle = {
+          model = "opencode/big-pickle";
+        };
+        momus = {
+          model = "opencode/big-pickle";
+        };
+        explore = {
+          model = "opencode/big-pickle";
+        };
+        librarian = {
+          model = "opencode/big-pickle";
         };
       };
-    };
-
-    programs.github-copilot-cli = {
-      enable = true;
-      context = contextPrefix + "\n" + contextSuffix;
-      settings = {
-        model = "gpt-5.6-terra";
-        effortLevel = "medium";
-      };
-    };
-
-    xdg.configFile."opencode/oh-my-openagent.jsonc" = {
-      source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
-        "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
-        agents = {
-          hephaestus = {
-            model = "github-copilot/gpt-5.6-sol";
-            fallback_models = ["github-copilot/gpt-5.6-terra"];
-          };
-          oracle = {
-            model = "github-copilot/gpt-5.6-sol";
-            fallback_models = ["github-copilot/gpt-5.6-terra"];
-          };
-          momus = {
-            model = "github-copilot/gpt-5.6-terra";
-            fallback_models = ["github-copilot/gpt-5.6-sol"];
-          };
-          explore = {
-            model = "github-copilot/gpt-5.6-luna";
-            fallback_models = ["github-copilot/gpt-5.6-terra"];
-          };
-          librarian = {
-            model = "github-copilot/gpt-5.6-luna";
-            fallback_models = ["github-copilot/gpt-5.6-terra"];
-          };
+      categories = {
+        deep = {
+          model = "opencode/big-pickle";
         };
-        categories = {
-          deep = {
-            model = "github-copilot/gpt-5.6-terra";
-            fallback_models = ["github-copilot/gpt-5.6-sol"];
-          };
-          ultrabrain = {
-            model = "github-copilot/gpt-5.6-sol";
-            fallback_models = ["github-copilot/gpt-5.6-terra"];
-          };
+        ultrabrain = {
+          model = "opencode/big-pickle";
         };
-        runtime_fallback = true;
       };
+      runtime_fallback = true;
     };
+  };
 
-    home.file.".trajectory/bin/trajectory" = {
-      force = true;
-      source = "${pkgs.trajectory}/libexec/trajectory";
-    };
+  home.file.".trajectory/bin/trajectory" = {
+    force = true;
+    source = "${pkgs.trajectory}/libexec/trajectory";
+  };
 
-    home.file.".trajectory/selfupdate.conf" = {
-      force = true;
-      text = ''
-        TRAJECTORY_INSTALL_OWNER=nix
-        TRAJECTORY_SELF_UPDATE=disabled
-      '';
-    };
+  home.file.".trajectory/selfupdate.conf" = {
+    force = true;
+    text = ''
+      TRAJECTORY_INSTALL_OWNER=nix
+      TRAJECTORY_SELF_UPDATE=disabled
+    '';
+  };
 
-    home.file.".trajectory/config.defaults.yaml" = {
-      force = true;
-      text = ''
-        capture:
-          include_headless_agents: true
-      '';
-    };
+  home.file.".trajectory/config.defaults.yaml" = {
+    force = true;
+    text = ''
+      capture:
+        include_headless_agents: true
+    '';
+  };
 
-    home.file.".trajectory/intercepts/intercept-shared.mjs" = {
-      force = true;
-      source = "${pkgs.trajectory}/share/trajectory/intercepts/intercept-shared.mjs";
-    };
+  home.file.".trajectory/intercepts/intercept-shared.mjs" = {
+    force = true;
+    source = "${pkgs.trajectory}/share/trajectory/intercepts/intercept-shared.mjs";
+  };
 
-    home.file.".trajectory/intercepts/bun-llm-intercept.mjs" = {
-      force = true;
-      source = "${pkgs.trajectory}/share/trajectory/intercepts/bun-llm-intercept.mjs";
-    };
+  home.file.".trajectory/intercepts/bun-llm-intercept.mjs" = {
+    force = true;
+    source = "${pkgs.trajectory}/share/trajectory/intercepts/bun-llm-intercept.mjs";
+  };
 
-    home.file.".trajectory/intercepts/node-llm-spy.cjs" = {
-      force = true;
-      source = "${pkgs.trajectory}/share/trajectory/intercepts/node-llm-spy.cjs";
-    };
+  home.file.".trajectory/intercepts/node-llm-spy.cjs" = {
+    force = true;
+    source = "${pkgs.trajectory}/share/trajectory/intercepts/node-llm-spy.cjs";
+  };
 
-    programs.git.ignores = [
-      ".claude/settings.local.json"
-      "/.worktrees/"
-      ".omo"
-    ];
+  programs.git.ignores = [
+    "/.worktrees/"
+    ".omo"
+  ];
 
-    # Disable fsmonitor for git, as it can cause worktree operations to hang indefinitely on macOS. See
-    # See https://github.com/anthropics/claude-code/issues/75781
-    programs.git.settings.core.fsmonitor = false;
-  }
+  # Disable fsmonitor for git, as it can cause worktree operations to hang indefinitely on macOS. See
+  # See https://github.com/anthropics/claude-code/issues/75781
+  programs.git.settings.core.fsmonitor = false;
+}

@@ -4,15 +4,9 @@
   lib,
   config,
   ...
-}: let
-  isCiRunner = config.home.username == "runner";
-in {
+}: {
   programs.awscli.enable = true;
   programs.bat.enable = true;
-  programs.chromium = lib.mkIf (!isCiRunner) {
-    enable = true;
-    package = pkgs.google-chrome;
-  };
   targets.darwin = lib.mkIf pkgs.stdenv.isDarwin {
     # Home Manager 26.05 defaults to copyApps, which needs macOS App
     # Management permission to mutate copied .app bundles. That permission is
@@ -42,11 +36,6 @@ in {
   programs.mise = {
     enable = true;
     enableZshIntegration = true;
-    globalConfig.settings = {
-      trusted_config_paths = [
-        "~/.codex/worktrees"
-      ];
-    };
   };
   programs.neovim = {
     defaultEditor = true;
@@ -97,14 +86,9 @@ in {
     autosuggestion.enable = true;
     enableCompletion = true;
     syntaxHighlighting.enable = true;
-    initContent =
-      ''
-        export PATH="''${PATH}:''${HOME}/.cargo/bin"
-      ''
-      + lib.optionalString (!isCiRunner) ''
-
-        eval "$(fnox activate zsh)"
-      '';
+    initContent = ''
+      export PATH="''${PATH}:''${HOME}/.cargo/bin"
+    '';
     oh-my-zsh = {
       enable = true;
       plugins = [
@@ -115,8 +99,8 @@ in {
   };
 
   home.packages = with pkgs;
-  # Tools
     [
+      # Tools
       cachix
       coreutils
       dasel
@@ -131,6 +115,7 @@ in {
       ipcalc
       mitmproxy
       mtr
+      oktaws
       openssl
       openconnect
       postgresql
@@ -138,12 +123,8 @@ in {
       tmux
       tree
       unixtools.watch
-    ]
-    ++ lib.optionals (!isCiRunner) [
-      disk-inventory-x
-      fnox
+      # GUI Apps
       obsidian
-      oktaws
       raycast
       slack
       vscode

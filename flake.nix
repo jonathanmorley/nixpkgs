@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    opencode.url = "github:anomalyco/opencode/v1.18.4";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -18,9 +17,14 @@
       url = "github:jonathanmorley/oktaws/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    fnox = {
+      url = "github:jdx/fnox/v1.31.1";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    git-hooks-nix.url = "github:cachix/git-hooks.nix";
   };
 
   outputs = inputs @ {
@@ -30,11 +34,11 @@
     darwin,
     oktaws,
     flake-parts,
+    fnox,
     ...
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
-      inherit darwin home-manager nixpkgs oktaws;
-      inherit (inputs) opencode;
+      inherit darwin home-manager nixpkgs oktaws fnox;
       inherit (inputs) determinate;
     };
 
@@ -50,33 +54,68 @@
     flake-parts.lib.mkFlake {inherit inputs;} {
       imports = [
         ./treefmt.nix
+        inputs.git-hooks-nix.flakeModule
       ];
       systems = [
         "aarch64-darwin"
         "x86_64-darwin"
+        # kept for CI format check (ubuntu-latest runner)
         "x86_64-linux"
       ];
 
-      perSystem = {pkgs, ...}: {
-        checks.opencode =
-          pkgs.runCommand "opencode-tests" {
-            nativeBuildInputs = [
-              pkgs.nix
-              pkgs.jq
-            ];
-          } ''
+      perSystem = {
+        config,
+        pkgs,
+        ...
+      }: let
+        mkModuleEval = let
+          inherit (pkgs) lib;
+          evalDefault = lib.evalModules {
+            modules = [./modules/options.nix];
+          };
+          cfgDefault = evalDefault.config.jm;
+        in
+          assert cfgDefault.profiles == [];
+          assert cfgDefault.sshProvider == null;
+          assert cfgDefault.sshKeys == {};
+            pkgs.runCommand "module-eval" {} "touch $out";
+      in {
+        checks = {
+          trajectory = pkgs.runCommand "trajectory-tests" {} ''
             cd ${self}
-            export HOME="$TMPDIR"
-            export XDG_CACHE_HOME="$TMPDIR"
-            ${./tests/opencode.sh}
+            ${./tests/trajectory.sh}
             touch "$out"
           '';
-
-        checks.trajectory = pkgs.runCommand "trajectory-tests" {} ''
-          cd ${self}
-          ${./tests/trajectory.sh}
-          touch "$out"
-        '';
+          # pre-commit is auto-wired by git-hooks-nix via check.enable (default: true)
+          module-eval = mkModuleEval;
+          module-eval-set = let
+            inherit (pkgs) lib;
+            eval = lib.evalModules {
+              modules = [
+                ./modules/options.nix
+                {
+                  jm = {
+                    profiles = ["personal"];
+                    sshProvider = "1password";
+                    sshKeys."github.com" = "ssh-ed25519 test";
+                  };
+                }
+              ];
+            };
+            cfg = eval.config.jm;
+          in
+            assert cfg.profiles == ["personal"];
+            assert cfg.sshProvider == "1password";
+            assert cfg.sshKeys."github.com" == "ssh-ed25519 test";
+              pkgs.runCommand "module-eval-set" {} "touch $out";
+        };
+        devShells.default = config.pre-commit.devShell;
+        pre-commit.settings = {
+          hooks.treefmt = {
+            enable = true;
+            package = config.treefmt.build.wrapper;
+          };
+        };
       };
 
       flake = {
@@ -100,6 +139,7 @@
             specialArgs = {
               inherit stateVersions;
               profiles = ["personal"];
+              sshProvider = "1password";
               username = "jonathan";
               sshKeys."github.com" = keys.personal;
             };
@@ -112,6 +152,7 @@
             specialArgs = {
               inherit stateVersions;
               profiles = ["personal"];
+              sshProvider = "1password";
               username = "jonathan";
               sshKeys."github.com" = keys.personal;
             };

@@ -37,7 +37,7 @@ in {
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
-  homebrew = lib.mkIf (config.system.primaryUser != "runner") {
+  homebrew = {
     enable = true;
     onActivation = {
       autoUpdate = true;
@@ -55,7 +55,7 @@ in {
       "lulu"
       # Not available in nixpkgs
       "oversight"
-      # https://github.com/warpdotdev/Warp/issues/1991
+      # https://github.com/nixos/nixpkgs/issues/516928
       "warp"
       # Cannot allow screensharing with nix package
       "zoom"

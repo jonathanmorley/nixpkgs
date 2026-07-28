@@ -14,7 +14,6 @@
   config = {
     home.packages = with pkgs;
       [
-        amazon-ecr-credential-helper
         docker-buildx
         docker-client
       ]
@@ -29,10 +28,6 @@
     home.activation.writeDockerConfig = let
       contents = (pkgs.formats.json {}).generate "config.json" ({
           credHelpers."ghcr.io" = "gh";
-          # CDK has a hardcoded `docker login` that _still_ doesn't play nice with the ECR docker credential helper,
-          # even when using AWS_ECR_IGNORE_CREDS_STORAGE, so we can't use it as a catch-all until that is addressed.
-          # See https://github.com/aws/aws-cdk/issues/32925.
-          # credsStore = "ecr-login";
         }
         // lib.optionalAttrs pkgs.stdenv.isDarwin {
           currentContext = "colima";
@@ -52,7 +47,6 @@
       volume = "$(pwd):$(pwd)";
       workdir = "$(pwd)";
     })}";
-    home.sessionVariables.AWS_ECR_IGNORE_CREDS_STORAGE = "true"; # Allow `docker login` to succeed
     home.file."colima template" = lib.mkIf pkgs.stdenv.isDarwin {
       target = ".colima/_templates/default.yaml";
       source = (pkgs.formats.yaml {}).generate "default.yaml" {
