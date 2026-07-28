@@ -1,0 +1,26 @@
+{lib, ...}: {
+  options.jm = {
+    profiles = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Profiles to enable for this host (e.g. \"personal\" for non-work apps).";
+      example = ["personal"];
+    };
+
+    sshProvider = lib.mkOption {
+      type = lib.types.nullOr (lib.types.enum ["1password" "bitwarden"]);
+      default = null;
+      description = "SSH provider for authentication and commit signing.";
+      example = "1password";
+    };
+
+    sshKeys = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = {};
+      description = "SSH public keys by domain (e.g. github.com).";
+      example = {
+        "github.com" = "ssh-ed25519 AAAAC3...";
+      };
+    };
+  };
+}

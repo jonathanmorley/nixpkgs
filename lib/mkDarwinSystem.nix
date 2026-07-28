@@ -17,6 +17,7 @@ darwin.lib.darwinSystem {
   modules =
     [
       determinate.darwinModules.default
+      ../modules/options.nix
       ../modules/darwin.nix
       ../modules/ai/darwin.nix
       ../modules/secrets/bitwarden.darwin.nix
@@ -24,6 +25,10 @@ darwin.lib.darwinSystem {
       {
         system.stateVersion = specialArgs.stateVersions.darwin;
         system.primaryUser = specialArgs.username;
+
+        jm.profiles = specialArgs.profiles or [];
+        jm.sshProvider = specialArgs.sshProvider or null;
+        jm.sshKeys = specialArgs.sshKeys or {};
       }
       home-manager.darwinModules.home-manager
       {
@@ -35,7 +40,6 @@ darwin.lib.darwinSystem {
               # Custom packages
               fnox = fnox.packages.${prev.stdenv.hostPlatform.system}.default;
               oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
-              gig = prev.callPackage ../pkgs/gig {};
               mempalace = prev.callPackage ../pkgs/mempalace {};
               trajectory = prev.callPackage ../pkgs/trajectory {};
             })

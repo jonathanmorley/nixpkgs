@@ -13,6 +13,38 @@
 1. Add host config block to [flake.nix](~/.nixpkgs/flake.nix).
 1. Run `nix --extra-experimental-features 'nix-command flakes' run nix-darwin -- switch --flake ~/.nixpkgs` to apply changes.
 
+## Adding a New Host
+
+1. Create a new `darwinConfigurations` entry in `flake.nix` calling `mkDarwinSystem`:
+
+   ```nix
+   "my-hostname" = mkDarwinSystem {
+     inherit (nixpkgs) pkgs lib;
+     specialArgs = {
+       inherit stateVersions;
+       profiles = [];          # or ["personal"] for non-work apps
+       sshProvider = "1password";  # or "bitwarden"
+       username = "your-user";
+       sshKeys."github.com" = "ssh-ed25519 AAAA...";
+     };
+   };
+   ```
+
+1. Set the right `system` if not on Apple Silicon (e.g., `system = "x86_64-darwin"` for Intel Macs).
+
+1. Apply: `nix run nix-darwin -- switch --flake ~/.nixpkgs#my-hostname`
+
+The modular system picks up shared modules automatically — Darwin config from `modules/darwin.nix`, Home Manager from `modules/home.nix`, AI tooling, Docker, Git, and SSH provider secrets. To add host-specific overrides, use `extraDarwinModules` and `extraHomeModules`.
+
+Available profiles:
+
+- `"personal"` — includes non-work applications (Tailscale, Bambu Studio, etc.)
+
+Available SSH providers:
+
+- `"1password"` — SSH agent and Git signing via 1Password
+- `"bitwarden"` — SSH agent and Git signing via Bitwarden
+
 ## Binary Caches
 
 This repo uses the official NixOS cache plus Cachix caches, not FlakeHub Cache. The Darwin configuration writes these substituters through Determinate Nix, and CI pins the same cache list in `NIX_CONFIG` so `cache.flakehub.com` is not consulted:
