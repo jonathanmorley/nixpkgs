@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "mkhl.direnv",
+    "nix-community.vscode-nix-ide",
     "VanCoding.vscode-treefmt-nix"
   ]
 }
