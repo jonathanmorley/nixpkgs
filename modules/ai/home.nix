@@ -1,8 +1,10 @@
 {
   lib,
   pkgs,
+  specialArgs,
   ...
 }: let
+  defaultModel = specialArgs.opencodeModel or "opencode/big-pickle";
   contextPrefix = lib.removeSuffix "\n" ''
     # Personal preferences
 
@@ -68,27 +70,27 @@ in {
       "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
       agents = {
         hephaestus = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
         oracle = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
         momus = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
         explore = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
         librarian = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
       };
       categories = {
         deep = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
         ultrabrain = {
-          model = "opencode/big-pickle";
+          model = defaultModel;
         };
       };
       runtime_fallback = true;

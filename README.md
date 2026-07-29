@@ -45,6 +45,10 @@ Available SSH providers:
 - `"1password"` — SSH agent and Git signing via 1Password
 - `"bitwarden"` — SSH agent and Git signing via Bitwarden
 
+Available optional special arguments:
+
+- `opencodeModel` — model name for OpenCode AI agents (default: `"opencode/big-pickle"`)
+
 ## Binary Caches
 
 This repo uses the official NixOS cache plus Cachix caches, not FlakeHub Cache. The Darwin configuration writes these substituters through Determinate Nix, and CI pins the same cache list in `NIX_CONFIG` so `cache.flakehub.com` is not consulted:

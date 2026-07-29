@@ -1,6 +1,7 @@
 {
   darwin,
   determinate,
+  gitignore,
   home-manager,
   nixpkgs,
   oktaws,
@@ -13,7 +14,13 @@
   ...
 }:
 darwin.lib.darwinSystem {
-  inherit system specialArgs;
+  inherit system;
+  specialArgs =
+    specialArgs
+    // {
+      inherit gitignore;
+      opencodeModel = specialArgs.opencodeModel or "opencode/big-pickle";
+    };
   modules =
     [
       determinate.darwinModules.default
@@ -29,6 +36,7 @@ darwin.lib.darwinSystem {
         jm.profiles = specialArgs.profiles or [];
         jm.sshProvider = specialArgs.sshProvider or null;
         jm.sshKeys = specialArgs.sshKeys or {};
+        jm.opencodeModel = specialArgs.opencodeModel or "opencode/big-pickle";
       }
       home-manager.darwinModules.home-manager
       {

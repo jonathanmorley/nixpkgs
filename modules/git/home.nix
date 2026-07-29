@@ -4,10 +4,7 @@
   specialArgs,
   ...
 }: let
-  gitignores = fetchGit {
-    url = "https://github.com/github/gitignore";
-    rev = "8779ee73af62c669e7ca371aaab8399d87127693";
-  };
+  gitignores = specialArgs.gitignore;
 in {
   programs.delta = {
     enable = true;
