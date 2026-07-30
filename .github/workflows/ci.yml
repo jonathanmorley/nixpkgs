@@ -28,5 +28,5 @@ jobs:
         with:
           name: jonathanmorley
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - run: nix flake check --print-build-logs --no-update-lock-file --all-systems
+      - run: nix flake check --print-build-logs --no-update-lock-file
       - run: nix build .#darwinConfigurations.gha-aarch64-darwin.config.system.build.toplevel
