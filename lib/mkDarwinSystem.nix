@@ -12,15 +12,15 @@
   extraDarwinModules ? [],
   extraHomeModules ? [],
   ...
-}:
+}: let
+  extendedSpecialArgs = specialArgs // {
+    inherit gitignore;
+    opencodeModel = specialArgs.opencodeModel or "opencode/big-pickle";
+  };
+in
 darwin.lib.darwinSystem {
   inherit system;
-  specialArgs =
-    specialArgs
-    // {
-      inherit gitignore;
-      opencodeModel = specialArgs.opencodeModel or "opencode/big-pickle";
-    };
+  specialArgs = extendedSpecialArgs;
   modules =
     [
       determinate.darwinModules.default
@@ -30,13 +30,13 @@ darwin.lib.darwinSystem {
       ../modules/secrets/bitwarden.darwin.nix
       ../modules/secrets/1password.darwin.nix
       {
-        system.stateVersion = specialArgs.stateVersions.darwin;
-        system.primaryUser = specialArgs.username;
+        system.stateVersion = extendedSpecialArgs.stateVersions.darwin;
+        system.primaryUser = extendedSpecialArgs.username;
 
-        jm.profiles = specialArgs.profiles or [];
-        jm.sshProvider = specialArgs.sshProvider or null;
-        jm.sshKeys = specialArgs.sshKeys or {};
-        jm.opencodeModel = specialArgs.opencodeModel or "opencode/big-pickle";
+        jm.profiles = extendedSpecialArgs.profiles or [];
+        jm.sshProvider = extendedSpecialArgs.sshProvider or null;
+        jm.sshKeys = extendedSpecialArgs.sshKeys or {};
+        jm.opencodeModel = extendedSpecialArgs.opencodeModel or "opencode/big-pickle";
       }
       home-manager.darwinModules.home-manager
       {
@@ -56,8 +56,8 @@ darwin.lib.darwinSystem {
         home-manager = {
           useGlobalPkgs = true;
           useUserPackages = true;
-          extraSpecialArgs = specialArgs;
-          users.${specialArgs.username} = {
+          extraSpecialArgs = extendedSpecialArgs;
+          users.${extendedSpecialArgs.username} = {
             imports =
               [
                 ../modules/home.nix
@@ -68,14 +68,14 @@ darwin.lib.darwinSystem {
               ]
               ++ extraHomeModules;
             home = {
-              username = specialArgs.username;
-              homeDirectory = nixpkgs.lib.mkForce "/Users/${specialArgs.username}";
-              stateVersion = specialArgs.stateVersions.homeManager;
+              username = extendedSpecialArgs.username;
+              homeDirectory = nixpkgs.lib.mkForce "/Users/${extendedSpecialArgs.username}";
+              stateVersion = extendedSpecialArgs.stateVersions.homeManager;
             };
           };
         };
       }
     ]
-    ++ nixpkgs.lib.optional (builtins.elem "personal" specialArgs.profiles) ../modules/personal/darwin.nix
+    ++ nixpkgs.lib.optional (builtins.elem "personal" extendedSpecialArgs.profiles) ../modules/personal/darwin.nix
     ++ extraDarwinModules;
 }
