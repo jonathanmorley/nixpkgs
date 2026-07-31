@@ -37,7 +37,7 @@
       lib.hm.dag.entryAfter ["writeBoundary"] ''
         run mkdir -p $(dirname ${path})
         run cp -f ${contents} ${path}
-        run chmod a+w ${path}
+        run chmod 600 ${path}
       '';
 
     home.shellAliases.dockerv = "${pkgs.docker-client}/bin/docker run ${(lib.cli.toCommandLineShellGNU {} {

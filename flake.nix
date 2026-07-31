@@ -25,6 +25,10 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
+    gitignore = {
+      url = "github:github/gitignore";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {
@@ -35,10 +39,11 @@
     oktaws,
     flake-parts,
     fnox,
+    gitignore,
     ...
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
-      inherit darwin home-manager nixpkgs oktaws fnox;
+      inherit darwin home-manager nixpkgs oktaws fnox gitignore;
       inherit (inputs) determinate;
     };
 
@@ -108,6 +113,48 @@
             assert cfg.sshProvider == "1password";
             assert cfg.sshKeys."github.com" == "ssh-ed25519 test";
               pkgs.runCommand "module-eval-set" {} "touch $out";
+          module-eval-bitwarden = let
+            inherit (pkgs) lib;
+            eval = lib.evalModules {
+              modules = [
+                ./modules/options.nix
+                {
+                  jm = {
+                    profiles = [];
+                    sshProvider = "bitwarden";
+                    sshKeys."github.com" = "ssh-ed25519 test";
+                  };
+                }
+              ];
+            };
+            cfg = eval.config.jm;
+          in
+            assert cfg.profiles == [];
+            assert cfg.sshProvider == "bitwarden";
+            assert cfg.sshKeys."github.com" == "ssh-ed25519 test";
+              pkgs.runCommand "module-eval-bitwarden" {} "touch $out";
+          module-eval-opencode-model = let
+            inherit (pkgs) lib;
+            eval = lib.evalModules {
+              modules = [
+                ./modules/options.nix
+                {
+                  jm = {
+                    profiles = ["personal"];
+                    sshProvider = "1password";
+                    sshKeys."github.com" = "ssh-ed25519 test";
+                    opencodeModel = "opencode/small-pickle";
+                  };
+                }
+              ];
+            };
+            cfg = eval.config.jm;
+          in
+            assert cfg.profiles == ["personal"];
+            assert cfg.sshProvider == "1password";
+            assert cfg.opencodeModel == "opencode/small-pickle";
+            assert cfg.sshKeys."github.com" == "ssh-ed25519 test";
+              pkgs.runCommand "module-eval-opencode-model" {} "touch $out";
         };
         devShells.default = config.pre-commit.devShell;
         pre-commit.settings = {

@@ -104,12 +104,6 @@ in {
   system.defaults.trackpad.TrackpadRightClick = false;
   system.defaults.NSGlobalDomain."com.apple.trackpad.trackpadCornerClickBehavior" = 1;
 
-  # disable pinch-to-zoom
-  # This doesnt take effect, even after restarting the dock
-  system.defaults.CustomUserPreferences = {
-    "com.apple.AppleMultitouchTrackpad".TrackpadPinch = 0;
-  };
-
   system.keyboard = {
     enableKeyMapping = true;
     remapCapsLockToControl = true;

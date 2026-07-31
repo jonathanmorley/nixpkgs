@@ -31,7 +31,10 @@
   programs.direnv.enable = true;
   programs.eza.enable = true;
   programs.fd.enable = true;
-  programs.java.enable = true;
+  programs.java = {
+    enable = true;
+    package = pkgs.jdk25;
+  };
   programs.jq.enable = true;
   programs.mise = {
     enable = true;
@@ -43,11 +46,7 @@
     viAlias = true;
     vimAlias = true;
   };
-  programs.nix-index = {
-    enable = true;
-    enableBashIntegration = false;
-    enableZshIntegration = false;
-  };
+  programs.nix-index.enable = true;
   programs.ripgrep.enable = true;
   programs.starship.enable = true;
   programs.topgrade = {

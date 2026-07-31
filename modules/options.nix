@@ -22,5 +22,12 @@
         "github.com" = "ssh-ed25519 AAAAC3...";
       };
     };
+
+    opencodeModel = lib.mkOption {
+      type = lib.types.str;
+      default = "opencode/big-pickle";
+      description = "Model to use for OpenCode AI coding agents.";
+      example = "opencode/big-pickle";
+    };
   };
 }
