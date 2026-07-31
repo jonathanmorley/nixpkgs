@@ -33,7 +33,7 @@
   programs.fd.enable = true;
   programs.java = {
     enable = true;
-    package = pkgs.jdk23;
+    package = pkgs.jdk25;
   };
   programs.jq.enable = true;
   programs.mise = {
