@@ -71,6 +71,9 @@ cachix doctor
 The shared Darwin AI module installs Trajectory for Claude Code and Codex capture.
 After switching a machine, run `trajectory-setup-ai` from a regular shell to let Trajectory install or refresh the agent hooks for those clients.
 
+The shared Home Manager configuration installs the OpenCode CLI/TUI plus OpenCode Desktop (`OpenCode.app`) on hosts where it is packaged (aarch64-darwin).
+The desktop app is linked into `~/Applications/Home Manager Apps` via `targets.darwin.linkApps`.
+
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
 ## Downstream Darwin Configurations
