@@ -65,12 +65,12 @@ in {
     };
   };
 
-  # OpenCode Desktop ships an OpenCode.app bundle that Home Manager links into
-  # ~/Applications via targets.darwin.linkApps. It is not packaged for
-  # x86_64-darwin, so guard on availability to keep Intel hosts evaluating.
-  home.packages =
-    lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.opencode-desktop)
-    [pkgs.opencode-desktop];
+  # # OpenCode Desktop ships an OpenCode.app bundle that Home Manager links into
+  # # ~/Applications via targets.darwin.linkApps. It is not packaged for
+  # # x86_64-darwin, so guard on availability to keep Intel hosts evaluating.
+  # home.packages =
+  #   lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.opencode-desktop)
+  #   [pkgs.opencode-desktop];
 
   xdg.configFile."opencode/oh-my-openagent.jsonc" = {
     source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
