@@ -91,7 +91,10 @@ in {
 
   config = lib.mkIf cfg.enable {
     # Trajectory configuration
-    home.file.".trajectory/config.yaml".source = configYaml;
+    home.file.".trajectory/config.yaml" = {
+      source = configYaml;
+      force = true;
+    };
 
     # Launchd agent for trajectory serve
     launchd.agents.trajectory-serve = lib.mkIf cfg.serve.enable {
