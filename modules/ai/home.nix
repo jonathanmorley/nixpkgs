@@ -4,7 +4,7 @@
   specialArgs,
   ...
 }: let
-  defaultModel = specialArgs.opencodeModel or "opencode/big-pickle";
+  defaultModel = specialArgs.opencodeModel;
   contextPrefix = lib.removeSuffix "\n" ''
     # Personal preferences
 

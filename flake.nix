@@ -171,7 +171,6 @@
         darwinConfigurations = {
           # GitHub Actions
           "gha-aarch64-darwin" = nixpkgs.lib.makeOverridable mkDarwinSystem {
-            inherit (nixpkgs) pkgs lib;
             specialArgs = {
               inherit stateVersions;
               profiles = [];
@@ -182,7 +181,6 @@
 
           # Personal Macbook Air
           "medusa" = mkDarwinSystem {
-            inherit (nixpkgs) pkgs lib;
             specialArgs = {
               inherit stateVersions;
               profiles = ["personal"];
@@ -194,7 +192,6 @@
 
           # Personal iMac
           "smoke" = mkDarwinSystem {
-            inherit (nixpkgs) pkgs lib;
             system = "x86_64-darwin";
             specialArgs = {
               inherit stateVersions;
