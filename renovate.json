@@ -19,8 +19,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "modules/ai/home\\.nix$"
+      "managerFilePatterns": [
+        "/modules/ai/home\\.nix$/"
       ],
       "matchStrings": [
         "\"(?<depName>@?[\\w.-]+(?:/[\\w.-]+)*)@(?<currentValue>\\d[\\w.+-]*)\""
@@ -29,8 +29,8 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [
-        "modules/ai/home\\.nix$"
+      "managerFilePatterns": [
+        "/modules/ai/home\\.nix$/"
       ],
       "matchStrings": [
         "\"(?<depName>[^\"@]+)@git\\+(?<packageName>https://[^\"#]+)\\.git#(?<currentDigest>[a-f0-9]{40})\""
