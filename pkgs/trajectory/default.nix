@@ -1,4 +1,5 @@
 {
+  fetchFromGitHub,
   fetchurl,
   lib,
   runtimeShell,
@@ -44,6 +45,13 @@ in
       hash = "sha256-LqEK5lQ+ZI5rNNUzi81xduA9bW7N5wC7EHE5xs1SLkc=";
     };
 
+    pluginSource = fetchFromGitHub {
+      owner = "datadog-labs";
+      repo = "trajectory";
+      rev = "v${version}";
+      hash = "sha256-rKox+GSpAR067LjG2ifnt1QYWy8jnlOkLn5pH+Ya/70=";
+    };
+
     dontUnpack = true;
 
     installPhase = ''
@@ -64,6 +72,11 @@ in
       capture:
         include_headless_agents: true
       EOF
+
+      # Client plugin sources (loaded directly by each agent's plugin runtime)
+      mkdir -p "$out/.trajectory/plugin"
+      cp -r ${pluginSource}/plugin/trajectory-opencode "$out/.trajectory/plugin/trajectory-opencode"
+      cp -r ${pluginSource}/plugin/trajectory "$out/.trajectory/claude-marketplace"
 
       # Signed Nix binary for direct invocation
       install -Dm755 "$src" "$out/libexec/trajectory"
