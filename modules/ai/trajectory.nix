@@ -112,14 +112,5 @@ in {
         StandardErrorPath = "${config.xdg.dataHome}/trajectory/view.log";
       };
     };
-
-    # Register Trajectory with Claude Code on every activation
-    home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
-
-      if command -v claude >/dev/null 2>&1; then
-        ${cfg.package}/bin/trajectory setup --clients cc --non-interactive || true
-      fi
-    '';
   };
 }
