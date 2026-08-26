@@ -56,7 +56,7 @@ in {
     features = {
       enabled = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = ["opencode_durable_history"];
+        default = [];
         description = "Enabled trajectory features";
       };
     };

@@ -121,7 +121,10 @@ in {
   };
 
   # Enable trajectory with default configuration.
-  services.trajectory.enable = true;
+  services.trajectory = {
+    enable = true;
+    features.enabled = ["opencode_durable_history"];
+  };
 
   programs.git.ignores = [
     "/.worktrees/"

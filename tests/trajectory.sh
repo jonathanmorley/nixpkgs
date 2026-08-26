@@ -133,7 +133,7 @@ assert_contains "modules/ai/trajectory.nix" "launchd.agents.trajectory-serve" "T
 assert_contains "modules/ai/trajectory.nix" "launchd.agents.trajectory-view" "Trajectory module configures view launchd agent"
 assert_contains "modules/ai/trajectory.nix" 'view' "Trajectory module has view option"
 assert_contains "lib/mkDarwinSystem.nix" "trajectory.nix" "Trajectory module is imported"
-assert_contains "modules/ai/home.nix" "services.trajectory.enable" "Home Manager enables trajectory module"
+assert_contains "modules/ai/home.nix" "services.trajectory" "Home Manager enables trajectory module"
 assert_contains "modules/ai/home.nix" 'trajectory-opencode/skills' "Home Manager configures Trajectory skills path for OpenCode"
 assert_contains "pkgs/trajectory/default.nix" "plugin/trajectory-opencode" "Trajectory package includes OpenCode plugin source"
 assert_contains "pkgs/trajectory/default.nix" "claude-marketplace" "Trajectory package includes Claude Code marketplace"
