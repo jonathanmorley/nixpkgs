@@ -13,6 +13,9 @@
       metrics = cfg.export.metrics;
       traces = cfg.export.traces;
     };
+    identity = {
+      user_email = cfg.identity.user_email;
+    };
     features = {
       enabled = cfg.features.enabled;
     };
@@ -53,6 +56,14 @@ in {
       };
     };
 
+    identity = {
+      user_email = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "User email for trajectory identity";
+      };
+    };
+
     features = {
       enabled = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -80,7 +91,10 @@ in {
 
   config = lib.mkIf cfg.enable {
     # Trajectory configuration
-    home.file.".trajectory/config.yaml".source = configYaml;
+    home.file.".trajectory/config.yaml" = {
+      source = configYaml;
+      force = true;
+    };
 
     # Launchd agent for trajectory serve
     launchd.agents.trajectory-serve = lib.mkIf cfg.serve.enable {
