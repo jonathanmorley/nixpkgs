@@ -66,7 +66,18 @@ in {
         "@warp-dot-dev/opencode-warp@0.1.7"
         "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
         "@dietrichgebert/ponytail@4.9.0"
+        "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode"
       ];
+      mcp = {
+        trajectory = {
+          type = "local";
+          command = ["${pkgs.trajectory}/bin/trajectory" "mcp"];
+          enabled = true;
+        };
+      };
+      skills = {
+        paths = ["${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode/skills"];
+      };
     };
   };
 
@@ -109,13 +120,8 @@ in {
     };
   };
 
-  # The package produces the complete .trajectory/ layout (binary, intercepts,
-  # self-update policy, managed defaults).  A single recursive symlink keeps
-  # Home Manager in sync without enumerating every file.
-  home.file.".trajectory" = {
-    force = true;
-    source = "${pkgs.trajectory}/.trajectory";
-  };
+  # Enable trajectory with default configuration.
+  services.trajectory.enable = true;
 
   programs.git.ignores = [
     "/.worktrees/"
