@@ -3,6 +3,9 @@
   determinate,
   gitignore,
   home-manager,
+  homebrew-cask,
+  homebrew-core,
+  nix-homebrew,
   nixpkgs,
   nixpkgs-unstable,
   oktaws,
@@ -26,6 +29,18 @@ in
     modules =
       [
         determinate.darwinModules.default
+        nix-homebrew.darwinModules.nix-homebrew
+        {
+          nix-homebrew = {
+            enable = true;
+            user = extendedSpecialArgs.username;
+            taps = {
+              "homebrew/homebrew-core" = homebrew-core;
+              "homebrew/homebrew-cask" = homebrew-cask;
+            };
+            mutableTaps = false;
+          };
+        }
         ../modules/options.nix
         ../modules/darwin.nix
         ../modules/ai/darwin.nix

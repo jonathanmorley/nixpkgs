@@ -25,6 +25,17 @@
       url = "github:github/gitignore";
       flake = false;
     };
+
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {
@@ -39,7 +50,7 @@
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
       inherit darwin home-manager nixpkgs oktaws gitignore;
-      inherit (inputs) determinate nixpkgs-unstable;
+      inherit (inputs) determinate nixpkgs-unstable nix-homebrew homebrew-core homebrew-cask;
     };
 
     stateVersions = {
