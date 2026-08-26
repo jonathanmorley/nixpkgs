@@ -23,6 +23,10 @@
 
     This computer is managed by Nix. The flake with configuration derivations is in `~/.nixpkgs`.
 
+    ## Repository Freshness
+
+    Repositories cloned to disk (including `~/.nixpkgs` and repos under `~/Developer`) may be out of date with the latest upstream `main`. When an investigation reads a local repository, consider whether the checkout might be stale and, if freshness matters to the task, fetch the latest from upstream before drawing conclusions.
+
     ## Worktrees
 
     I prefer using an isolated Git worktree for all code changes. When creating one, use the repository-root `.worktrees/` directory.
@@ -143,6 +147,7 @@ in {
   programs.git.ignores = [
     "/.worktrees/"
     ".omo"
+    "docs/superpowers/"
   ];
 
   # Disable fsmonitor for git, as it can cause worktree operations to hang indefinitely on macOS. See

@@ -52,7 +52,6 @@ in
                 # with a deprecation warning and misses the binary cache.
                 fnox = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.fnox;
                 oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
-                mempalace = prev.callPackage ../pkgs/mempalace {};
                 trajectory = prev.callPackage ../pkgs/trajectory {};
               })
             ];
