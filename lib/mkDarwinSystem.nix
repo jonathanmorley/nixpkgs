@@ -80,6 +80,7 @@ in
                 [
                   ../modules/home.nix
                   ../modules/ai/home.nix
+                  ../modules/ai/trajectory.nix
                   ../modules/docker/home.nix
                   ../modules/git/home.nix
                   ../modules/secrets/fnox.home.nix

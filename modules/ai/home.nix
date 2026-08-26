@@ -120,24 +120,8 @@ in {
     };
   };
 
-  # The package produces the complete .trajectory/ layout (binary, intercepts,
-  # self-update policy, managed defaults).  A single recursive symlink keeps
-  # Home Manager in sync without enumerating every file.
-  home.file.".trajectory" = {
-    force = true;
-    source = "${pkgs.trajectory}/.trajectory";
-  };
-
-  # Register Trajectory plugin with Claude Code on every activation.
-  # OpenCode needs no registration — its plugin is loaded via the settings.plugin path.
-  home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    # Ensure Homebrew and profile binaries are on PATH for claude detection
-    export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
-
-    if command -v claude >/dev/null 2>&1; then
-      ${pkgs.trajectory}/bin/trajectory setup --clients cc --non-interactive || true
-    fi
-  '';
+  # Enable trajectory with default configuration.
+  services.trajectory.enable = true;
 
   programs.git.ignores = [
     "/.worktrees/"
