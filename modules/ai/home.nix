@@ -63,8 +63,9 @@ in {
     settings = {
       plugin = [
         "oh-my-openagent@4.19.0"
-        "@warp-dot-dev/opencode-warp"
-        "superpowers@git+https://github.com/obra/superpowers.git"
+        "@warp-dot-dev/opencode-warp@0.1.7"
+        "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+        "@dietrichgebert/ponytail@4.9.0"
       ];
     };
   };
@@ -108,40 +109,12 @@ in {
     };
   };
 
-  home.file.".trajectory/bin/trajectory" = {
+  # The package produces the complete .trajectory/ layout (binary, intercepts,
+  # self-update policy, managed defaults).  A single recursive symlink keeps
+  # Home Manager in sync without enumerating every file.
+  home.file.".trajectory" = {
     force = true;
-    source = "${pkgs.trajectory}/libexec/trajectory";
-  };
-
-  home.file.".trajectory/selfupdate.conf" = {
-    force = true;
-    text = ''
-      TRAJECTORY_INSTALL_OWNER=nix
-      TRAJECTORY_SELF_UPDATE=disabled
-    '';
-  };
-
-  home.file.".trajectory/config.defaults.yaml" = {
-    force = true;
-    text = ''
-      capture:
-        include_headless_agents: true
-    '';
-  };
-
-  home.file.".trajectory/intercepts/intercept-shared.mjs" = {
-    force = true;
-    source = "${pkgs.trajectory}/share/trajectory/intercepts/intercept-shared.mjs";
-  };
-
-  home.file.".trajectory/intercepts/bun-llm-intercept.mjs" = {
-    force = true;
-    source = "${pkgs.trajectory}/share/trajectory/intercepts/bun-llm-intercept.mjs";
-  };
-
-  home.file.".trajectory/intercepts/node-llm-spy.cjs" = {
-    force = true;
-    source = "${pkgs.trajectory}/share/trajectory/intercepts/node-llm-spy.cjs";
+    source = "${pkgs.trajectory}/.trajectory";
   };
 
   programs.git.ignores = [
