@@ -39,10 +39,9 @@ in {
   # not being installed as a nix package.
   homebrew = {
     enable = true;
+    taps = builtins.attrNames config.nix-homebrew.taps;
     onActivation = {
-      autoUpdate = true;
       cleanup = "uninstall";
-      extraFlags = ["--force-cleanup"];
     };
     casks = [
       # Not available in nixpkgs
