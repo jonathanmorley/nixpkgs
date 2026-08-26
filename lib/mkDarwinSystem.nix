@@ -4,8 +4,8 @@
   gitignore,
   home-manager,
   nixpkgs,
+  nixpkgs-unstable,
   oktaws,
-  fnox,
 }: {
   system ? "aarch64-darwin",
   specialArgs,
@@ -48,7 +48,9 @@ in
             overlays = [
               (_final: prev: {
                 # Custom packages
-                fnox = fnox.packages.${prev.stdenv.hostPlatform.system}.default;
+                # fnox from nixpkgs rather than its flake, which evaluates
+                # with a deprecation warning and misses the binary cache.
+                fnox = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.fnox;
                 oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
                 mempalace = prev.callPackage ../pkgs/mempalace {};
                 trajectory = prev.callPackage ../pkgs/trajectory {};

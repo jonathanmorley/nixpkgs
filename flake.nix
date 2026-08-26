@@ -17,10 +17,6 @@
       url = "github:jonathanmorley/oktaws/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    fnox = {
-      url = "github:jdx/fnox/v1.31.1";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
@@ -38,13 +34,12 @@
     darwin,
     oktaws,
     flake-parts,
-    fnox,
     gitignore,
     ...
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
-      inherit darwin home-manager nixpkgs oktaws fnox gitignore;
-      inherit (inputs) determinate;
+      inherit darwin home-manager nixpkgs oktaws gitignore;
+      inherit (inputs) determinate nixpkgs-unstable;
     };
 
     stateVersions = {
