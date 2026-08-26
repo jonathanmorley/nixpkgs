@@ -121,7 +121,11 @@ in {
   };
 
   # Enable trajectory with default configuration.
-  services.trajectory.enable = true;
+  services.trajectory = {
+    enable = true;
+    export.traces = "standard";
+    identity.user_email = "morley.jonathan@gmail.com";
+  };
 
   programs.git.ignores = [
     "/.worktrees/"

@@ -13,6 +13,9 @@
       metrics = cfg.export.metrics;
       traces = cfg.export.traces;
     };
+    identity = {
+      user_email = cfg.identity.user_email;
+    };
     features = {
       enabled = cfg.features.enabled;
     };
@@ -50,6 +53,14 @@ in {
         type = lib.types.bool;
         default = false;
         description = "Enable metrics export";
+      };
+    };
+
+    identity = {
+      user_email = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "User email for trajectory identity";
       };
     };
 
