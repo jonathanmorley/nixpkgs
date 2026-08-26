@@ -19,7 +19,6 @@
   "customManagers": [
     {
       "customType": "regex",
-      "managerType": "custom",
       "fileMatch": [
         "modules/ai/home\\.nix$"
       ],
@@ -30,7 +29,6 @@
     },
     {
       "customType": "regex",
-      "managerType": "custom",
       "fileMatch": [
         "modules/ai/home\\.nix$"
       ],
