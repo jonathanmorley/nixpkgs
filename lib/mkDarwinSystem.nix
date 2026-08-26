@@ -38,7 +38,7 @@ in
           jm.profiles = extendedSpecialArgs.profiles or [];
           jm.sshProvider = extendedSpecialArgs.sshProvider or null;
           jm.sshKeys = extendedSpecialArgs.sshKeys or {};
-          jm.opencodeModel = extendedSpecialArgs.opencodeModel or "opencode/big-pickle";
+          jm.opencodeModel = extendedSpecialArgs.opencodeModel;
         }
         home-manager.darwinModules.home-manager
         {
