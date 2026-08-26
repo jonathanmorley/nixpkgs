@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "matchManagers": [
+        "opencode-plugins"
+      ],
+      "groupName": "opencode plugins",
+      "automerge": true
+    },
+    {
+      "matchDatasources": [
+        "git-refs"
+      ],
+      "groupName": "opencode plugins",
+      "automerge": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerType": "custom",
+      "fileMatch": [
+        "modules/ai/home\\.nix$"
+      ],
+      "matchStrings": [
+        "\"(?<depName>@?[\\w.-]+(?:/[\\w.-]+)*)@(?<currentValue>\\d[\\w.+-]*)\""
+      ],
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerType": "custom",
+      "fileMatch": [
+        "modules/ai/home\\.nix$"
+      ],
+      "matchStrings": [
+        "\"(?<depName>[^\"@]+)@git\\+(?<packageName>https://[^\"#]+)\\.git#(?<currentDigest>[a-f0-9]{40})\""
+      ],
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs",
+      "versioningTemplate": "git"
+    }
+  ]
+}

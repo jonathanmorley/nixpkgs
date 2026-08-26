@@ -12,15 +12,15 @@
     aarch64-linux = "trajectory-linux-arm64";
   };
   hashes = {
-    aarch64-darwin = "sha256-uvn8YIGdglolPuE/wRWot/Xnue2V0t8SD5xqVoqm6Uo=";
-    x86_64-darwin = "sha256-A8B4i80uxN0+H+JOV34bN0cki3COeAzNXCuTY6ydayA=";
-    x86_64-linux = "sha256-RqpI4qJc1fdb+G8aYyZCF96Q7pzNUADZmA76B8koOb0=";
-    aarch64-linux = "sha256-pAcEJBSj3JXPu6wj1RQ9MXp65jwpPfDyBhbRYFSm/M8=";
+    aarch64-darwin = "sha256-wcXzg+C1w/5NMIhW4xriYu580gYvmDEqINcsoZHYR3w=";
+    x86_64-darwin = "sha256-aBNCrqpLvr/m4whi3IB8Nuqpq5Cep5ulaN8rZyXRM68=";
+    x86_64-linux = "sha256-kCo3S7WHg3748Oq3JPUA5fjbID86aJDuyX9ZnxraRf0=";
+    aarch64-linux = "sha256-yGyhtW/g6WRIQBKckMlr6QAEStNrUD7NZrNloUJRXvg=";
   };
 in
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "trajectory";
-    version = "0.5.16";
+    version = "0.5.38";
 
     asset = assets.${system} or (throw "Unsupported Trajectory platform: ${system}");
 
@@ -49,11 +49,26 @@ in
     installPhase = ''
       runHook preInstall
 
-      install -Dm755 "$src" "$out/libexec/trajectory"
-      install -Dm644 "$interceptShared" "$out/share/trajectory/intercepts/intercept-shared.mjs"
-      install -Dm644 "$bunLlmIntercept" "$out/share/trajectory/intercepts/bun-llm-intercept.mjs"
-      install -Dm644 "$nodeLlmSpy" "$out/share/trajectory/intercepts/node-llm-spy.cjs"
+      # Complete .trajectory/ directory layout
+      install -Dm755 "$src" "$out/.trajectory/bin/trajectory"
+      install -Dm644 "$interceptShared" "$out/.trajectory/intercepts/intercept-shared.mjs"
+      install -Dm644 "$bunLlmIntercept" "$out/.trajectory/intercepts/bun-llm-intercept.mjs"
+      install -Dm644 "$nodeLlmSpy" "$out/.trajectory/intercepts/node-llm-spy.cjs"
 
+      cat > "$out/.trajectory/selfupdate.conf" <<EOF
+      TRAJECTORY_INSTALL_OWNER=nix
+      TRAJECTORY_SELF_UPDATE=disabled
+      EOF
+
+      cat > "$out/.trajectory/config.defaults.yaml" <<EOF
+      capture:
+        include_headless_agents: true
+      EOF
+
+      # Signed Nix binary for direct invocation
+      install -Dm755 "$src" "$out/libexec/trajectory"
+
+      # Wrapper: blocks self-updates, disables auto-update, delegates to signed binary
       mkdir -p "$out/bin"
       cat > "$out/bin/trajectory" <<EOF
       #!${runtimeShell}
