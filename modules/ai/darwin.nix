@@ -14,18 +14,12 @@
   '';
 in {
   environment.systemPackages = [
-    pkgs.mempalace
     pkgs.trajectory
     trajectorySetupAi
   ];
 
   # Any brews/casks MUST be justified as to why they are
   # not being installed as a nix package.
-  homebrew.brews = [
-    # ollama's launchd service integration is only available via Homebrew on macOS.
-    "ollama"
-  ];
-
   homebrew.casks = [
     # nixpkgs' opencode-desktop is unusable here: its darwin build ships a
     # capitalized bin/OpenCode shim that silently shadows the opencode CLI in
