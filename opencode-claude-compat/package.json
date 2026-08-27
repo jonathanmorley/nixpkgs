@@ -4,15 +4,29 @@
   "type": "module",
   "description": "Minimal OpenCode plugin that bridges Claude Code plugins/marketplaces (skills, commands, agents, hooks, MCPs) — extracted from oh-my-openagent's claude-code-compat-core.",
   "license": "MIT",
-  "exports": { ".": "./src/plugin.ts" },
+  "exports": {
+    ".": "./src/plugin.ts"
+  },
   "files": ["dist"],
   "scripts": {
     "build": "bun build ./src/plugin.ts --outdir ./dist --target bun",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "lint": "echo lint placeholder",
     "format": "echo format placeholder"
   },
-  "peerDependencies": { "@opencode-ai/plugin": "*" },
-  "devDependencies": { "vitest": "^3.0.0", "typescript": "^5.0.0" }
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "^1.18.23",
+    "js-yaml": "^5.0.0",
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.8",
+    "@types/bun": "^1.4.0",
+    "@types/node": "^26.4.0",
+    "typescript": "^5.0.0"
+  }
 }

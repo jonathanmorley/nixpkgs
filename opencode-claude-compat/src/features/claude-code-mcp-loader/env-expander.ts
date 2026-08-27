@@ -1,4 +1,4 @@
-import { expandEnvReferences, expandEnvReferencesInObject } from "@oh-my-opencode/utils"
+import { expandEnvReferences, expandEnvReferencesInObject } from "../../vendor/utils/env-expansion"
 import { log } from "../../shared/logger"
 import {
   isAllowedMcpEnvVar,
