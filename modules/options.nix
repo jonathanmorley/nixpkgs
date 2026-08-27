@@ -29,5 +29,22 @@
       description = "Model to use for OpenCode AI coding agents.";
       example = "opencode/big-pickle";
     };
+
+    opencodeServer = lib.mkOption {
+      type = lib.types.nullOr {
+        enable = lib.types.bool;
+        port = lib.types.int;
+        hostname = lib.types.str;
+        password = lib.types.nullOr lib.types.str;
+      };
+      default = null;
+      description = "OpenCode server configuration for OpenCode Mobile connectivity.";
+      example = {
+        enable = true;
+        port = 4096;
+        hostname = "0.0.0.0";
+        password = "strong-password";
+      };
+    };
   };
 }
