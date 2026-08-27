@@ -79,6 +79,12 @@ in {
       skills = {
         paths = ["${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode/skills"];
       };
+      permission = {
+        bash = {
+          "*" = "allow";
+          "sudo *" = "deny";
+        };
+      };
     };
   };
 
