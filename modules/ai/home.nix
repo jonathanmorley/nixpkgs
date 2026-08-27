@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  config,
   specialArgs,
   ...
 }: let
@@ -78,6 +79,12 @@ in {
       skills = {
         paths = ["${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode/skills"];
       };
+      permission = {
+        bash = {
+          "*" = "allow";
+          "sudo *" = "deny";
+        };
+      };
     };
   };
 
@@ -126,6 +133,47 @@ in {
     export.traces = "standard";
     identity.user_email = "morley.jonathan@gmail.com";
   };
+
+  # Register Trajectory plugin with Claude Code on every activation.
+  # OpenCode needs no registration — its plugin is loaded via the settings.plugin path.
+  home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Ensure Homebrew and profile binaries are on PATH for claude detection
+    export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
+
+    if command -v claude >/dev/null 2>&1; then
+      ${pkgs.trajectory}/bin/trajectory setup --clients cc --non-interactive || true
+    fi
+  '';
+
+  # OpenCode server for OpenCode Mobile connectivity
+  # Runs opencode serve as a launchd agent
+  # Bound to localhost — exposed to tailnet via tailscale serve
+  # Port 4096 is the default for OpenCode Mobile
+  launchd.agents.opencode-serve = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${pkgs.opencode}/bin/opencode"
+        "serve"
+        "--hostname"
+        "127.0.0.1"
+        "--port"
+        "4096"
+      ];
+
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${config.xdg.dataHome}/opencode-server/serve.log";
+      StandardErrorPath = "${config.xdg.dataHome}/opencode-server/serve.log";
+    };
+  };
+
+  # Expose opencode server to Tailscale network
+  home.activation.tailscale-opencode-serve = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    if command -v tailscale >/dev/null 2>&1; then
+      tailscale serve --bg --set-config --https=off 4096 2>/dev/null || true
+    fi
+  '';
 
   programs.git.ignores = [
     "/.worktrees/"

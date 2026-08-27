@@ -203,6 +203,12 @@
               sshProvider = "1password";
               username = "jonathan";
               sshKeys."github.com" = keys.personal;
+              opencodeServer = {
+                enable = true;
+                port = 4096;
+                hostname = "127.0.0.1";
+                password = null;
+              };
             };
           };
 
