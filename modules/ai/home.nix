@@ -63,7 +63,7 @@ in {
       plugin = [
         # Revert to "oh-my-openagent@4.19.4" once the compat fork is published to npm.
         # "oh-my-openagent@4.19.4"
-        "/Users/jonathan/.nixpkgs/.worktrees/claude-compat-fork/opencode-claude-compat/dist/plugin.js"
+        # "opencode-claude-compat@0.1.0" # TODO: enable after npm publish — see opencode-claude-compat/README.md
         "@warp-dot-dev/opencode-warp@0.1.7"
         "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
         "@dietrichgebert/ponytail@4.9.0"
@@ -97,6 +97,8 @@ in {
 
   # # oh-my-openagent config — no longer needed for compat-only fork.
   # # Revert (uncomment) if switching back to oh-my-openagent.
+  # # NOTE: `defaultModel` (from specialArgs.opencodeModel) was removed for deadnix;
+  # # restore `specialArgs` in the module args and `defaultModel` below before reverting.
   # xdg.configFile."opencode/oh-my-openagent.jsonc" = {
   #   source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
   #     "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";

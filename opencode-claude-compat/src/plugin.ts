@@ -38,7 +38,10 @@ export default (async (ctx: PluginInput) => {
         ...components.mcpServers,
       }
 
-      setPluginHooksConfigs(ctx.directory, components.hooksConfigs)
+      // Key by process.cwd() to match the read side (loadClaudeHooksConfig /
+      // discovery scope-filtering), not ctx.directory — opencode's config hook
+      // runs with cwd = project root, and a mismatch would silently drop hooks.
+      setPluginHooksConfigs(process.cwd(), components.hooksConfigs)
     },
     "tool.execute.before": createToolExecuteBeforeHandler(ctx, config),
     "tool.execute.after": createToolExecuteAfterHandler(ctx, config),
