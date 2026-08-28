@@ -3,8 +3,6 @@
   perSystem = {...}: {
     treefmt = {
       settings.on-unmatched = "fatal"; # Ensure 100% coverage
-      # Nested standalone repo (opencode-claude-compat) — formatted by its own toolchain (bun/prettier).
-      settings.excludes = ["opencode-claude-compat/**"];
       programs.actionlint.enable = true; # github action linter
       programs.alejandra.enable = true; # nix
       programs.deadnix.enable = true; # nix
