@@ -17,6 +17,7 @@ import type { PluginConfig } from "./features/claude-code-hooks/types"
 
 export default (async (ctx: PluginInput) => {
   const config: PluginConfig = {}
+  console.log("[opencode-claude-compat] plugin loaded")
 
   return {
     config: async (cfg) => {

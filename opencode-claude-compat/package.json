@@ -3,13 +3,23 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Minimal OpenCode plugin that bridges Claude Code plugins/marketplaces (skills, commands, agents, hooks, MCPs) — extracted from oh-my-openagent's claude-code-compat-core.",
-  "license": "MIT",
+  "license": "SUL-1.0",
+  "main": "./dist/plugin.js",
   "exports": {
-    ".": "./src/plugin.ts"
+    ".": "./dist/plugin.js",
+    "./plugin": "./dist/plugin.js"
   },
-  "files": ["dist"],
+  "files": ["dist", "LICENSE.upstream.md", "CHANGELOG.md"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonathanmorley/nixpkgs.git",
+    "directory": "opencode-claude-compat"
+  },
   "scripts": {
-    "build": "bun build ./src/plugin.ts --outdir ./dist --target bun",
+    "build": "bun build ./src/plugin.ts --outdir ./dist --target bun --minify",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "lint": "echo lint placeholder",
@@ -19,7 +29,6 @@
     "@opencode-ai/plugin": "*"
   },
   "dependencies": {
-    "@opencode-ai/sdk": "^1.18.23",
     "js-yaml": "^5.0.0",
     "jsonc-parser": "^3.3.1"
   },
