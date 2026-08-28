@@ -2,10 +2,8 @@
   lib,
   pkgs,
   config,
-  specialArgs,
   ...
 }: let
-  defaultModel = specialArgs.opencodeModel;
   contextPrefix = lib.removeSuffix "\n" ''
     # Personal preferences
 
@@ -63,7 +61,8 @@ in {
     context = contextPrefix + "\n" + contextSuffix;
     settings = {
       plugin = [
-        "oh-my-openagent@4.19.4"
+        # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
+        "@jonathanmorley/opencode-claude-compat@0.1.0"
         "@warp-dot-dev/opencode-warp@0.1.7"
         "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
         "@dietrichgebert/ponytail@4.9.0"
@@ -95,37 +94,41 @@ in {
   #   lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.opencode-desktop)
   #   [pkgs.opencode-desktop];
 
-  xdg.configFile."opencode/oh-my-openagent.jsonc" = {
-    source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
-      "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
-      agents = {
-        hephaestus = {
-          model = defaultModel;
-        };
-        oracle = {
-          model = defaultModel;
-        };
-        momus = {
-          model = defaultModel;
-        };
-        explore = {
-          model = defaultModel;
-        };
-        librarian = {
-          model = defaultModel;
-        };
-      };
-      categories = {
-        deep = {
-          model = defaultModel;
-        };
-        ultrabrain = {
-          model = defaultModel;
-        };
-      };
-      runtime_fallback = true;
-    };
-  };
+  # # oh-my-openagent config — no longer needed for compat-only fork.
+  # # Revert (uncomment) if switching back to oh-my-openagent.
+  # # NOTE: `defaultModel` (from specialArgs.opencodeModel) was removed for deadnix;
+  # # restore `specialArgs` in the module args and `defaultModel` below before reverting.
+  # xdg.configFile."opencode/oh-my-openagent.jsonc" = {
+  #   source = pkgs.writers.writeJSON "oh-my-openagent.jsonc" {
+  #     "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/dev/assets/oh-my-opencode.schema.json";
+  #     agents = {
+  #       hephaestus = {
+  #         model = defaultModel;
+  #       };
+  #       oracle = {
+  #         model = defaultModel;
+  #       };
+  #       momus = {
+  #         model = defaultModel;
+  #       };
+  #       explore = {
+  #         model = defaultModel;
+  #       };
+  #       librarian = {
+  #         model = defaultModel;
+  #       };
+  #     };
+  #     categories = {
+  #       deep = {
+  #         model = defaultModel;
+  #       };
+  #       ultrabrain = {
+  #         model = defaultModel;
+  #       };
+  #     };
+  #     runtime_fallback = true;
+  #   };
+  # };
 
   # Enable trajectory with default configuration.
   services.trajectory = {
