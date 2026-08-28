@@ -61,9 +61,8 @@ in {
     context = contextPrefix + "\n" + contextSuffix;
     settings = {
       plugin = [
-        # Revert to "oh-my-openagent@4.19.4" once the compat fork is published to npm.
-        # "oh-my-openagent@4.19.4"
-        # "@jonathanmorley/opencode-claude-compat@0.1.0" # TODO: enable after npm publish — see opencode-claude-compat/README.md
+        # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
+        "@jonathanmorley/opencode-claude-compat@0.1.0"
         "@warp-dot-dev/opencode-warp@0.1.7"
         "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
         "@dietrichgebert/ponytail@4.9.0"
