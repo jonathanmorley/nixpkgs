@@ -70,6 +70,7 @@ in
                 fnox = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.fnox;
                 oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
                 trajectory = prev.callPackage ../pkgs/trajectory {};
+                windscribe = prev.callPackage ../pkgs/windscribe {};
               })
             ];
           };
