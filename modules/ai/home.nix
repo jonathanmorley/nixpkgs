@@ -60,22 +60,28 @@ in {
     enable = true;
     context = contextPrefix + "\n" + contextSuffix;
     settings = {
-      plugin = [
-        # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
-        "@jonathanmorley/opencode-claude-compat@0.1.0"
-        "@warp-dot-dev/opencode-warp@0.1.7"
-        "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
-        "@dietrichgebert/ponytail@4.9.0"
-        "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode"
-      ];
-      mcp = {
+      # Trajectory plugin/MCP/skills are wired into OpenCode only when
+      # services.trajectory.opencode.enable is set. The opencode-claude-compat
+      # plugin above already provides a Claude Code compatibility layer, so
+      # wiring Trajectory in OpenCode too risks duplicating its configuration.
+      plugin =
+        [
+          # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
+          "@jonathanmorley/opencode-claude-compat@0.1.0"
+          "@warp-dot-dev/opencode-warp@0.1.7"
+          "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+          "@dietrichgebert/ponytail@4.9.0"
+        ]
+        ++ lib.optional config.services.trajectory.opencode.enable
+        "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
+      mcp = lib.optionalAttrs config.services.trajectory.opencode.enable {
         trajectory = {
           type = "local";
           command = ["${pkgs.trajectory}/bin/trajectory" "mcp"];
           enabled = true;
         };
       };
-      skills = {
+      skills = lib.optionalAttrs config.services.trajectory.opencode.enable {
         paths = ["${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode/skills"];
       };
       permission = {

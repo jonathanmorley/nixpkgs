@@ -261,6 +261,14 @@ in {
       example = ["cc" "codex" "cursor"];
     };
 
+    opencode = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Wire the Trajectory plugin, MCP server, and skills into OpenCode. Disable when a Claude Code compatibility layer already provides Trajectory config in OpenCode to avoid duplication.";
+      };
+    };
+
     required_destinations = lib.mkOption {
       type = lib.types.listOf (lib.types.attrsOf lib.types.anything);
       default = [];
