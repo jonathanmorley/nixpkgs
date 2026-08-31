@@ -14,8 +14,6 @@ cask "opencode-desktop-beta" do
 
   app "OpenCode Beta.app"
 
-  conflicts_with cask: "opencode-desktop"
-
   zap trash: [
     "~/Library/Application Support/ai.opencode.desktop.beta",
     "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/ai.opencode.desktop.beta.sfl*",
