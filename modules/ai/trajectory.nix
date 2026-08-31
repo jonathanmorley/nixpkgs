@@ -254,6 +254,13 @@ in {
       };
     };
 
+    clients = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Coding-agent clients to register with Trajectory via `trajectory setup --clients`";
+      example = ["cc" "codex" "cursor"];
+    };
+
     required_destinations = lib.mkOption {
       type = lib.types.listOf (lib.types.attrsOf lib.types.anything);
       default = [];

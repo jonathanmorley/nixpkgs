@@ -127,6 +127,7 @@ assert_file_not_contains "modules/ai/darwin.nix" "selfupdate.conf" "Darwin modul
 assert_file_exists "modules/ai/trajectory.nix" "Trajectory module exists"
 assert_contains "modules/ai/trajectory.nix" "options.services.trajectory" "Trajectory module defines options"
 assert_contains "modules/ai/trajectory.nix" "mkEnableOption" "Trajectory module has enable option"
+assert_contains "modules/ai/trajectory.nix" "clients" "Trajectory module has clients option"
 assert_contains "modules/ai/trajectory.nix" "export.site" "Trajectory module has export.site option"
 assert_contains "modules/ai/trajectory.nix" "features.enabled" "Trajectory module has features.enabled option"
 assert_contains "modules/ai/trajectory.nix" "launchd.agents.trajectory-serve" "Trajectory module configures launchd agent"
@@ -140,6 +141,7 @@ assert_contains "pkgs/trajectory/default.nix" "claude-marketplace" "Trajectory p
 assert_contains "pkgs/trajectory/default.nix" "fetchFromGitHub" "Trajectory package fetches plugin source from GitHub"
 assert_contains "modules/ai/home.nix" 'trajectory' "Home Manager references trajectory plugin"
 assert_contains "modules/ai/home.nix" 'mcp = {' "Home Manager configures trajectory MCP server"
+assert_contains "modules/ai/home.nix" 'clients = ["cc"]' "Home Manager configures Claude Code client"
 assert_file_not_contains "modules/ai/darwin.nix" "CLAUDE_CODE_LOCAL_BINARY" "Claude Desktop binary override is not set for Trajectory"
 assert_contains "flake.nix" 'trajectory = pkgs.runCommand "trajectory-tests"' "Trajectory static test is exposed as a flake check"
 
