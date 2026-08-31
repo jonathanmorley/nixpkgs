@@ -135,16 +135,18 @@ in {
     enable = true;
     export.traces = "standard";
     identity.user_email = "morley.jonathan@gmail.com";
+    clients = ["cc"];
   };
 
-  # Register Trajectory plugin with Claude Code on every activation.
+  # Register Trajectory plugin with configured clients on every activation.
   # OpenCode needs no registration — its plugin is loaded via the settings.plugin path.
   home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    # Ensure Homebrew and profile binaries are on PATH for claude detection
+    # Ensure Homebrew and profile binaries are on PATH for client detection
     export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
 
-    if command -v claude >/dev/null 2>&1; then
-      ${pkgs.trajectory}/bin/trajectory setup --clients cc --non-interactive || true
+    clients="${lib.concatStringsSep "," config.services.trajectory.clients}"
+    if [ -n "$clients" ]; then
+      ${pkgs.trajectory}/bin/trajectory setup --clients "$clients" --non-interactive || true
     fi
   '';
 
