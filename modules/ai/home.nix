@@ -60,22 +60,28 @@ in {
     enable = true;
     context = contextPrefix + "\n" + contextSuffix;
     settings = {
-      plugin = [
-        # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
-        "@jonathanmorley/opencode-claude-compat@0.1.0"
-        "@warp-dot-dev/opencode-warp@0.1.7"
-        "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
-        "@dietrichgebert/ponytail@4.9.0"
-        "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode"
-      ];
-      mcp = {
+      # Trajectory plugin/MCP/skills are wired into OpenCode only when
+      # services.trajectory.opencode.enable is set. The opencode-claude-compat
+      # plugin above already provides a Claude Code compatibility layer, so
+      # wiring Trajectory in OpenCode too risks duplicating its configuration.
+      plugin =
+        [
+          # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
+          "@jonathanmorley/opencode-claude-compat@0.1.0"
+          "@warp-dot-dev/opencode-warp@0.1.7"
+          "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
+          "@dietrichgebert/ponytail@4.9.0"
+        ]
+        ++ lib.optional config.services.trajectory.opencode.enable
+        "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
+      mcp = lib.optionalAttrs config.services.trajectory.opencode.enable {
         trajectory = {
           type = "local";
           command = ["${pkgs.trajectory}/bin/trajectory" "mcp"];
           enabled = true;
         };
       };
-      skills = {
+      skills = lib.optionalAttrs config.services.trajectory.opencode.enable {
         paths = ["${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode/skills"];
       };
       permission = {
@@ -135,16 +141,18 @@ in {
     enable = true;
     export.traces = "standard";
     identity.user_email = "morley.jonathan@gmail.com";
+    clients = ["cc"];
   };
 
-  # Register Trajectory plugin with Claude Code on every activation.
+  # Register Trajectory plugin with configured clients on every activation.
   # OpenCode needs no registration — its plugin is loaded via the settings.plugin path.
   home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    # Ensure Homebrew and profile binaries are on PATH for claude detection
+    # Ensure Homebrew and profile binaries are on PATH for client detection
     export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
 
-    if command -v claude >/dev/null 2>&1; then
-      ${pkgs.trajectory}/bin/trajectory setup --clients cc --non-interactive || true
+    clients="${lib.concatStringsSep "," config.services.trajectory.clients}"
+    if [ -n "$clients" ]; then
+      ${pkgs.trajectory}/bin/trajectory setup --clients "$clients" --non-interactive || true
     fi
   '';
 
