@@ -2,7 +2,7 @@
 
 # Nixpkgs
 
-> Provision a workstation.
+> Provision a workstation. ✨
 
 ## Setup (MacOS)
 
