@@ -17,6 +17,6 @@
     # https://opencode.ai/download/beta/darwin-aarch64-dmg) for tabs + nightly
     # features; stable cask "opencode-desktop" is intentionally not installed
     # alongside it (conflicts_with).
-    "local/opencode-beta/opencode-desktop-beta"
+    "local/homebrew-opencode-beta/opencode-desktop-beta"
   ];
 }
