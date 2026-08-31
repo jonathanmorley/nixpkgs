@@ -12,18 +12,18 @@ cask "opencode-desktop-beta" do
   auto_updates true
   depends_on macos: ">= :monterey"
 
-  app "OpenCode.app"
+  app "OpenCode Beta.app"
 
   conflicts_with cask: "opencode-desktop"
 
   zap trash: [
-    "~/Library/Application Support/ai.opencode.desktop",
-    "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/ai.opencode.desktop.sfl*",
-    "~/Library/Caches/ai.opencode.desktop",
-    "~/Library/HTTPStorages/ai.opencode.desktop",
-    "~/Library/Logs/ai.opencode.desktop",
-    "~/Library/Preferences/ai.opencode.desktop.plist",
-    "~/Library/Saved Application State/ai.opencode.desktop.savedState",
-    "~/Library/WebKit/ai.opencode.desktop",
+    "~/Library/Application Support/ai.opencode.desktop.beta",
+    "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/ai.opencode.desktop.beta.sfl*",
+    "~/Library/Caches/ai.opencode.desktop.beta",
+    "~/Library/HTTPStorages/ai.opencode.desktop.beta",
+    "~/Library/Logs/ai.opencode.desktop.beta",
+    "~/Library/Preferences/ai.opencode.desktop.beta.plist",
+    "~/Library/Saved Application State/ai.opencode.desktop.beta.savedState",
+    "~/Library/WebKit/ai.opencode.desktop.beta",
   ]
 end
