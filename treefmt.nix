@@ -3,6 +3,9 @@
   perSystem = {...}: {
     treefmt = {
       settings.on-unmatched = "fatal"; # Ensure 100% coverage
+      settings.excludes = [
+        "taps/**"
+      ];
       programs.actionlint.enable = true; # github action linter
       programs.alejandra.enable = true; # nix
       programs.deadnix.enable = true; # nix

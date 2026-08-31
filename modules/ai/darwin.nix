@@ -13,6 +13,10 @@
     # so the app's GPU/network helper processes crash-loop. The brew cask is
     # the signed upstream build and installs only OpenCode.app — no bin
     # artifacts, so terminal `opencode` keeps resolving to the CLI.
-    "opencode-desktop"
+    # Beta channel tracks https://github.com/anomalyco/opencode-beta (via
+    # https://opencode.ai/download/beta/darwin-aarch64-dmg) for tabs + nightly
+    # features; stable cask "opencode-desktop" is intentionally not installed
+    # alongside it (conflicts_with).
+    "local/opencode-beta/opencode-desktop-beta"
   ];
 }

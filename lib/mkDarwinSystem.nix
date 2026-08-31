@@ -31,17 +31,21 @@ in
       [
         determinate.darwinModules.default
         nix-homebrew.darwinModules.nix-homebrew
-        {
+        ({pkgs, ...}: {
           nix-homebrew = {
             enable = true;
             user = extendedSpecialArgs.username;
             taps = {
               "homebrew/homebrew-core" = homebrew-core;
               "homebrew/homebrew-cask" = homebrew-cask;
+              "local/opencode-beta" = pkgs.runCommand "homebrew-opencode-beta" {} ''
+                cp -r ${../taps/opencode-beta} $out
+                chmod -R +w $out
+              '';
             };
             mutableTaps = false;
           };
-        }
+        })
         ../modules/options.nix
         ../modules/darwin.nix
         ../modules/ai/darwin.nix

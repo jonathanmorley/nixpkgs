@@ -71,7 +71,7 @@ cachix doctor
 The shared Darwin AI module installs Trajectory for Claude Code and Codex capture.
 After switching a machine, run `trajectory-setup-ai` from a regular shell to let Trajectory install or refresh the agent hooks for those clients.
 
-The shared Home Manager configuration installs the OpenCode CLI/TUI. OpenCode Desktop (`OpenCode.app`) is installed via the Homebrew cask `opencode-desktop` (see `modules/ai/darwin.nix`) rather than nixpkgs: the Nix package's capitalized `bin/OpenCode` shim silently shadows the CLI on case-insensitive filesystems, and its unsigned build crash-loops on macOS.
+The shared Home Manager configuration installs the OpenCode CLI/TUI. OpenCode Desktop (`OpenCode.app`) is installed via the Homebrew cask `local/opencode-beta/opencode-desktop-beta` (beta channel, see `modules/ai/darwin.nix` and `taps/opencode-beta`) rather than nixpkgs: the Nix package's capitalized `bin/OpenCode` shim silently shadows the CLI on case-insensitive filesystems, and its unsigned build crash-loops on macOS. The beta cask tracks `https://opencode.ai/download/beta/darwin-*-dmg` (`anomalyco/opencode-beta`).
 
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
