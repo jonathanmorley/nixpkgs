@@ -15,15 +15,13 @@
   # ponytail: ${pkgs.windscribe} is pinned to 2.23.11 — bump on release. If
   #   `-silent` ever needs a EULA interaction, fall back to adding "windscribe"
   #   to homebrew.casks above and accept the one-time manual installer.
-  system.activationScripts.windscribe = {
-    text = ''
-      if [[ ! -d /Applications/Windscribe.app ]]; then
-        dmg="${pkgs.windscribe}/Windscribe_${pkgs.windscribe.version}_universal.dmg"
-        mount_point="$(/usr/bin/hdiutil attach -nobrowse -readonly "$dmg" | /usr/bin/awk 'END {print $3}')"
-        # shellcheck disable=SC2064
-        trap '/usr/bin/hdiutil detach "$mount_point" >/dev/null' EXIT
-        "$mount_point/WindscribeInstaller.app/Contents/MacOS/installer" -silent -dir /Applications
-      fi
-    '';
-  };
+  system.activationScripts.extraActivation.text = ''
+    if [[ ! -d /Applications/Windscribe.app ]]; then
+      dmg="${pkgs.windscribe}/Windscribe_${pkgs.windscribe.version}_universal.dmg"
+      mount_point="$(/usr/bin/hdiutil attach -nobrowse -readonly "$dmg" | /usr/bin/awk 'END {print $3}')"
+      # shellcheck disable=SC2064
+      trap '/usr/bin/hdiutil detach "$mount_point" >/dev/null' EXIT
+      "$mount_point/WindscribeInstaller.app/Contents/MacOS/installer" -silent -dir /Applications
+    fi
+  '';
 }
