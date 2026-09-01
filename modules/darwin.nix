@@ -16,16 +16,53 @@
     "jonathanmorley.cachix.org-1:5P5EOY4b+AC2G1XIzjluXmoWBSK6GiMg4UHV4+gCgwI="
   ];
 in {
-  # Nix is managed by Determinate Nix — the module sets nix.enable = false
-  # and manages /etc/nix/nix.custom.conf via determinateNix.customSettings.
-  determinateNix = {
+  # Nix is managed by nix-darwin (vanilla Nix) now.
+  #
+  # Determinate Nix was originally used for its "certs from the macOS
+  # Keychain" feature; that is reproduced here by exporting the system
+  # keychains to a PEM bundle (see `updateNixKeychainCerts` below) and
+  # pointing Nix's `ssl-cert-file` at it — exactly what determinate-nixd
+  # did under the hood.
+  #
+  # Previous Determinate config (kept for reference, requires re-adding the
+  # `determinate` flake input + module to flip back):
+  #   determinateNix = {
+  #     enable = true;
+  #     customSettings = {
+  #       trusted-users = [config.system.primaryUser];
+  #       inherit substituters;
+  #       trusted-public-keys = trustedPublicKeys;
+  #     };
+  #   };
+  nix = {
     enable = true;
-    customSettings = {
+    package = pkgs.nix;
+    settings = {
+      # Certificates from the macOS Keychain (see updateNixKeychainCerts).
+      ssl-cert-file = "/etc/nix/macos-keychain.crt";
+
       trusted-users = [config.system.primaryUser];
       inherit substituters;
       trusted-public-keys = trustedPublicKeys;
     };
   };
+
+  # Regenerate /etc/nix/macos-keychain.crt from the macOS Keychain on
+  # activation. The export is byte-identical to what determinate-nixd wrote,
+  # so the existing file keeps working until the keychain changes (then this
+  # regenerates it). Run `darwin-rebuild switch` manually after changing
+  # certificates in Keychain.
+  system.activationScripts.updateNixKeychainCerts.text = ''
+    /bin/mkdir -p /etc/nix
+    /usr/bin/security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain >/tmp/macos-keychain.crt
+    /usr/bin/security find-certificate -a -p /Library/Keychains/System.keychain >>/tmp/macos-keychain.crt
+    if ! /usr/bin/cmp -s /tmp/macos-keychain.crt /etc/nix/macos-keychain.crt; then
+      /bin/cp /tmp/macos-keychain.crt /etc/nix/macos-keychain.crt
+      /usr/sbin/chown root:wheel /etc/nix/macos-keychain.crt
+      /bin/chmod 0644 /etc/nix/macos-keychain.crt
+    fi
+    /bin/rm -f /tmp/macos-keychain.crt
+  '';
 
   environment.pathsToLink = ["/share/zsh"];
   environment.systemPath = ["${config.homebrew.prefix}/bin"];

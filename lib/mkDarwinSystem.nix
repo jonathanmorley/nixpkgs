@@ -1,6 +1,5 @@
 {
   darwin,
-  determinate,
   gitignore,
   home-manager,
   homebrew-cask,
@@ -29,7 +28,6 @@ in
     specialArgs = extendedSpecialArgs;
     modules =
       [
-        determinate.darwinModules.default
         nix-homebrew.darwinModules.nix-homebrew
         ({pkgs, ...}: {
           nix-homebrew = {

@@ -17,17 +17,6 @@
       url = "github:jonathanmorley/oktaws/v0.23.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix = {
-      url = "github:DeterminateSystems/nix-src";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.git-hooks-nix.follows = "git-hooks-nix";
-    };
-    determinate = {
-      url = "github:DeterminateSystems/determinate";
-      inputs.nix.follows = "nix";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
     flake-parts.url = "github:hercules-ci/flake-parts";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     git-hooks-nix.url = "github:cachix/git-hooks.nix";
@@ -60,11 +49,11 @@
   }: let
     mkDarwinSystem = import ./lib/mkDarwinSystem.nix {
       inherit darwin home-manager nixpkgs oktaws gitignore;
-      inherit (inputs) determinate nixpkgs-unstable nix-homebrew homebrew-core homebrew-cask;
+      inherit (inputs) nixpkgs-unstable nix-homebrew homebrew-core homebrew-cask;
     };
 
     stateVersions = {
-      darwin = "7";
+      darwin = 7;
       homeManager = "26.05";
     };
 
