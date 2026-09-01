@@ -78,8 +78,9 @@
         inputs.git-hooks-nix.flakeModule
       ];
       systems = [
+        # Apple Silicon only; Nixpkgs 26.11 (current unstable) dropped
+        # x86_64-darwin support, and the Intel `smoke` iMac config is retired.
         "aarch64-darwin"
-        "x86_64-darwin"
         # kept for CI format check (ubuntu-latest runner)
         "x86_64-linux"
       ];
@@ -209,18 +210,6 @@
                 hostname = "127.0.0.1";
                 password = null;
               };
-            };
-          };
-
-          # Personal iMac
-          "smoke" = mkDarwinSystem {
-            system = "x86_64-darwin";
-            specialArgs = {
-              inherit stateVersions;
-              profiles = ["personal"];
-              sshProvider = "1password";
-              username = "jonathan";
-              sshKeys."github.com" = keys.personal;
             };
           };
         };

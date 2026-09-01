@@ -30,9 +30,9 @@
    };
    ```
 
-1. Set the right `system` if not on Apple Silicon (e.g., `system = "x86_64-darwin"` for Intel Macs).
-
 1. Apply: `nix run nix-darwin -- switch --flake ~/.nixpkgs#my-hostname`
+
+> Apple Silicon only — this flake no longer supports `x86_64-darwin` (`nixpkgs-unstable` is Nixpkgs 26.11, which dropped Intel macOS, and the Intel `smoke` iMac is retired).
 
 The modular system picks up shared modules automatically — Darwin config from `modules/darwin.nix`, Home Manager from `modules/home.nix`, AI tooling, Docker, Git, and SSH provider secrets. To add host-specific overrides, use `extraDarwinModules` and `extraHomeModules`.
 
