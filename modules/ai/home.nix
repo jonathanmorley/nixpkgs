@@ -87,6 +87,13 @@ in {
     };
   };
 
+  home.packages = [
+    # opencode2 (v2 beta CLI) runs alongside the v1 `opencode` CLI installed by
+    # programs.opencode above. Tracks `@opencode-ai/cli@beta` — bump the version
+    # in pkgs/opencode2/default.nix to update.
+    pkgs.opencode2
+  ];
+
   # # OpenCode Desktop ships an OpenCode.app bundle that Home Manager links into
   # # ~/Applications via targets.darwin.linkApps. It is not packaged for
   # # x86_64-darwin, so guard on availability to keep Intel hosts evaluating.
