@@ -36,7 +36,9 @@ in {
   #   };
   nix = {
     enable = true;
-    package = pkgs.nix;
+    # Keep Lix (the official installer already uses it); swap to pkgs.nix for
+    # vanilla Nix from nixpkgs.
+    package = pkgs.lix;
     settings = {
       # Certificates from the macOS Keychain (see updateNixKeychainCerts).
       ssl-cert-file = "/etc/nix/macos-keychain.crt";
