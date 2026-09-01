@@ -30,9 +30,9 @@
    };
    ```
 
-1. Set the right `system` if not on Apple Silicon (e.g., `system = "x86_64-darwin"` for Intel Macs).
-
 1. Apply: `nix run nix-darwin -- switch --flake ~/.nixpkgs#my-hostname`
+
+> Apple Silicon only — this flake no longer supports `x86_64-darwin` (`nixpkgs-unstable` is Nixpkgs 26.11, which dropped Intel macOS, and the Intel `smoke` iMac is retired).
 
 The modular system picks up shared modules automatically — Darwin config from `modules/darwin.nix`, Home Manager from `modules/home.nix`, AI tooling, Docker, Git, and SSH provider secrets. To add host-specific overrides, use `extraDarwinModules` and `extraHomeModules`.
 
@@ -71,7 +71,7 @@ cachix doctor
 The shared Darwin AI module installs Trajectory for Claude Code and Codex capture.
 After switching a machine, run `trajectory-setup-ai` from a regular shell to let Trajectory install or refresh the agent hooks for those clients.
 
-The shared Home Manager configuration installs the OpenCode CLI/TUI. OpenCode Desktop (`OpenCode.app`) is installed via the Homebrew cask `local/opencode-beta/opencode-desktop-beta` (beta channel, see `modules/ai/darwin.nix` and `taps/opencode-beta`) rather than nixpkgs: the Nix package's capitalized `bin/OpenCode` shim silently shadows the CLI on case-insensitive filesystems, and its unsigned build crash-loops on macOS. The beta cask tracks `https://opencode.ai/download/beta/darwin-*-dmg` (`anomalyco/opencode-beta`).
+The shared Home Manager configuration installs the v1 OpenCode CLI/TUI (`opencode`, tracking `nixpkgs-unstable` for the latest v1 release) and the v2 beta CLI (`opencode2`, packaged in `pkgs/opencode2` and tracking `@opencode-ai/cli@beta`; bump the version there to update). OpenCode Desktop is installed via the `opencode-desktop` (stable) and `local/homebrew-opencode-beta/opencode-desktop-beta` (beta) Homebrew casks rather than nixpkgs (see `modules/ai/darwin.nix` and `taps/opencode-beta`): the Nix package's capitalized `bin/OpenCode` shim silently shadows the CLI on case-insensitive filesystems, and its unsigned build crash-loops on macOS. The beta cask tracks `https://opencode.ai/download/beta/darwin-*-dmg` (`anomalyco/opencode-beta`) and dropped `conflicts_with` so it coexists with the stable cask.
 
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
