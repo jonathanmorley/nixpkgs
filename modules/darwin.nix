@@ -43,6 +43,8 @@ in {
       # Certificates from the macOS Keychain (see updateNixKeychainCerts).
       ssl-cert-file = "/etc/nix/macos-keychain.crt";
 
+      experimental-features = "nix-command flakes";
+
       trusted-users = [config.system.primaryUser];
       inherit substituters;
       trusted-public-keys = trustedPublicKeys;
