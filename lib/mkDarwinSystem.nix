@@ -97,6 +97,7 @@ in
                   ../modules/git/home.nix
                   ../modules/secrets/fnox.home.nix
                 ]
+                ++ nixpkgs.lib.optional (builtins.elem "personal" extendedSpecialArgs.profiles) ../modules/personal/home.nix
                 ++ extraHomeModules;
               home = {
                 username = extendedSpecialArgs.username;
