@@ -70,7 +70,7 @@ in {
           "@jonathanmorley/opencode-claude-compat@0.2.3"
           "@warp-dot-dev/opencode-warp@0.1.7"
           "superpowers@git+https://github.com/obra/superpowers.git#b36e0829c6d0140e93cfef2ca599b1b07d4a7797"
-          "@dietrichgebert/ponytail@4.9.0"
+          "@dietrichgebert/ponytail@4.10.0"
         ]
         ++ lib.optional config.services.trajectory.opencode.enable
         "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
