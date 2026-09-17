@@ -87,13 +87,6 @@ in {
     };
   };
 
-  home.packages = [
-    # opencode2 (v2 beta CLI) runs alongside the v1 `opencode` CLI installed by
-    # programs.opencode above. Tracks `@opencode-ai/cli@beta` — bump the version
-    # in pkgs/opencode2/default.nix to update.
-    pkgs.opencode2
-  ];
-
   # # oh-my-openagent config — no longer needed for compat-only fork.
   # # Revert (uncomment) if switching back to oh-my-openagent.
   # # NOTE: `defaultModel` (from specialArgs.opencodeModel) was removed for deadnix;
