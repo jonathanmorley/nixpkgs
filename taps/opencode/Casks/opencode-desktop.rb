@@ -14,8 +14,10 @@ cask "opencode-desktop" do
   desc "AI coding agent desktop client"
   homepage "https://opencode.ai/"
 
-  auto_updates true
-  depends_on macos: ">= :monterey"
+  # Pinned to the v2 stable DMG: nix-darwin manages upgrades of this cask
+  # on activation, so it must NOT declare auto_updates (brew skips such
+  # casks on `brew upgrade` unless --greedy).
+  depends_on macos: :monterey
 
   app "OpenCode.app"
 
