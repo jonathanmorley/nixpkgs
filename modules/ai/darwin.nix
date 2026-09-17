@@ -11,16 +11,15 @@
     # CLI in the shared home-manager profile (case-insensitive APFS never
     # triggers the buildEnv collision check), and the Nix build disables macOS
     # code signing, so the app's GPU/network helper processes crash-loop. The
-    # brew casks are the signed upstream builds and install only the .app
-    # bundles — no bin artifacts, so terminal `opencode` keeps resolving to
-    # the v1 CLI.
+    # brew cask is the signed upstream build and installs only the .app
+    # bundle — no bin artifacts, so terminal `opencode` keeps resolving to
+    # the CLI.
     #
-    # Stable desktop (OpenCode.app) is the general-release cask. The beta
-    # desktop (OpenCode Beta.app) tracks https://github.com/anomalyco/opencode-beta
-    # (via https://opencode.ai/download/beta/darwin-aarch64-dmg) for tabs +
-    # nightly features; the beta tap dropped `conflicts_with` so both apps
-    # coexist.
-    "opencode-desktop"
-    "local/homebrew-opencode-beta/opencode-desktop-beta"
+    # OpenCode Desktop tracks the v2 stable DMGs at
+    # https://opencode.ai/files/bin/<version>/ (see taps/opencode and
+    # https://opencode.ai/v2/docs); bump the version there to update. The
+    # upstream homebrew-cask `opencode-desktop` still tracks the v1 releases,
+    # so the fully-qualified local cask below takes precedence.
+    "local/homebrew-opencode/opencode-desktop"
   ];
 }

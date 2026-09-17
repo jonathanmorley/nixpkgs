@@ -36,8 +36,8 @@ in
             taps = {
               "homebrew/homebrew-core" = homebrew-core;
               "homebrew/homebrew-cask" = homebrew-cask;
-              "local/homebrew-opencode-beta" = pkgs.runCommand "homebrew-opencode-beta" {} ''
-                cp -r ${../taps/opencode-beta} $out
+              "local/homebrew-opencode" = pkgs.runCommand "homebrew-opencode" {} ''
+                cp -r ${../taps/opencode} $out
                 chmod -R +w $out
               '';
             };
@@ -71,13 +71,10 @@ in
                 # with a deprecation warning and misses the binary cache.
                 fnox = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.fnox;
                 oktaws = oktaws.packages.${prev.stdenv.hostPlatform.system}.default;
-                # opencode (v1 CLI) tracks unstable for the latest release; the
-                # nixpkgs-26.05 channel lags well behind (e.g. 1.15.10 vs 1.18.21
-                # in unstable).
-                opencode = nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.opencode;
-                # opencode2 (v2 beta CLI) is not in nixpkgs yet; package the
-                # official @opencode-ai/cli beta binary (see pkgs/opencode2).
-                opencode2 = prev.callPackage ../pkgs/opencode2 {};
+                # opencode (v2 CLI) is not in nixpkgs yet (nixpkgs tracks the
+                # v1 Go binary); package the official @opencode/cli release
+                # binary (see pkgs/opencode).
+                opencode = prev.callPackage ../pkgs/opencode {};
                 trajectory = prev.callPackage ../pkgs/trajectory {};
                 windscribe = prev.callPackage ../pkgs/windscribe {};
               })
