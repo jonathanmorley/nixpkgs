@@ -69,7 +69,7 @@ in {
           # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
           "@jonathanmorley/opencode-claude-compat@0.2.3"
           "@warp-dot-dev/opencode-warp@0.1.7"
-          "superpowers@git+https://github.com/obra/superpowers.git#5bf4e78011075bcfc0dc295f0724994cd123ee71"
+          "superpowers@git+https://github.com/obra/superpowers.git#8ca22dba9a94f28898bbce59f2537ff4d87c747d"
           "@dietrichgebert/ponytail@4.10.0"
         ]
         ++ lib.optional config.services.trajectory.opencode.enable
