@@ -37,7 +37,6 @@
     When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
     Commit often to preserve progress, but do not push unless explicitly asked.
     CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
-    Before pushing, review the diff for bugs, logic errors, missing edge cases, typos, security issues, and unintended behavioral changes; fix anything found. For pushes with large diffs (roughly >300 lines or touching >5 files), dispatch a subagent to do this review instead of self-reviewing.
     When opening a PR, always add the `ai:autofix` label to it (e.g., `gh pr edit --add-label "ai:autofix"`).
     Always create a PR for completed work. PRs are my preferred workflow for reviewing and merging changes.
 
