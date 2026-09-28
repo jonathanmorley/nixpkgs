@@ -3,61 +3,12 @@
   pkgs,
   config,
   ...
-}: let
-  contextPrefix = lib.removeSuffix "\n" ''
-    # Personal preferences
-
-    ## General
-
-    I like to keep test-coverage high, and test-driven development is a good way to ensure that.
-    I like to match the style and conventions of the codebase I'm working in, even if they don't match other personal preferences.
-    I prefer to use TypeScript for new projects, unless there is a compelling reason to use another language.
-    Prefer using existing package dependencies over writing custom code when a well-maintained package already solves the problem.
-    Ensure every package and repository has a README explaining how to use it. When adding new features or making significant changes, create or update relevant documentation (READMEs, doc sites, inline docs, etc.).
-    Keep PRs and commits small and focused on a single concern. Avoid scope creep beyond what was requested.
-    Run the project's formatter and linter before considering a task done.
-    I use Nx as a build system and monorepo tool.
-
-    ## System Configuration
-
-    This computer is managed by Nix. The flake with configuration derivations is in `~/.nixpkgs`.
-
-    ## Repository Freshness
-
-    Repositories cloned to disk (including `~/.nixpkgs` and repos under `~/Developer`) may be out of date with the latest upstream `main`. When an investigation reads a local repository, consider whether the checkout might be stale and, if freshness matters to the task, fetch the latest from upstream before drawing conclusions.
-
-    ## Worktrees
-
-    I prefer using an isolated Git worktree for all code changes. When creating one, use the repository-root `.worktrees/` directory.
-
-    ## Testing
-
-    Avoid tests that only assert static file contents. For skills, prefer evaluations that exercise the skill's behavior and validate its outcomes.
-
-    When making compromises in a plan or implementation (e.g., skipping edge cases, using a workaround, deferring a refactor), record them in the most appropriate location (TODO comments in code, project CLAUDE.md, or memory files) so that future sessions can resolve them.
-    Commit often to preserve progress, but do not push unless explicitly asked.
-    CI runs various targets including lint and unit tests. Run these before pushing (but not necessarily before every commit).
-    When opening a PR, always add the `ai:autofix` label to it (e.g., `gh pr edit --add-label "ai:autofix"`).
-    Always create a PR for completed work. PRs are my preferred workflow for reviewing and merging changes.
-
-    ## NodeJS
-
-    I prefer pnpm as a package manager over npm or yarn.
-    I prefer `execa` over something like `child_process`.
-    I prefer `vitest` over `jest` for testing.
-    I like to use @tsconfig/... for my TypeScript configuration, and I prefer to extend from those rather than writing my own from scratch.
-    Place tests in a top-level `tests/` directory, using `*.test.ts` naming.
-
-  '';
-  contextSuffix = ''
-    ## Superpowers Plugin
-
-    When executing plans, do not prompt for which execution method to use. Use 'Subagent-Driven' execution when tasks are genuinely independent and parallelizable; for linear or small plans, execute inline.
-  '';
-in {
+}: {
   programs.opencode = {
     enable = true;
-    context = contextPrefix + "\n" + contextSuffix;
+    context = ''
+      Follow repository conventions and keep changes focused. Test behavior, run relevant checks, and update documentation when appropriate.
+    '';
     settings = {
       # Trajectory plugin/MCP/skills are wired into OpenCode only when
       # services.trajectory.opencode.enable is set. The opencode-claude-compat
