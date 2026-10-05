@@ -4,6 +4,13 @@
   config,
   ...
 }: {
+  home.packages = [
+    # OpenChamber Desktop .app bundle (see pkgs/openchamber-desktop).
+    # Home Manager linkApps symlinks it into ~/Applications. OpenCode
+    # Desktop is intentionally not installed.
+    pkgs.openchamber-desktop
+  ];
+
   programs.opencode = {
     enable = true;
     context = ''

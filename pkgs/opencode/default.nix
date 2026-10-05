@@ -7,7 +7,7 @@
   targets = {
     aarch64-darwin = {
       name = "darwin-arm64";
-      hash = "sha256-AZNJzxpQqWIt3vkpMeOv728MpotQWwLSdtD6SxIBSSc=";
+      hash = "sha256-23w/q7PSfnf1JjVa/qlObhhtN2Dt54UaIa8INvl4Mj8=";
     };
   };
   target = targets.${system} or (throw "Unsupported OpenCode CLI platform: ${system}");
@@ -17,11 +17,11 @@ in
   # tarball that already contains it.
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "opencode";
-    version = "2.0.6";
+    version = "2.0.23";
 
-    # TODO: bump the version by updating `version` and the `hash`. The npm dist
-    # tag is `@opencode/cli@latest`; regenerate the hash with:
-    #   nix-prefetch-url --type sha256 \
+    # TODO: bump the version by updating `version` and the `hash`. The npm
+    # dist tag is `@opencode/cli@latest`; regenerate the hash with:
+    #   nix store prefetch-file --json \
     #     "https://registry.npmjs.org/@opencode/cli-darwin-arm64/-/cli-darwin-arm64-<version>.tgz"
     src = fetchurl {
       url = "https://registry.npmjs.org/@opencode/cli-${target.name}/-/cli-${target.name}-${version}.tgz";

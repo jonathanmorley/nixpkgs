@@ -29,17 +29,13 @@ in
     modules =
       [
         nix-homebrew.darwinModules.nix-homebrew
-        ({pkgs, ...}: {
+        ({...}: {
           nix-homebrew = {
             enable = true;
             user = extendedSpecialArgs.username;
             taps = {
               "homebrew/homebrew-core" = homebrew-core;
               "homebrew/homebrew-cask" = homebrew-cask;
-              "local/homebrew-opencode" = pkgs.runCommand "homebrew-opencode" {} ''
-                cp -r ${../taps/opencode} $out
-                chmod -R +w $out
-              '';
             };
             mutableTaps = false;
           };
@@ -75,6 +71,9 @@ in
                 # v1 Go binary); package the official @opencode/cli release
                 # binary (see pkgs/opencode).
                 opencode = prev.callPackage ../pkgs/opencode {};
+                # OpenChamber Desktop is not in nixpkgs; package the official
+                # GitHub release .app bundle (see pkgs/openchamber-desktop).
+                openchamber-desktop = prev.callPackage ../pkgs/openchamber-desktop {};
                 trajectory = prev.callPackage ../pkgs/trajectory {};
                 windscribe = prev.callPackage ../pkgs/windscribe {};
               })
