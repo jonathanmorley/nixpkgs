@@ -84,8 +84,8 @@ in {
     onActivation = {
       cleanup = "uninstall";
       # Upgrade managed brews/casks on activation so pinned version bumps
-      # (e.g. taps/opencode) actually take effect. Note: brew still skips
-      # casks that declare `auto_updates`, so pinned casks must not set it.
+      # actually take effect. Note: brew still skips casks that declare
+      # `auto_updates`, so pinned casks must not set it.
       upgrade = true;
     };
     casks = [
