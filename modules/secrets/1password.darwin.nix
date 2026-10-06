@@ -3,7 +3,8 @@
   lib,
   ...
 }: {
-  programs._1password-gui.enable = true;
+  # GUI comes from the Homebrew cask (tracks 1Password releases directly),
+  # not nixpkgs — nixpkgs lags (e.g. no 8.12.40 in stable or unstable).
 
   home-manager.users.${config.system.primaryUser} = lib.mkIf (config.jm.sshProvider == "1password") {
     # SSH Authentication

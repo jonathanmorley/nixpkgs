@@ -89,6 +89,9 @@ in {
       upgrade = true;
     };
     casks = [
+      # Tracks 1Password releases directly; nixpkgs lags behind (no 8.12.40
+      # in stable or unstable). Self-updates via auto_updates.
+      "1password"
       # Not available in nixpkgs
       "eqmac"
       # The 1Password extension does not unlock with biometrics if FF is installed via nix
