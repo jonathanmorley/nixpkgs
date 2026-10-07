@@ -134,7 +134,6 @@
   programs.git.ignores = [
     "/.worktrees/"
     ".omo"
-    "docs/superpowers/"
   ];
 
   # Disable fsmonitor for git, as it can cause worktree operations to hang indefinitely on macOS. See
