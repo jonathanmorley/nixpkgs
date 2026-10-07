@@ -161,6 +161,13 @@
             assert cfg.opencodeModel == "opencode/small-pickle";
             assert cfg.sshKeys."github.com" == "ssh-ed25519 test";
               pkgs.runCommand "module-eval-opencode-model" {} "touch $out";
+          # docs/superpowers/ holds tracked specs/plans in some repos; it must not be globally ignored.
+          git-ignores = let
+            ignores = self.darwinConfigurations.gha-aarch64-darwin.config.home-manager.users.runner.programs.git.ignores;
+          in
+            assert builtins.elem "/.worktrees/" ignores;
+            assert !(builtins.elem "docs/superpowers/" ignores);
+              pkgs.runCommand "git-ignores" {} "touch $out";
         };
         devShells.default = config.pre-commit.devShell;
         pre-commit.settings = {
