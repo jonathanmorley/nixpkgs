@@ -25,7 +25,7 @@
         [
           # Minimal Claude Code compat fork (see https://github.com/jonathanmorley/opencode-claude-compat) — was oh-my-openagent@4.19.4
           "@jonathanmorley/opencode-claude-compat@0.3.0"
-          "@openchamber/opencode-claude@1.3.7"
+          "@openchamber/opencode-claude@1.3.8"
           "@warp-dot-dev/opencode-warp@0.1.7"
           "superpowers@git+https://github.com/obra/superpowers.git#8ca22dba9a94f28898bbce59f2537ff4d87c747d"
           "@dietrichgebert/ponytail@4.13.0"
