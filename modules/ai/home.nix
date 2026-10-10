@@ -27,7 +27,7 @@
           "@jonathanmorley/opencode-claude-compat@0.3.0"
           "@openchamber/opencode-claude@1.3.7"
           "@warp-dot-dev/opencode-warp@0.1.7"
-          "superpowers@git+https://github.com/obra/superpowers.git#8ca22dba9a94f28898bbce59f2537ff4d87c747d"
+          "superpowers@git+https://github.com/obra/superpowers.git#bb92a77741419a4ab5f06e711a283343f1ada0c3"
           "@dietrichgebert/ponytail@4.13.0"
         ]
         ++ lib.optional config.services.trajectory.opencode.enable
