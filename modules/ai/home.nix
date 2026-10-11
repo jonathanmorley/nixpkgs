@@ -28,7 +28,7 @@
           "@openchamber/opencode-claude@1.3.8"
           "@warp-dot-dev/opencode-warp@0.1.7"
           "superpowers@git+https://github.com/obra/superpowers.git#bb92a77741419a4ab5f06e711a283343f1ada0c3"
-          "@dietrichgebert/ponytail@4.13.0"
+          "@dietrichgebert/ponytail@5.1.0"
         ]
         ++ lib.optional config.services.trajectory.opencode.enable
         "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
