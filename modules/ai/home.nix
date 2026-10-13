@@ -101,36 +101,6 @@
     fi
   '';
 
-  # OpenCode server for OpenCode Mobile connectivity
-  # Runs opencode serve as a launchd agent
-  # Bound to localhost — exposed to tailnet via tailscale serve
-  # Port 4096 is the default for OpenCode Mobile
-  launchd.agents.opencode-serve = {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "${pkgs.opencode}/bin/opencode"
-        "serve"
-        "--hostname"
-        "127.0.0.1"
-        "--port"
-        "4096"
-      ];
-
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "${config.xdg.dataHome}/opencode-server/serve.log";
-      StandardErrorPath = "${config.xdg.dataHome}/opencode-server/serve.log";
-    };
-  };
-
-  # Expose opencode server to Tailscale network
-  home.activation.tailscale-opencode-serve = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    if command -v tailscale >/dev/null 2>&1; then
-      tailscale serve --bg --set-config --https=off 4096 2>/dev/null || true
-    fi
-  '';
-
   programs.git.ignores = [
     "/.worktrees/"
     ".omo"

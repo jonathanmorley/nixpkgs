@@ -20,7 +20,6 @@
     // {
       inherit gitignore;
       opencodeModel = specialArgs.opencodeModel or "opencode/big-pickle";
-      opencodeServer = specialArgs.opencodeServer or null;
     };
 in
   darwin.lib.darwinSystem {
@@ -53,7 +52,6 @@ in
           jm.sshProvider = extendedSpecialArgs.sshProvider or null;
           jm.sshKeys = extendedSpecialArgs.sshKeys or {};
           jm.opencodeModel = extendedSpecialArgs.opencodeModel;
-          jm.opencodeServer = extendedSpecialArgs.opencodeServer;
         }
         home-manager.darwinModules.home-manager
         {
