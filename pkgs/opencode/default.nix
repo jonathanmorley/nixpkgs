@@ -7,7 +7,7 @@
   targets = {
     aarch64-darwin = {
       name = "darwin-arm64";
-      hash = "sha256-23w/q7PSfnf1JjVa/qlObhhtN2Dt54UaIa8INvl4Mj8=";
+      hash = "sha256-PPIpzDrdHxyqd+V6J8mDTYF52/u2lPnzboat1rkrUSE=";
     };
   };
   target = targets.${system} or (throw "Unsupported OpenCode CLI platform: ${system}");
@@ -17,7 +17,7 @@ in
   # tarball that already contains it.
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "opencode";
-    version = "2.0.23";
+    version = "2.0.28";
 
     # TODO: bump the version by updating `version` and the `hash`. The npm
     # dist tag is `@opencode/cli@latest`; regenerate the hash with:
