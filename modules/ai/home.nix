@@ -27,7 +27,7 @@
           "@jonathanmorley/opencode-claude-compat@0.3.0"
           "@openchamber/opencode-claude@1.4.1"
           "superpowers@git+https://github.com/obra/superpowers.git#bb92a77741419a4ab5f06e711a283343f1ada0c3"
-          "@dietrichgebert/ponytail@5.2.0"
+          "@dietrichgebert/ponytail@5.3.0"
         ]
         ++ lib.optional config.services.trajectory.opencode.enable
         "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
