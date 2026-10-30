@@ -1,7 +1,6 @@
-{pkgs, ...}: {
-  environment.systemPackages = [
-    pkgs.trajectory
-  ];
+_: {
+  # Trajectory is installed per-user by modules/ai/trajectory.nix, gated on
+  # services.trajectory.enable, so consumers can switch it off entirely.
 
   # OpenChamber Desktop is installed by Nix (see pkgs/openchamber-desktop,
   # wired into home.packages in modules/ai/home.nix) rather than Homebrew:
