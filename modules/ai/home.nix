@@ -3,7 +3,12 @@
   pkgs,
   config,
   ...
-}: {
+}: let
+  # Trajectory's OpenCode wiring needs both the service and its OpenCode
+  # integration enabled; a consumer disabling services.trajectory must get
+  # no references to the package at all.
+  trajectoryOpenCode = config.services.trajectory.enable && config.services.trajectory.opencode.enable;
+in {
   home.packages = [
     # OpenChamber Desktop .app bundle (see pkgs/openchamber-desktop).
     # Home Manager linkApps symlinks it into ~/Applications. OpenCode
@@ -29,16 +34,16 @@
           "superpowers@git+https://github.com/obra/superpowers.git#2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
           "@dietrichgebert/ponytail@5.3.2"
         ]
-        ++ lib.optional config.services.trajectory.opencode.enable
+        ++ lib.optional trajectoryOpenCode
         "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
-      mcp = lib.optionalAttrs config.services.trajectory.opencode.enable {
+      mcp = lib.optionalAttrs trajectoryOpenCode {
         trajectory = {
           type = "local";
           command = ["${pkgs.trajectory}/bin/trajectory" "mcp"];
           enabled = true;
         };
       };
-      skills = lib.optionalAttrs config.services.trajectory.opencode.enable {
+      skills = lib.optionalAttrs trajectoryOpenCode {
         paths = ["${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode/skills"];
       };
     };
@@ -87,18 +92,6 @@
     identity.user_email = "morley.jonathan@gmail.com";
     clients = ["cc"];
   };
-
-  # Register Trajectory plugin with configured clients on every activation.
-  # OpenCode needs no registration — its plugin is loaded via the settings.plugin path.
-  home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    # Ensure Homebrew and profile binaries are on PATH for client detection
-    export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
-
-    clients="${lib.concatStringsSep "," config.services.trajectory.clients}"
-    if [ -n "$clients" ]; then
-      ${pkgs.trajectory}/bin/trajectory setup --clients "$clients" --non-interactive || true
-    fi
-  '';
 
   programs.git.ignores = [
     "/.worktrees/"

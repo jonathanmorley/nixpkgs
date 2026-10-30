@@ -302,8 +302,23 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    home.packages = [cfg.package];
+
     # Trajectory configuration
     home.file.".trajectory/config.yaml".source = configYaml;
+
+    # Register the Trajectory plugin with configured clients on every
+    # activation. OpenCode needs no registration: its plugin is loaded via
+    # the settings.plugin path in modules/ai/home.nix.
+    home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      # Ensure Homebrew and profile binaries are on PATH for client detection
+      export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
+
+      clients="${lib.concatStringsSep "," cfg.clients}"
+      if [ -n "$clients" ]; then
+        ${cfg.package}/bin/trajectory setup --clients "$clients" --non-interactive || true
+      fi
+    '';
 
     # Launchd agent for trajectory serve
     launchd.agents.trajectory-serve = lib.mkIf cfg.serve.enable {
