@@ -32,7 +32,7 @@ in {
           "@jonathanmorley/opencode-claude-compat@0.3.0"
           "@openchamber/opencode-claude@1.6.0"
           "superpowers@git+https://github.com/obra/superpowers.git#2ce8aa15d05bd57213e6f746f953aafb7ded7a8b"
-          "@dietrichgebert/ponytail@5.3.2"
+          "@dietrichgebert/ponytail@5.3.3"
         ]
         ++ lib.optional trajectoryOpenCode
         "${pkgs.trajectory}/.trajectory/plugin/trajectory-opencode";
