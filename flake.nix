@@ -168,6 +168,17 @@
             assert builtins.elem "/.worktrees/" ignores;
             assert !(builtins.elem "docs/superpowers/" ignores);
               pkgs.runCommand "git-ignores" {} "touch $out";
+          # OpenChamber must start the Nix opencode, which the profile path has to provide.
+          openchamber-opencode-binary = let
+            cfg = self.darwinConfigurations.gha-aarch64-darwin.config;
+            binary = "/etc/profiles/per-user/runner/bin/opencode";
+          in
+            assert cfg.launchd.user.envVariables.OPENCODE_BINARY == binary;
+            assert cfg.launchd.user.agents.opencode-binary-env.serviceConfig.ProgramArguments == ["/bin/launchctl" "setenv" "OPENCODE_BINARY" binary];
+            assert cfg.launchd.user.agents.opencode-binary-env.serviceConfig.RunAtLoad;
+            assert cfg.home-manager.useUserPackages;
+            assert builtins.elem cfg.home-manager.users.runner.programs.opencode.package cfg.home-manager.users.runner.home.packages;
+              pkgs.runCommand "openchamber-opencode-binary" {} "touch $out";
         };
         devShells.default = config.pre-commit.devShell;
         pre-commit.settings = {
