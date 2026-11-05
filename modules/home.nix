@@ -28,17 +28,6 @@
       fi
     ''
   );
-  # VS Code runs from the read-only Nix store, so its own updater can never
-  # install an update and keeps asking macOS to install a helper. Turn it off
-  # (VS Code is updated with the flake inputs) while keeping settings.json a
-  # writable file; programs.vscode.userSettings would make it a store symlink.
-  home.activation.vscodeUpdateMode = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    run ${pkgs.callPackage ../pkgs/vscode-update-mode {}}/bin/vscode-update-mode ${lib.escapeShellArg "${
-      if pkgs.stdenv.isDarwin
-      then "${config.home.homeDirectory}/Library/Application Support"
-      else config.xdg.configHome
-    }/Code/User/settings.json"}
-  '';
   programs.direnv.enable = true;
   programs.eza.enable = true;
   programs.fd.enable = true;

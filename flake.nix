@@ -101,6 +101,67 @@
             ${./tests/vscode-update-mode.sh} ${pkgs.callPackage ./pkgs/vscode-update-mode {}}/bin/vscode-update-mode
             touch "$out"
           '';
+          # Settings are set through programs.vscode when it writes settings.json,
+          # and by the activation step otherwise, never both.
+          vscode-update-mode-hm = let
+            inherit (pkgs) lib;
+            hmWith = vscode:
+              (self.darwinConfigurations.gha-aarch64-darwin.extendModules {
+                modules = [{home-manager.users.runner.programs.vscode = vscode;}];
+              }).config.home-manager.users.runner;
+            settingsPath = "/Users/runner/Library/Application Support/Code/User/settings.json";
+            activates = hm: hm.home.activation ? vscodeUpdateMode;
+            writes = hm: hm.home.file ? ${settingsPath};
+            warns = hm: lib.any (lib.hasInfix "enableUpdateCheck") hm.warnings;
+            # settings.json as written by programs.vscode, checked with jq at build time.
+            settingsIs = name: hm: expected: ''
+              ${pkgs.jq}/bin/jq -e --argjson expected ${lib.escapeShellArg (builtins.toJSON expected)} \
+                '. == $expected' ${hm.home.file.${settingsPath}.source} >/dev/null \
+                || { echo "FAIL: ${name}"; exit 1; }
+              echo "PASS: ${name}"
+            '';
+            default = hmWith {};
+            enabled = hmWith {enable = true;};
+            withSettings = hmWith {
+              enable = true;
+              userSettings.a = 1;
+            };
+            withUpdates = hmWith {
+              enable = true;
+              userSettings.a = 1;
+              profiles.default.enableUpdateCheck = true;
+            };
+            withNoUpdates = hmWith {
+              enable = true;
+              userSettings.a = 1;
+              profiles.default.enableUpdateCheck = false;
+            };
+            withPath = hmWith {
+              enable = true;
+              userSettings = ./tests/vscode-update-mode.sh;
+            };
+          in
+            assert activates default && !writes default && !warns default;
+            # Enabled without settings: still a writable file, and no default profile
+            # is created (that would make programs.vscode manage the extensions).
+            assert activates enabled && !writes enabled && enabled.programs.vscode.profiles == {};
+            assert !activates withSettings && writes withSettings && !warns withSettings;
+            assert !activates withUpdates && writes withUpdates;
+            assert !activates withNoUpdates && writes withNoUpdates;
+            assert !activates withPath && warns withPath;
+            assert !warns withUpdates && !warns withNoUpdates;
+              pkgs.runCommand "vscode-update-mode-hm" {} ''
+                ${settingsIs "userSettings get update.mode" withSettings {
+                  a = 1;
+                  "update.mode" = "none";
+                }}
+                ${settingsIs "enableUpdateCheck = true is kept" withUpdates {a = 1;}}
+                ${settingsIs "enableUpdateCheck = false is kept" withNoUpdates {
+                  a = 1;
+                  "update.mode" = "none";
+                }}
+                touch "$out"
+              '';
           # pre-commit is auto-wired by git-hooks-nix via check.enable (default: true)
           module-eval = mkModuleEval;
           module-eval-set = let

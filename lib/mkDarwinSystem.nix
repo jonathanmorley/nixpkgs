@@ -89,6 +89,7 @@ in
                   ../modules/ai/trajectory.nix
                   ../modules/docker/home.nix
                   ../modules/git/home.nix
+                  ../modules/vscode/home.nix
                   ../modules/secrets/fnox.home.nix
                 ]
                 ++ nixpkgs.lib.optional (builtins.elem "personal" extendedSpecialArgs.profiles) ../modules/personal/home.nix

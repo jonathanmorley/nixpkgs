@@ -78,12 +78,16 @@ The Trajectory configuration test runs during `nix flake check` through the `che
 ## VS Code
 
 VS Code runs from the read-only Nix store, so its built-in updater can never install an update; it only keeps asking macOS to install a helper.
-Home Manager activation therefore sets `"update.mode": "none"` in `~/Library/Application Support/Code/User/settings.json` (`pkgs/vscode-update-mode`), and VS Code updates only when the flake inputs are updated.
-The file stays a normal writable file, so settings changed in VS Code still save.
-It is edited as JSONC with `jsonc-parser`, the library VS Code uses, so comments, trailing commas and formatting are kept, and it is not rewritten when the key is already set.
-A file that is not a valid JSONC object, or is a symlink, is left unchanged and fails activation with a message.
+`modules/vscode/home.nix` therefore sets `"update.mode": "none"` in `~/Library/Application Support/Code/User/settings.json`, and VS Code updates only when the flake inputs are updated.
 
-The behavior tests run during `nix flake check` through the `checks.vscode-update-mode` derivation.
+- Usually Home Manager activation sets the key (`pkgs/vscode-update-mode`), and the file stays a normal writable file, so settings changed in VS Code still save.
+  It is edited as JSONC with `jsonc-parser`, the library VS Code uses, so comments, trailing commas and formatting are kept, and it is not rewritten when the key is already set.
+  A file it cannot update (not a valid JSONC object, a symlink, unreadable, or saved by VS Code during the update) is left unchanged with a warning; activation never fails because of it.
+- Activation creates the file, and the `~/Library/Application Support/Code/User/` directory, wherever this configuration is activated, including CI hosts.
+- If `programs.vscode` writes `settings.json` from `userSettings`, the key is added to those settings instead, unless `programs.vscode.profiles.default.enableUpdateCheck` is set.
+  If `userSettings` is a file, a Home Manager warning asks to set `enableUpdateCheck = false`.
+
+The behavior tests run during `nix flake check` through the `checks.vscode-update-mode` and `checks.vscode-update-mode-hm` derivations.
 
 ## Downstream Darwin Configurations
 

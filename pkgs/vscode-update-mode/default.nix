@@ -1,6 +1,6 @@
 {
   fetchzip,
-  nodejs,
+  nodejs-slim,
   writeShellApplication,
 }: let
   # The JSONC library VS Code uses to edit settings.json; no dependencies.
@@ -12,6 +12,6 @@ in
   writeShellApplication {
     name = "vscode-update-mode";
     text = ''
-      JSONC_PARSER=${jsonc-parser}/lib/umd/main.js exec ${nodejs}/bin/node ${./set-update-mode.js} "$@"
+      JSONC_PARSER=${jsonc-parser}/lib/umd/main.js exec ${nodejs-slim}/bin/node ${./set-update-mode.js} "$@"
     '';
   }
