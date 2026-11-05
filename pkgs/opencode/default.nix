@@ -7,7 +7,8 @@
   targets = {
     aarch64-darwin = {
       name = "darwin-arm64";
-      hash = "sha256-39gn3jKBtMPKKwv8j0vrED+mYMQZ0UihpRXENE+enAI=";
+      # npm's dist.integrity for this tarball, so it can be checked against the registry.
+      hash = "sha512-UwGb2MIJqLSh4wfrkvqNiAohG1Wf5t96Nx7113QvmtCn5LGimmXYN0Tb1chD0mMRRdPvnUguevKRdwM0txZY1Q==";
     };
   };
   target = targets.${system} or (throw "Unsupported OpenCode CLI platform: ${system}");
@@ -20,9 +21,8 @@ in
     version = "2.2.5";
 
     # TODO: bump the version by updating `version` and the `hash`. The npm
-    # dist tag is `@opencode/cli@latest`; regenerate the hash with:
-    #   nix store prefetch-file --json \
-    #     "https://registry.npmjs.org/@opencode/cli-darwin-arm64/-/cli-darwin-arm64-<version>.tgz"
+    # dist tag is `@opencode/cli@latest`; the hash is npm's integrity value:
+    #   npm view @opencode/cli-darwin-arm64@<version> dist.integrity
     src = fetchurl {
       url = "https://registry.npmjs.org/@opencode/cli-${target.name}/-/cli-${target.name}-${version}.tgz";
       inherit (target) hash;
