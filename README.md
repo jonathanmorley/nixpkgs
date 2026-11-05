@@ -75,6 +75,16 @@ The shared Home Manager configuration installs the OpenCode v2 CLI (`opencode`, 
 
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
+## VS Code
+
+VS Code runs from the read-only Nix store, so its built-in updater can never install an update; it only keeps asking macOS to install a helper.
+Home Manager activation therefore sets `"update.mode": "none"` in `~/Library/Application Support/Code/User/settings.json` (`pkgs/vscode-update-mode`), and VS Code updates only when the flake inputs are updated.
+The file stays a normal writable file, so settings changed in VS Code still save.
+It is edited as JSONC with `jsonc-parser`, the library VS Code uses, so comments, trailing commas and formatting are kept, and it is not rewritten when the key is already set.
+A file that is not a valid JSONC object, or is a symlink, is left unchanged and fails activation with a message.
+
+The behavior tests run during `nix flake check` through the `checks.vscode-update-mode` derivation.
+
 ## Downstream Darwin Configurations
 
 This flake exports `lib.mkDarwinSystem` for downstream configurations that need

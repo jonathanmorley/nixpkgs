@@ -97,6 +97,10 @@
             ${./tests/trajectory.sh}
             touch "$out"
           '';
+          vscode-update-mode = pkgs.runCommand "vscode-update-mode-tests" {} ''
+            ${./tests/vscode-update-mode.sh} ${pkgs.callPackage ./pkgs/vscode-update-mode {}}/bin/vscode-update-mode
+            touch "$out"
+          '';
           # pre-commit is auto-wired by git-hooks-nix via check.enable (default: true)
           module-eval = mkModuleEval;
           module-eval-set = let
