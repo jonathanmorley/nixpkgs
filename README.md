@@ -86,6 +86,7 @@ VS Code runs from the read-only Nix store, so its built-in updater can never ins
 - Activation creates the file, and the `~/Library/Application Support/Code/User/` directory, wherever this configuration is activated, including CI hosts.
 - If `programs.vscode` writes `settings.json` from `userSettings`, the key is added to those settings instead, unless `programs.vscode.profiles.default.enableUpdateCheck` is set.
   If `userSettings` is a file, a Home Manager warning asks to set `enableUpdateCheck = false`.
+  With `mutableUserSettings` (newer Home Manager), `settings.json` stays writable and activation sets the key as above.
 
 The behavior tests run during `nix flake check` through the `checks.vscode-update-mode` and `checks.vscode-update-mode-hm` derivations.
 
