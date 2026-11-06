@@ -97,6 +97,117 @@
             ${./tests/trajectory.sh}
             touch "$out"
           '';
+          vscode-update-mode = pkgs.runCommand "vscode-update-mode-tests" {} ''
+            ${./tests/vscode-update-mode.sh} ${pkgs.callPackage ./pkgs/vscode-update-mode {}}/bin/vscode-update-mode
+            touch "$out"
+          '';
+          # Settings are set through programs.vscode when it writes settings.json,
+          # and by the activation step otherwise, never both.
+          vscode-update-mode-hm = let
+            inherit (pkgs) lib;
+            # programs.vscode.profiles.<name>.mutableUserSettings is only in newer
+            # Home Manager; declare it for the pinned one.
+            hmHasMutableSettings =
+              lib.hasInfix "mutableUserSettings"
+              (builtins.readFile "${inputs.home-manager}/modules/programs/vscode/mkVscodeModule.nix");
+            mutableSettingsOption = lib.optional (!hmHasMutableSettings) {
+              options.programs.vscode.profiles = lib.mkOption {
+                type = lib.types.attrsOf (lib.types.submodule {
+                  options.mutableUserSettings = lib.mkEnableOption "writable settings.json";
+                });
+              };
+            };
+            # The CI host's Home Manager with `module`, and with or without
+            # modules/vscode/home.nix.
+            hmWith = withModule: module:
+              (self.darwinConfigurations.gha-aarch64-darwin.extendModules {
+                modules = [
+                  {
+                    home-manager.users.runner = {
+                      imports = [module] ++ mutableSettingsOption;
+                      disabledModules = lib.optional (!withModule) ./modules/vscode/home.nix;
+                    };
+                  }
+                ];
+              }).config.home-manager.users.runner;
+            settingsPath = "/Users/runner/Library/Application Support/Code/User/settings.json";
+            activates = hm: hm.home.activation ? vscodeUpdateMode;
+            writes = hm: hm.home.file ? ${settingsPath};
+            warns = hm: lib.any (lib.hasInfix "enableUpdateCheck") hm.warnings;
+            # Shell that checks, at build time, the settings.json `module` makes
+            # programs.vscode write: Home Manager's own (without this module)
+            # merged with `extra`. This module may change no other file.
+            settingsAre = name: module: extra: let
+              on = hmWith true module;
+              off = hmWith false module;
+            in
+              if lib.attrNames on.home.file != lib.attrNames off.home.file
+              then throw "vscode-update-mode-hm: ${name}: home.file entries differ"
+              else if !(writes off)
+              then "echo 'PASS: ${name} (programs.vscode writes no settings.json)'"
+              else ''
+                ${pkgs.jq}/bin/jq -e --slurpfile hm ${off.home.file.${settingsPath}.source} \
+                  --argjson extra ${lib.escapeShellArg (builtins.toJSON extra)} \
+                  '. == ($hm[0] + $extra)' ${on.home.file.${settingsPath}.source} >/dev/null \
+                  || { echo "FAIL: ${name}"; exit 1; }
+                echo "PASS: ${name}"
+              '';
+            vscode = settings: {programs.vscode = {enable = true;} // settings;};
+            withSettings = vscode {userSettings.a = 1;};
+            withExtensionChecks = vscode {
+              userSettings.a = 1;
+              profiles.default.enableExtensionUpdateCheck = false;
+            };
+            withVscodium = {pkgs, ...}: {
+              programs.vscode = {
+                enable = true;
+                package = pkgs.vscodium;
+                userSettings.a = 1;
+              };
+            };
+            withUpdates = vscode {
+              userSettings.a = 1;
+              profiles.default.enableUpdateCheck = true;
+            };
+            withNoUpdates = vscode {
+              userSettings.a = 1;
+              profiles.default.enableUpdateCheck = false;
+            };
+            withMutable = vscode {
+              userSettings.a = 1;
+              profiles.default.mutableUserSettings = true;
+            };
+            withPath = vscode {userSettings = ./tests/vscode-update-mode.sh;};
+            withPathString = vscode {userSettings = "${./tests/vscode-update-mode.sh}";};
+            noUpdates = {"update.mode" = "none";};
+            hm = lib.mapAttrs (_: hmWith true) {
+              inherit withSettings withVscodium withUpdates withNoUpdates withMutable withPath withPathString;
+              default = {};
+              enabled = vscode {};
+            };
+          in
+            assert activates hm.default && !writes hm.default && !warns hm.default;
+            # Enabled without settings: still a writable file, and no default profile
+            # is created (that would make programs.vscode manage the extensions).
+            assert activates hm.enabled && !writes hm.enabled && hm.enabled.programs.vscode.profiles == {};
+            assert !activates hm.withSettings && !warns hm.withSettings;
+            # programs.vscode writes VS Code's paths whatever the package.
+            assert !activates hm.withVscodium && !warns hm.withVscodium;
+            assert !activates hm.withUpdates && !warns hm.withUpdates;
+            assert !activates hm.withNoUpdates && !warns hm.withNoUpdates;
+            # Writable settings.json: the activation step sets the key.
+            assert activates hm.withMutable && !warns hm.withMutable;
+            assert !activates hm.withPath && warns hm.withPath;
+            assert !activates hm.withPathString && warns hm.withPathString;
+              pkgs.runCommand "vscode-update-mode-hm" {} ''
+                ${settingsAre "userSettings get update.mode" withSettings noUpdates}
+                ${settingsAre "enableExtensionUpdateCheck = false is kept" withExtensionChecks noUpdates}
+                ${settingsAre "vscodium package writes VS Code's settings" withVscodium noUpdates}
+                ${settingsAre "enableUpdateCheck = true is kept" withUpdates {}}
+                ${settingsAre "enableUpdateCheck = false is kept" withNoUpdates {}}
+                ${settingsAre "mutableUserSettings is left to programs.vscode" withMutable {}}
+                touch "$out"
+              '';
           # pre-commit is auto-wired by git-hooks-nix via check.enable (default: true)
           module-eval = mkModuleEval;
           module-eval-set = let
