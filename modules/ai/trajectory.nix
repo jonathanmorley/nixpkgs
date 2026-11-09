@@ -6,6 +6,13 @@
 }: let
   cfg = config.services.trajectory;
 
+  # What goes on PATH and runs the agents: the package itself, or a launcher
+  # that prefers an install managed outside Nix (see pkgs/trajectory/launcher.sh).
+  binary =
+    if cfg.preferInstalled
+    then pkgs.callPackage ../../pkgs/trajectory/launcher.nix {trajectory = cfg.package;}
+    else cfg.package;
+
   configYaml = pkgs.writers.writeYAML "trajectory-config.yaml" {
     # Credentials live in the OS keychain; the auth section stays empty but is
     # kept so the file mirrors what `trajectory config` writes.
@@ -299,33 +306,53 @@ in {
         description = "Run trajectory view as a launchd agent (local-ui on port 8888)";
       };
     };
+
+    configFile = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Write ~/.trajectory/config.yaml from the options above. Disable when
+          another install (the upstream installer or an MDM) owns that file.
+        '';
+      };
+    };
+
+    preferInstalled = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Put a launcher on PATH that runs $TRAJECTORY_HOME/bin/trajectory
+        (default ~/.trajectory/bin/trajectory) when it exists, and the
+        package otherwise, so a self-updating install managed outside Nix
+        keeps one binary version over its state. The agents and client setup
+        use the same launcher.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [cfg.package];
+    home.packages = [binary];
 
     # Trajectory configuration
-    home.file.".trajectory/config.yaml".source = configYaml;
+    home.file.".trajectory/config.yaml" = lib.mkIf cfg.configFile.enable {source = configYaml;};
 
     # Register the Trajectory plugin with configured clients on every
     # activation. OpenCode needs no registration: its plugin is loaded via
     # the settings.plugin path in modules/ai/home.nix.
-    home.activation.trajectory-setup = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.trajectory-setup = lib.mkIf (cfg.clients != []) (lib.hm.dag.entryAfter ["writeBoundary"] ''
       # Ensure Homebrew and profile binaries are on PATH for client detection
       export PATH="/opt/homebrew/bin:/usr/local/bin:''${PATH:-}"
 
-      clients="${lib.concatStringsSep "," cfg.clients}"
-      if [ -n "$clients" ]; then
-        ${cfg.package}/bin/trajectory setup --clients "$clients" --non-interactive || true
-      fi
-    '';
+      ${binary}/bin/trajectory setup --clients "${lib.concatStringsSep "," cfg.clients}" --non-interactive || true
+    '');
 
     # Launchd agent for trajectory serve
     launchd.agents.trajectory-serve = lib.mkIf cfg.serve.enable {
       enable = true;
       config = {
         ProgramArguments = [
-          "${cfg.package}/bin/trajectory"
+          "${binary}/bin/trajectory"
           "serve"
         ];
         RunAtLoad = true;
@@ -340,7 +367,7 @@ in {
       enable = true;
       config = {
         ProgramArguments = [
-          "${cfg.package}/bin/trajectory"
+          "${binary}/bin/trajectory"
           "view"
           "--no-open"
         ];

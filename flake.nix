@@ -97,6 +97,17 @@
             ${./tests/trajectory.sh}
             touch "$out"
           '';
+          # The preferInstalled launcher, with a fake Nix binary as its fallback.
+          trajectory-launcher = let
+            fakeTrajectory = pkgs.writeShellScriptBin "trajectory" ''
+              printf '%s\n' nix "$@" >"$RAN"
+              exit "''${FAKE_EXIT:-0}"
+            '';
+          in
+            pkgs.runCommand "trajectory-launcher-tests" {} ''
+              ${pkgs.bash}/bin/bash ${./tests/trajectory-launcher.sh} ${pkgs.callPackage ./pkgs/trajectory/launcher.nix {trajectory = fakeTrajectory;}}/bin/trajectory
+              touch "$out"
+            '';
           vscode-update-mode = pkgs.runCommand "vscode-update-mode-tests" {} ''
             ${./tests/vscode-update-mode.sh} ${pkgs.callPackage ./pkgs/vscode-update-mode {}}/bin/vscode-update-mode
             touch "$out"

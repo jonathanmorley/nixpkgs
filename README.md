@@ -75,6 +75,8 @@ The shared Home Manager configuration installs the OpenCode v2 CLI (`opencode`, 
 
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
+Beside an install managed outside Nix (the upstream installer or an MDM, which self-update under `~/.trajectory`), set `services.trajectory.configFile.enable = false` so Nix leaves `config.yaml` to it, `clients = []`, `serve.enable = false` and `opencode.enable = false` so nothing is registered or run twice, and `preferInstalled = true` so the `trajectory` on `PATH` runs that install's binary (`$TRAJECTORY_HOME/bin/trajectory`) when it exists and the Nix package otherwise. `checks.trajectory-launcher` tests that launcher (`pkgs/trajectory/launcher.sh`) against fake binaries.
+
 ## VS Code
 
 VS Code runs from the read-only Nix store, so its built-in updater can never install an update; it only keeps asking macOS to install a helper.
