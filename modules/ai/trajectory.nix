@@ -77,7 +77,7 @@
         near_realtime_interval_minutes = cfg.export.sensitivity.near_realtime_interval_minutes;
       };
     };
-    # An empty identity section means trajectory falls back to system/git identity.
+    # Without user_email, trajectory.user_email is the user name plus identity.user_email_suffix, never git.
     identity = lib.optionalAttrs (cfg.identity.user_email != "") {
       user_email = cfg.identity.user_email;
     };
