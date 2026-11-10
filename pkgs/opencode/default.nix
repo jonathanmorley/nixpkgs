@@ -8,7 +8,7 @@
     aarch64-darwin = {
       name = "darwin-arm64";
       # npm's dist.integrity for this tarball, so it can be checked against the registry.
-      hash = "sha512-UwGb2MIJqLSh4wfrkvqNiAohG1Wf5t96Nx7113QvmtCn5LGimmXYN0Tb1chD0mMRRdPvnUguevKRdwM0txZY1Q==";
+      hash = "sha512-KH45DjiTcsHcnVLDrAEP3kdG57olO2BndtpYi+iGc7/cBrZfUs6YYrVpsZ40lr4izTupSIxwTbvSwKHutuq5uw==";
     };
   };
   target = targets.${system} or (throw "Unsupported OpenCode CLI platform: ${system}");
@@ -18,7 +18,7 @@ in
   # tarball that already contains it.
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "opencode";
-    version = "2.2.5";
+    version = "2.2.7";
 
     # TODO: bump the version by updating `version` and the `hash`. The npm
     # dist tag is `@opencode/cli@latest`; the hash is npm's integrity value:
