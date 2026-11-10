@@ -39,6 +39,11 @@ cat >"$HOME/.trajectory/bin/trajectory" <<EOF
   printf 'asset=%s\n' "\${TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE-unset}"
   printf 'startup=%s\n' "\${TRAJECTORY_DISABLE_STARTUP_RECONCILE-unset}"
   printf 'watchers=%s\n' "\${TRAJECTORY_DISABLE_CLIENT_WATCHERS-unset}"
+  printf 'capture=%s\n' "\${TRAJECTORY_CAPTURE_URL-unset}"
+  printf 'binary=%s\n' "\${TRAJECTORY_BINARY-unset}"
+  printf 'other=%s\n' "\${TRAJECTORY_OTHER-unset}"
+  printf 'disabled=%s\n' "\${TRAJECTORY_DISABLED-unset}"
+  printf 'keychain=%s\n' "\${TRAJECTORY_DISABLE_KEYCHAIN-unset}"
 } >"\$RAN"
 EOF
 chmod +x "$HOME/.trajectory/bin/trajectory"
@@ -70,7 +75,8 @@ quiet() {
 }
 
 # nix_ran <args...>: the Nix binary ran in the Nix home and port, with client
-# reconcile turned off, so it never rewrites another install's client setup.
+# reconcile turned off, so it never rewrites another install's client setup,
+# capture pointed at its own port, and no other caller TRAJECTORY_* variable.
 nix_ran() {
   ran nix "$@"
   env_is home "$nix_home"
@@ -78,6 +84,16 @@ nix_ran() {
   env_is asset 1
   env_is startup 1
   env_is watchers 1
+  env_is capture "http://127.0.0.1:$nix_port"
+  env_is binary unset
+  env_is other unset
+}
+
+# refused <args...>: nothing ran, and the launcher said why, with status 2.
+refused() {
+  [ "$status" -eq 2 ] || fail "trajectory $*: exited $status, want 2"
+  [ ! -e "$RAN" ] || fail "trajectory $*: ran $(head -1 "$RAN")"
+  [ -s "$stderr" ] || fail "trajectory $*: refused without saying why"
 }
 
 # installed_ran <args...>: the installed binary ran with the caller's
@@ -110,6 +126,32 @@ TRAJECTORY_HOME="$HOME/.trajectory" TRAJECTORY_PORT=9 run mcp
 nix_ran mcp
 quiet
 
+# A caller's capture URL, binary and any other TRAJECTORY_* variable point
+# at the other install, so they don't reach the Nix one. Its off switches
+# (TRAJECTORY_DISABLED, TRAJECTORY_DISABLE_*) do.
+TRAJECTORY_CAPTURE_URL=http://127.0.0.1:9 TRAJECTORY_BINARY="$HOME/.trajectory/bin/trajectory" TRAJECTORY_OTHER=x \
+  TRAJECTORY_DISABLED=1 TRAJECTORY_DISABLE_KEYCHAIN=1 run mcp
+nix_ran mcp
+env_is disabled 1
+env_is keychain 1
+quiet
+
+# setup and uninstrument (or uninstall) rewrite the client integrations the
+# installs share, so nix mode refuses them, after flags too, unless
+# TRAJECTORY_SELECTOR_ALLOW_SETUP=1.
+for command in setup uninstrument uninstall; do
+  run "$command" --clients cc
+  refused "$command"
+  grep -q TRAJECTORY_SELECTOR_ALLOW_SETUP "$stderr" || fail "$command: refusal does not name the override: $(cat "$stderr")"
+  run --json "$command"
+  refused --json "$command"
+done
+TRAJECTORY_SELECTOR_ALLOW_SETUP=1 run setup --clients cc
+nix_ran setup --clients cc
+# A later argument that happens to be "setup" is not the command.
+run doctor setup
+nix_ran doctor setup
+
 # Trailing whitespace and a newline-less file still count.
 printf 'nix  \n' >"$selector"
 run status
@@ -124,11 +166,16 @@ installed_ran doctor
 env_is home unset
 quiet
 
-# In installed mode the caller's environment passes through unchanged.
-TRAJECTORY_HOME="$HOME/.trajectory" TRAJECTORY_PORT=9 run doctor
+# In installed mode the caller's environment passes through unchanged, and
+# setup is the installed install's business.
+TRAJECTORY_HOME="$HOME/.trajectory" TRAJECTORY_PORT=9 TRAJECTORY_CAPTURE_URL=http://127.0.0.1:9 TRAJECTORY_BINARY=/b run doctor
 installed_ran doctor
 env_is home "$HOME/.trajectory"
 env_is port 9
+env_is capture http://127.0.0.1:9
+env_is binary /b
+run setup --clients cc
+installed_ran setup --clients cc
 
 # Anything else selects the installed install, with one warning line.
 echo bogus >"$selector"
@@ -168,6 +215,19 @@ nix_ran version
 echo nix >"$selector"
 FAKE_EXIT=4 run status
 [ "$status" -eq 4 ] || fail "exit status $status, want 4"
+
+# nix mode refuses to run when the Nix home resolves to the installed home
+# or inside it, through symlinks too: the two installs would share state.
+linked_home="$PWD/linked-home"
+for target in "$nix_home" "${nix_home%/*}"; do
+  rm -rf "$linked_home"
+  mkdir -p "$linked_home/.config/trajectory"
+  echo nix >"$linked_home/.config/trajectory/active"
+  ln -s "$target" "$linked_home/.trajectory"
+  HOME="$linked_home" run version
+  refused version
+  grep -qF "$nix_home" "$stderr" || fail "shared home: refusal does not name the Nix home: $(cat "$stderr")"
+done
 
 # --- trajectory-select ------------------------------------------------------
 
@@ -217,6 +277,17 @@ done
 sel --help
 [ "$status" -eq 0 ] || fail "select --help: exited $status"
 grep -qi "usage" "$stdout" || fail "select --help: no usage"
+
+# A directory at the selector path is not written into.
+mv "$selector" "$selector.saved"
+mkdir "$selector"
+sel nix
+[ "$status" -ne 0 ] || fail "select nix onto a directory succeeded"
+[ -d "$selector" ] || fail "select nix replaced the directory"
+[ -z "$(ls -A "$selector")" ] || fail "select nix wrote into the directory: $(ls -A "$selector")"
+[ -z "$(find "$(dirname "$selector")" -name '.active.*')" ] || fail "failed select left a temporary file"
+rmdir "$selector"
+mv "$selector.saved" "$selector"
 
 # A selector path that cannot be written fails loudly and leaves the old value.
 chmod a-w "$(dirname "$selector")"

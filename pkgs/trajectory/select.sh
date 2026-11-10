@@ -36,7 +36,7 @@ case $# in
     tmp=$(@mktemp@ "$dir/.active.XXXXXX")
     trap '@rm@ -f "$tmp"' EXIT
     printf '%s\n' "$1" >"$tmp"
-    @mv@ -f "$tmp" "$file"
+    @mv@ -fT "$tmp" "$file"
     trap - EXIT
     ;;
   -h | --help)

@@ -8,13 +8,21 @@
   homeDirectory = config.home.homeDirectory;
   defaultHome = "${homeDirectory}/.trajectory";
 
-  # A path under the home directory, relative to it ("" if it is not under it).
-  relativeToHome = path:
-    if lib.hasPrefix "${homeDirectory}/" path
-    then lib.removePrefix "${homeDirectory}/" path
+  # A path under the home directory, relative to it, or "" if it is not
+  # under it or not in normal form (an empty, `.` or `..` segment, which
+  # includes a trailing `/`): string comparisons below rely on normal form.
+  relativeToHome = path: let
+    relative = lib.removePrefix "${homeDirectory}/" path;
+    segments = lib.splitString "/" relative;
+  in
+    if lib.hasPrefix "${homeDirectory}/" path && builtins.all (s: s != "" && s != "." && s != "..") segments
+    then relative
     else "";
   homeRelative = relativeToHome cfg.home;
   selectorRelative = relativeToHome cfg.selector.file;
+  # The installed install's home is ~/.trajectory; the Nix home must be
+  # neither it nor inside it.
+  insideInstalledHome = builtins.head (lib.splitString "/" homeRelative) == ".trajectory";
 
   # What goes on PATH and runs the agents: the package itself, or a launcher
   # that prefers an install managed outside Nix (see pkgs/trajectory/launcher.sh),
@@ -442,7 +450,7 @@ in {
       [
         {
           assertion = homeRelative != "";
-          message = "services.trajectory.home (${cfg.home}) must be under the home directory (${homeDirectory}).";
+          message = "services.trajectory.home (${cfg.home}) must be a normal path under the home directory (${homeDirectory}), without empty, `.` or `..` segments or a trailing `/`.";
         }
         {
           assertion = cfg.selector.enable || cfg.home == defaultHome;
@@ -451,8 +459,8 @@ in {
       ]
       ++ lib.optionals cfg.selector.enable [
         {
-          assertion = cfg.home != defaultHome;
-          message = "services.trajectory.home must differ from ${defaultHome} with the selector, which belongs to the other install.";
+          assertion = !insideInstalledHome;
+          message = "services.trajectory.home must be neither ${defaultHome} nor inside it with the selector: that directory belongs to the other install.";
         }
         {
           assertion = cfg.server.port != cfg.selector.installedPort;
@@ -460,7 +468,7 @@ in {
         }
         {
           assertion = selectorRelative != "";
-          message = "services.trajectory.selector.file (${cfg.selector.file}) must be under the home directory (${homeDirectory}).";
+          message = "services.trajectory.selector.file (${cfg.selector.file}) must be a normal path under the home directory (${homeDirectory}), without empty, `.` or `..` segments or a trailing `/`.";
         }
         {
           assertion = !cfg.serve.enable;

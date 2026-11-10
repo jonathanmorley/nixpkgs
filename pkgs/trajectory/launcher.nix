@@ -40,9 +40,11 @@
       then toString selector.port
       else "";
   };
+  # Both go inside single-quoted shell literals.
+  safe = s: builtins.match "[A-Za-z0-9._/+-]+" s != null;
 in
-  assert withSelector -> !(lib.hasPrefix "/" selector.file) && selector.file != "";
-  assert withSelector -> lib.hasPrefix "/" selector.home;
+  assert withSelector -> !(lib.hasPrefix "/" selector.file) && safe selector.file;
+  assert withSelector -> lib.hasPrefix "/" selector.home && safe selector.home;
     runCommand "trajectory-launcher" {
       meta.mainProgram = "trajectory";
       passthru = {inherit trajectory selector;};

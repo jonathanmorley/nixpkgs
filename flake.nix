@@ -120,6 +120,11 @@
                 printf 'asset=%s\n' "''${TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE-unset}"
                 printf 'startup=%s\n' "''${TRAJECTORY_DISABLE_STARTUP_RECONCILE-unset}"
                 printf 'watchers=%s\n' "''${TRAJECTORY_DISABLE_CLIENT_WATCHERS-unset}"
+                printf 'capture=%s\n' "''${TRAJECTORY_CAPTURE_URL-unset}"
+                printf 'binary=%s\n' "''${TRAJECTORY_BINARY-unset}"
+                printf 'other=%s\n' "''${TRAJECTORY_OTHER-unset}"
+                printf 'disabled=%s\n' "''${TRAJECTORY_DISABLED-unset}"
+                printf 'keychain=%s\n' "''${TRAJECTORY_DISABLE_KEYCHAIN-unset}"
               } >"$RAN"
               exit "''${FAKE_EXIT:-0}"
             '';
@@ -225,6 +230,53 @@
               enable = true;
               home = "${homeDirectory}/elsewhere";
             };
+            # Paths that only look different from the installed home, or are
+            # inside it, or aren't in normal form.
+            assert builtins.all (home: fails "home" (lib.recursiveUpdate selector {inherit home;})) [
+              "${homeDirectory}/.trajectory/"
+              "${homeDirectory}/.trajectory/nix"
+              "${homeDirectory}/x/../.trajectory"
+              "${homeDirectory}/x/.."
+              "${homeDirectory}/./trajectory"
+              "${homeDirectory}//trajectory"
+              "${homeDirectory}/trajectory/"
+              "${homeDirectory}/"
+            ];
+            assert builtins.all (file: fails "selector.file" (lib.recursiveUpdate selector {selector.file = file;})) [
+              "${homeDirectory}/.config/../active"
+              "${homeDirectory}/.config//active"
+              "${homeDirectory}/.config/trajectory/"
+            ];
+            # Both values are pasted into single-quoted shell literals, so the
+            # launcher accepts only a safe character set.
+            assert builtins.all (s:
+              !(builtins.tryEval
+                (pkgs.callPackage ./pkgs/trajectory/launcher.nix {
+                  trajectory = pkgs.hello;
+                  selector =
+                    {
+                      installedPort = 3;
+                      port = 2;
+                    }
+                    // s;
+                }).drvPath).success) [
+              {
+                file = "a'b";
+                home = "/h";
+              }
+              {
+                file = "a b";
+                home = "/h";
+              }
+              {
+                file = "a";
+                home = "/h'$(x)";
+              }
+              {
+                file = "a";
+                home = "/h\nx";
+              }
+            ];
               pkgs.runCommand "trajectory-module-tests" {nativeBuildInputs = [pkgs.yq-go];} ''
                 check() { [ "$(yq "$2" "$1")" = "$3" ] || { echo "FAIL: $1 $2: $(yq "$2" "$1"), want $3" >&2; exit 1; }; }
                 config=${withSelector.home.file.".local/share/trajectory/config.yaml".source}
@@ -237,6 +289,52 @@
                 check ${plain.home.file.".trajectory/config.yaml".source} '.auth | length' 0
                 touch "$out"
               '';
+          # The selector's nix mode relies on these undocumented variables to
+          # keep a second install from rewriting shared client integrations.
+          # A Trajectory bump that drops one must fail here, not in a home.
+          trajectory-reconcile-variables = let
+            trajectory = pkgs.callPackage ./pkgs/trajectory {};
+          in
+            pkgs.runCommand "trajectory-reconcile-variables" {} ''
+              for name in TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE TRAJECTORY_DISABLE_STARTUP_RECONCILE TRAJECTORY_DISABLE_CLIENT_WATCHERS; do
+                grep -aqF "$name" ${trajectory}/libexec/trajectory || { echo "FAIL: Trajectory ${trajectory.version} no longer reads $name" >&2; exit 1; }
+              done
+              touch "$out"
+            '';
+          # With the selector on, the shared configuration must not reach the
+          # package except through the launcher: anything else would run
+          # Trajectory outside the selection.
+          trajectory-selector-wiring = let
+            inherit (pkgs) lib;
+            system = self.darwinConfigurations.gha-aarch64-darwin.extendModules {
+              modules = [
+                {
+                  home-manager.users.runner.services.trajectory = {
+                    selector.enable = true;
+                    home = "/Users/runner/.local/share/trajectory";
+                    server.port = 19300;
+                    serve.enable = false;
+                    clients = lib.mkForce [];
+                    opencode.enable = false;
+                  };
+                }
+              ];
+            };
+            home = system.config.home-manager.users.runner;
+            package = home.services.trajectory.package;
+            mentions = value: lib.hasInfix (builtins.unsafeDiscardStringContext package.outPath) (builtins.unsafeDiscardStringContext (builtins.toJSON value));
+            launchers = lib.filter (p: (p.name or "") == "trajectory-launcher") home.home.packages;
+          in
+            assert builtins.length launchers == 1;
+            assert (builtins.head launchers).selector.port == 19300;
+            assert !(builtins.any (p: (p.pname or "") == "trajectory") home.home.packages);
+            assert !(builtins.any (p: (p.pname or "") == "trajectory") system.config.environment.systemPackages);
+            assert !(mentions home.programs.opencode.settings);
+            assert !((home.programs.opencode.settings.mcp or {}) ? trajectory);
+            assert !(builtins.any (lib.hasInfix "trajectory") (builtins.attrNames home.launchd.agents));
+            assert !(builtins.any (lib.hasInfix "trajectory") (builtins.attrNames home.home.activation));
+            assert !(mentions (map (f: f.source) (builtins.attrValues home.home.file)));
+              pkgs.runCommand "trajectory-selector-wiring" {} "touch $out";
           vscode-update-mode = pkgs.runCommand "vscode-update-mode-tests" {} ''
             ${./tests/vscode-update-mode.sh} ${pkgs.callPackage ./pkgs/vscode-update-mode {}}/bin/vscode-update-mode
             touch "$out"
