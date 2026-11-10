@@ -82,6 +82,13 @@ in {
     enable = true;
     taps = builtins.attrNames config.nix-homebrew.taps;
     onActivation = {
+      # Since Homebrew 5.1.14 (Homebrew/brew#22395) this also uninstalls Mac
+      # App Store apps not listed in `homebrew.masApps`; since 7.0.11
+      # (Homebrew/brew#24289) a failed uninstall makes `brew bundle` exit
+      # non-zero. Add App Store apps to keep there; remove unwanted ones
+      # (e.g. an App Store copy of an app Nix installs) by hand first, since
+      # a failed `brew bundle` aborts the rest of activation (postActivation,
+      # the current-system link).
       cleanup = "uninstall";
       # Upgrade managed brews/casks on activation so pinned version bumps
       # actually take effect. Note: brew still skips casks that declare
