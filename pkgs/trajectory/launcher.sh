@@ -38,17 +38,21 @@ if [ -n "$selector_file" ]; then
       done
     fi
 
-    # Never the other install's home, or inside it, symlinks resolved.
-    if [ -n "${HOME:-}" ]; then
-      nix_home=$(@realpath@ -m '@nixHome@')
-      installed_home=$(@realpath@ -m "$HOME/.trajectory")
-      case $nix_home/ in
-      "$installed_home"/*)
-        echo "trajectory: the Nix home @nixHome@ resolves to $nix_home, which is the installed home $installed_home or inside it; refusing the selector's nix mode" >&2
-        exit 2
-        ;;
-      esac
+    # Never the other install's home, or inside it, symlinks resolved and
+    # case ignored (APFS is case-insensitive by default). Without HOME that
+    # home is unknown, so nix mode refuses to run.
+    if [ -z "${HOME:-}" ]; then
+      echo "trajectory: HOME is not set, so the selector's nix mode can't check that @nixHome@ is outside the installed home; refusing it" >&2
+      exit 2
     fi
+    nix_home=$(@realpath@ -m '@nixHome@')
+    installed_home=$(@realpath@ -m "$HOME/.trajectory")
+    case ${nix_home,,}/ in
+    "${installed_home,,}"/*)
+      echo "trajectory: the Nix home @nixHome@ resolves to $nix_home, which is the installed home $installed_home or inside it; refusing the selector's nix mode" >&2
+      exit 2
+      ;;
+    esac
 
     # The caller's TRAJECTORY_* variables (TRAJECTORY_BINARY,
     # TRAJECTORY_CAPTURE_URL, ...) may point at the other install, so only

@@ -235,6 +235,9 @@
             assert builtins.all (home: fails "home" (lib.recursiveUpdate selector {inherit home;})) [
               "${homeDirectory}/.trajectory/"
               "${homeDirectory}/.trajectory/nix"
+              # The same directory on a case-insensitive file system.
+              "${homeDirectory}/.Trajectory"
+              "${homeDirectory}/.TRAJECTORY/nix"
               "${homeDirectory}/x/../.trajectory"
               "${homeDirectory}/x/.."
               "${homeDirectory}/./trajectory"

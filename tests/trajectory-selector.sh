@@ -219,7 +219,12 @@ FAKE_EXIT=4 run status
 # nix mode refuses to run when the Nix home resolves to the installed home
 # or inside it, through symlinks too: the two installs would share state.
 linked_home="$PWD/linked-home"
-for target in "$nix_home" "${nix_home%/*}"; do
+# On a case-insensitive file system (APFS by default) a different case is
+# the same directory, so the comparison ignores case.
+upper_home=$(printf '%s' "$nix_home" | tr '[:lower:]' '[:upper:]')
+mixed_parent="/$(printf '%s' "${nix_home:1:1}" | tr '[:lower:]' '[:upper:]')${nix_home:2}"
+mixed_parent=${mixed_parent%/*}
+for target in "$nix_home" "${nix_home%/*}" "$upper_home" "$mixed_parent"; do
   rm -rf "$linked_home"
   mkdir -p "$linked_home/.config/trajectory"
   echo nix >"$linked_home/.config/trajectory/active"
@@ -228,6 +233,15 @@ for target in "$nix_home" "${nix_home%/*}"; do
   refused version
   grep -qF "$nix_home" "$stderr" || fail "shared home: refusal does not name the Nix home: $(cat "$stderr")"
 done
+
+# Without HOME the installed home is unknown, so nix mode can't check it
+# and refuses to run.
+(
+  unset HOME
+  TRAJECTORY_ACTIVE=nix run version
+  refused version
+  grep -q HOME "$stderr" || fail "no HOME: refusal does not say why: $(cat "$stderr")"
+)
 
 # --- trajectory-select ------------------------------------------------------
 

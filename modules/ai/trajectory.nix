@@ -21,8 +21,9 @@
   homeRelative = relativeToHome cfg.home;
   selectorRelative = relativeToHome cfg.selector.file;
   # The installed install's home is ~/.trajectory; the Nix home must be
-  # neither it nor inside it.
-  insideInstalledHome = builtins.head (lib.splitString "/" homeRelative) == ".trajectory";
+  # neither it nor inside it. Compared in lower case: on a case-insensitive
+  # file system (APFS by default) ~/.Trajectory is the same directory.
+  insideInstalledHome = lib.toLower (builtins.head (lib.splitString "/" homeRelative)) == ".trajectory";
 
   # What goes on PATH and runs the agents: the package itself, or a launcher
   # that prefers an install managed outside Nix (see pkgs/trajectory/launcher.sh),
