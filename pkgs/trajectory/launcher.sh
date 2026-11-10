@@ -2,7 +2,43 @@
 # shellcheck shell=bash
 # Runs the Trajectory install that owns $TRAJECTORY_HOME (default
 # ~/.trajectory) when it is present, else the Nix-packaged binary.
+#
+# Built with a selector, $HOME/@selectorFile@ (or TRAJECTORY_ACTIVE) picks
+# the install first: `nix` runs the Nix-packaged binary in its own home and
+# port; anything else is the behaviour above.
 set -euo pipefail
+
+selector_file='@selectorFile@'
+if [ -n "$selector_file" ]; then
+  active=${TRAJECTORY_ACTIVE:-}
+  if [ -n "$active" ]; then
+    source="TRAJECTORY_ACTIVE"
+  else
+    source="$selector_file"
+    if [ -n "${HOME:-}" ] && [ -f "$HOME/$selector_file" ]; then
+      read -r active <"$HOME/$selector_file" || true
+    fi
+  fi
+  case $active in
+  nix)
+    # The selected install owns its home and port, whatever the caller set.
+    # It must never reconcile client integrations (Claude Code's installed
+    # plugins, OpenCode's config and plugin pointer): those are shared with
+    # the other install, and a serve or MCP started in a second home rewrites
+    # them to point at itself.
+    export TRAJECTORY_HOME='@nixHome@'
+    export TRAJECTORY_PORT='@nixPort@'
+    export TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE=1
+    export TRAJECTORY_DISABLE_STARTUP_RECONCILE=1
+    export TRAJECTORY_DISABLE_CLIENT_WATCHERS=1
+    exec @trajectory@ "$@"
+    ;;
+  installed | '') ;;
+  *)
+    echo "trajectory: $source selects '$active', which is neither nix nor installed; running the installed install" >&2
+    ;;
+  esac
+fi
 
 home=${TRAJECTORY_HOME:-}
 if [ -z "$home" ] && [ -n "${HOME:-}" ]; then

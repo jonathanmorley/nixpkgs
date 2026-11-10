@@ -108,6 +108,135 @@
               ${pkgs.bash}/bin/bash ${./tests/trajectory-launcher.sh} ${pkgs.callPackage ./pkgs/trajectory/launcher.nix {trajectory = fakeTrajectory;}}/bin/trajectory
               touch "$out"
             '';
+          # The launcher's selector and trajectory-select, with a fake Nix
+          # binary that also records the environment it was given. The ports
+          # are ones nothing listens on (the darwin sandbox shares the network).
+          trajectory-selector = let
+            fakeTrajectory = pkgs.writeShellScriptBin "trajectory" ''
+              {
+                printf '%s\n' nix "$@"
+                printf 'home=%s\n' "''${TRAJECTORY_HOME-unset}"
+                printf 'port=%s\n' "''${TRAJECTORY_PORT-unset}"
+                printf 'asset=%s\n' "''${TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE-unset}"
+                printf 'startup=%s\n' "''${TRAJECTORY_DISABLE_STARTUP_RECONCILE-unset}"
+                printf 'watchers=%s\n' "''${TRAJECTORY_DISABLE_CLIENT_WATCHERS-unset}"
+              } >"$RAN"
+              exit "''${FAKE_EXIT:-0}"
+            '';
+            launcher = pkgs.callPackage ./pkgs/trajectory/launcher.nix {
+              trajectory = fakeTrajectory;
+              selector = {
+                file = ".config/trajectory/active";
+                home = "/nix-home/trajectory";
+                port = 2;
+                installedPort = 3;
+              };
+            };
+          in
+            pkgs.runCommand "trajectory-selector-tests" {} ''
+              ${pkgs.bash}/bin/bash ${./tests/trajectory-selector.sh} ${launcher}/bin/trajectory ${launcher}/bin/trajectory-select /nix-home/trajectory 2 3
+              touch "$out"
+            '';
+          # services.trajectory's home, config files and selector, evaluated
+          # as Home Manager configurations. A valid selector setup must write
+          # its config into its own home and put the selector launcher on
+          # PATH; every combination that would share state or clients with
+          # the other install must fail an assertion.
+          trajectory-module = let
+            inherit (pkgs) lib;
+            homeDirectory = "/Users/test";
+            # Home Manager's module set evaluated without homeManagerConfiguration's
+            # assertion check, which throws, so the tests can read the failures.
+            hmLib = import "${home-manager}/modules/lib/stdlib-extended.nix" lib;
+            hm = settings:
+              (hmLib.evalModules {
+                class = "homeManager";
+                specialArgs.modulesPath = "${home-manager}/modules";
+                modules =
+                  import "${home-manager}/modules/modules.nix" {
+                    inherit pkgs;
+                    lib = hmLib;
+                    check = true;
+                  }
+                  ++ [
+                    ./modules/ai/trajectory.nix
+                    {
+                      home = {
+                        username = "test";
+                        inherit homeDirectory;
+                        stateVersion = "26.05";
+                      };
+                      services.trajectory = {package = pkgs.callPackage ./pkgs/trajectory {};} // settings;
+                    }
+                  ];
+              }).config;
+            failed = config: map (a: a.message) (lib.filter (a: !a.assertion) config.assertions);
+            fails = text: settings: builtins.any (lib.hasInfix text) (failed (hm settings));
+            selector = {
+              enable = true;
+              home = "${homeDirectory}/.local/share/trajectory";
+              server.port = 19300;
+              serve.enable = false;
+              opencode.enable = false;
+              selector.enable = true;
+              auth.mode = "managed_keychain";
+              export.ml_app = "test-app";
+              managedDefaults.required_destinations = [
+                {
+                  name = "test";
+                  type = "dd_llmobs";
+                  api_key_ref = "test-key-ref";
+                }
+              ];
+            };
+            withSelector = hm selector;
+            plain = hm {enable = true;};
+            # Home Manager adds files of its own; only Trajectory's count.
+            files = config: lib.filter (lib.hasInfix "trajectory") (builtins.attrNames config.home.file);
+            launcher = lib.findFirst (p: (p.name or "") == "trajectory-launcher") null withSelector.home.packages;
+          in
+            assert failed withSelector == [];
+            assert builtins.elem ".local/share/trajectory/config.yaml" (files withSelector);
+            assert builtins.elem ".local/share/trajectory/config.defaults.yaml" (files withSelector);
+            assert !(builtins.any (lib.hasPrefix ".trajectory/") (files withSelector));
+            assert withSelector.launchd.agents == {};
+            assert launcher != null;
+            assert launcher.selector
+            == {
+              file = ".config/trajectory/active";
+              home = "${homeDirectory}/.local/share/trajectory";
+              port = 19300;
+              installedPort = 19222;
+            };
+            # Without the new options nothing changes.
+            assert failed plain == [];
+            assert files plain == [".trajectory/config.yaml"];
+            assert !(builtins.any (p: (p.name or "") == "trajectory-launcher") plain.home.packages);
+            # Refused: anything that would share state or clients.
+            assert fails "serve.enable" (lib.recursiveUpdate selector {serve.enable = true;});
+            assert fails "view.enable" (lib.recursiveUpdate selector {view.enable = true;});
+            assert fails "clients" (lib.recursiveUpdate selector {clients = ["cc"];});
+            assert fails "opencode.enable" (lib.recursiveUpdate selector {opencode.enable = true;});
+            assert fails "home" (lib.recursiveUpdate selector {home = "${homeDirectory}/.trajectory";});
+            assert fails "port" (lib.recursiveUpdate selector {server.port = 19222;});
+            assert fails "home" (lib.recursiveUpdate selector {home = "/var/trajectory";});
+            assert fails "selector.file" (lib.recursiveUpdate selector {selector.file = "/etc/trajectory-active";});
+            assert fails "home" {
+              enable = true;
+              home = "${homeDirectory}/elsewhere";
+            };
+              pkgs.runCommand "trajectory-module-tests" {nativeBuildInputs = [pkgs.yq-go];} ''
+                check() { [ "$(yq "$2" "$1")" = "$3" ] || { echo "FAIL: $1 $2: $(yq "$2" "$1"), want $3" >&2; exit 1; }; }
+                config=${withSelector.home.file.".local/share/trajectory/config.yaml".source}
+                defaults=${withSelector.home.file.".local/share/trajectory/config.defaults.yaml".source}
+                check "$config" .auth.mode managed_keychain
+                check "$config" .server.port 19300
+                check "$config" .export.ml_app test-app
+                check "$defaults" '.required_destinations[0].type' dd_llmobs
+                check "$defaults" '.required_destinations[0].api_key_ref' test-key-ref
+                check ${plain.home.file.".trajectory/config.yaml".source} '.auth | length' 0
+                touch "$out"
+              '';
           vscode-update-mode = pkgs.runCommand "vscode-update-mode-tests" {} ''
             ${./tests/vscode-update-mode.sh} ${pkgs.callPackage ./pkgs/vscode-update-mode {}}/bin/vscode-update-mode
             touch "$out"

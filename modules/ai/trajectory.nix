@@ -5,18 +5,43 @@
   ...
 }: let
   cfg = config.services.trajectory;
+  homeDirectory = config.home.homeDirectory;
+  defaultHome = "${homeDirectory}/.trajectory";
+
+  # A path under the home directory, relative to it ("" if it is not under it).
+  relativeToHome = path:
+    if lib.hasPrefix "${homeDirectory}/" path
+    then lib.removePrefix "${homeDirectory}/" path
+    else "";
+  homeRelative = relativeToHome cfg.home;
+  selectorRelative = relativeToHome cfg.selector.file;
 
   # What goes on PATH and runs the agents: the package itself, or a launcher
-  # that prefers an install managed outside Nix (see pkgs/trajectory/launcher.sh).
+  # that prefers an install managed outside Nix (see pkgs/trajectory/launcher.sh),
+  # optionally choosing between the two at run time with the selector.
   binary =
-    if cfg.preferInstalled
+    if cfg.selector.enable
+    then
+      pkgs.callPackage ../../pkgs/trajectory/launcher.nix {
+        trajectory = cfg.package;
+        selector = {
+          file = selectorRelative;
+          inherit (cfg) home;
+          inherit (cfg.server) port;
+          installedPort = cfg.selector.installedPort;
+        };
+      }
+    else if cfg.preferInstalled
     then pkgs.callPackage ../../pkgs/trajectory/launcher.nix {trajectory = cfg.package;}
     else cfg.package;
 
+  configDefaultsYaml = pkgs.writers.writeYAML "trajectory-config.defaults.yaml" cfg.managedDefaults;
+
   configYaml = pkgs.writers.writeYAML "trajectory-config.yaml" {
-    # Credentials live in the OS keychain; the auth section stays empty but is
-    # kept so the file mirrors what `trajectory config` writes.
-    auth = {};
+    # Credentials live in the OS keychain. Without a mode the auth section
+    # stays empty but is kept so the file mirrors what `trajectory config`
+    # writes.
+    auth = lib.optionalAttrs (cfg.auth.mode != "") {inherit (cfg.auth) mode;};
     deployment = {
       ring = cfg.deployment.ring;
     };
@@ -79,6 +104,87 @@ in {
       type = lib.types.package;
       default = pkgs.trajectory;
       description = "The trajectory package to use";
+    };
+
+    home = lib.mkOption {
+      type = lib.types.str;
+      default = defaultHome;
+      defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/.trajectory"'';
+      description = ''
+        The Nix install's TRAJECTORY_HOME, under the home directory. The
+        config files are written here. Only the selector's `nix` mode runs
+        Trajectory in it, so without the selector it must stay the default.
+      '';
+    };
+
+    auth = {
+      mode = lib.mkOption {
+        type = lib.types.enum ["" "managed_keychain"];
+        default = "";
+        description = ''
+          How Trajectory finds credentials. `managed_keychain` reads only the
+          OS keychain accounts named by each destination's `api_key_ref`.
+        '';
+      };
+    };
+
+    managedDefaults = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
+      default = {};
+      example = lib.literalExpression ''
+        {
+          auth.mode = "managed_keychain";
+          required_destinations = [
+            {
+              name = "team";
+              type = "dd_llmobs";
+              site = "datadoghq.com";
+              ml_app = "coding-agents";
+              api_key_ref = "team-trajectory-api-key";
+            }
+          ];
+        }
+      '';
+      description = ''
+        Written to config.defaults.yaml in the home, Trajectory's managed
+        defaults: for managed keys (required destinations, auth.mode,
+        export.site and others) these win over config.yaml. Use it to give a
+        Nix install the same organization settings as another install,
+        without syncing them from org.config_source. Holds no secrets: name
+        keychain accounts with `api_key_ref`. Not written when empty.
+      '';
+    };
+
+    selector = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Choose between this Nix install and an install managed outside Nix
+          at run time, without a rebuild. The launcher on PATH reads
+          `selector.file` (or TRAJECTORY_ACTIVE): `nix` runs the package with
+          TRAJECTORY_HOME set to `home`, TRAJECTORY_PORT to `server.port`, and
+          client reconcile turned off, so it never rewrites the other
+          install's client integrations; anything else, or no file, runs the
+          other install as `preferInstalled` does. `trajectory-select` writes
+          and reports the choice. Serve starts on demand, so the launchd
+          agents, `clients` and the OpenCode wiring must be off: wire clients
+          to the launcher yourself.
+        '';
+      };
+
+      file = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.xdg.configHome}/trajectory/active";
+        defaultText = lib.literalExpression ''"''${config.xdg.configHome}/trajectory/active"'';
+        description = "The selector file, under the home directory. It holds `nix` or `installed`.";
+      };
+
+      installedPort = lib.mkOption {
+        type = lib.types.port;
+        default = 19222;
+        description = "The serve port of the install managed outside Nix, which `server.port` must differ from.";
+      };
     };
 
     deployment = {
@@ -332,10 +438,53 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    assertions =
+      [
+        {
+          assertion = homeRelative != "";
+          message = "services.trajectory.home (${cfg.home}) must be under the home directory (${homeDirectory}).";
+        }
+        {
+          assertion = cfg.selector.enable || cfg.home == defaultHome;
+          message = "services.trajectory.home is only used by the selector; set services.trajectory.selector.enable or leave home at ${defaultHome}.";
+        }
+      ]
+      ++ lib.optionals cfg.selector.enable [
+        {
+          assertion = cfg.home != defaultHome;
+          message = "services.trajectory.home must differ from ${defaultHome} with the selector, which belongs to the other install.";
+        }
+        {
+          assertion = cfg.server.port != cfg.selector.installedPort;
+          message = "services.trajectory.server.port must differ from selector.installedPort (${toString cfg.selector.installedPort}) with the selector.";
+        }
+        {
+          assertion = selectorRelative != "";
+          message = "services.trajectory.selector.file (${cfg.selector.file}) must be under the home directory (${homeDirectory}).";
+        }
+        {
+          assertion = !cfg.serve.enable;
+          message = "services.trajectory.serve.enable must be false with the selector: serve starts on demand for the selected install.";
+        }
+        {
+          assertion = !cfg.view.enable;
+          message = "services.trajectory.view.enable must be false with the selector.";
+        }
+        {
+          assertion = cfg.clients == [];
+          message = "services.trajectory.clients must be empty with the selector: `trajectory setup` would rewrite client integrations the other install shares.";
+        }
+        {
+          assertion = !cfg.opencode.enable;
+          message = "services.trajectory.opencode.enable must be false with the selector: its MCP entry runs the package outside the selector.";
+        }
+      ];
+
     home.packages = [binary];
 
     # Trajectory configuration
-    home.file.".trajectory/config.yaml" = lib.mkIf cfg.configFile.enable {source = configYaml;};
+    home.file."${homeRelative}/config.yaml" = lib.mkIf cfg.configFile.enable {source = configYaml;};
+    home.file."${homeRelative}/config.defaults.yaml" = lib.mkIf (cfg.configFile.enable && cfg.managedDefaults != {}) {source = configDefaultsYaml;};
 
     # Register the Trajectory plugin with configured clients on every
     # activation. OpenCode needs no registration: its plugin is loaded via

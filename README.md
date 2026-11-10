@@ -77,6 +77,16 @@ The Trajectory configuration test runs during `nix flake check` through the `che
 
 Beside an install managed outside Nix (the upstream installer or an MDM, which self-update under `~/.trajectory`), set `services.trajectory.configFile.enable = false` so Nix leaves `config.yaml` to it, `clients = []`, `serve.enable = false` and `opencode.enable = false` so nothing is registered or run twice, and `preferInstalled = true` so the `trajectory` on `PATH` runs that install's binary (`$TRAJECTORY_HOME/bin/trajectory`) when it exists and the Nix package otherwise. `checks.trajectory-launcher` tests that launcher (`pkgs/trajectory/launcher.sh`) against fake binaries.
 
+To run the Nix package beside that install and switch between the two at run time, without a rebuild, set `services.trajectory.selector.enable = true`, a `home` of its own under the home directory (for example `~/.local/share/trajectory`) and a `server.port` other than `selector.installedPort` (default 19222):
+
+- The launcher reads `selector.file` (default `~/.config/trajectory/active`), or `TRAJECTORY_ACTIVE` when set. `nix` runs the package with `TRAJECTORY_HOME` set to `home` and `TRAJECTORY_PORT` to `server.port`, whatever the caller set. `installed`, no file, or anything else (with a warning) runs the other install as `preferInstalled` does.
+- In `nix` mode it also sets `TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE=1`, `TRAJECTORY_DISABLE_STARTUP_RECONCILE=1` and `TRAJECTORY_DISABLE_CLIENT_WATCHERS=1`. Without them a `trajectory serve` or `trajectory mcp` started in a second home rewrites the client integrations the two installs share (Claude Code's installed plugin, OpenCode's config and plugin pointer) to point at itself. These variables are undocumented upstream; recheck them on every Trajectory bump.
+- `trajectory-select nix` or `trajectory-select installed` writes the file atomically; with no argument it prints the selected install, its binary, home and port, and whether its serve is listening. Running OpenCode, Claude Code and Trajectory MCP processes keep the install they started with, so restart them after switching.
+- Serve starts on demand for the selected install, so the module refuses the selector with `serve.enable`, `view.enable`, `clients` or `opencode.enable`; wire clients to the launcher yourself.
+- `configFile.enable` writes `config.yaml` into `home`, and `managedDefaults` writes `config.defaults.yaml` there, Trajectory's managed defaults (required destinations and the other managed keys), so the Nix install can publish like the other one without syncing `org.config_source`. `auth.mode = "managed_keychain"` reads credentials only from the OS keychain accounts each destination names in `api_key_ref`. Neither file holds secrets.
+
+`checks.trajectory-selector` tests the selector and `trajectory-select` (`pkgs/trajectory/select.sh`) against fake binaries, and `checks.trajectory-module` evaluates the module with and without the selector, including every combination it refuses.
+
 ## VS Code
 
 VS Code runs from the read-only Nix store, so its built-in updater can never install an update; it only keeps asking macOS to install a helper.
