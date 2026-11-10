@@ -68,14 +68,29 @@ cachix doctor
 
 ## AI Instrumentation
 
-The shared Darwin AI module installs Trajectory for Claude Code and Codex capture.
-After switching a machine, run `trajectory-setup-ai` from a regular shell to let Trajectory install or refresh the agent hooks for those clients.
+The shared Home Manager configuration enables Trajectory (`services.trajectory`, `modules/ai/trajectory.nix`) with `clients = ["cc"]`.
+Every activation runs `trajectory setup --clients cc --non-interactive` to install or refresh the Claude Code plugin, and a launchd agent runs `trajectory serve`; `modules/ai/home.nix` adds the OpenCode plugin, MCP server and skills (`services.trajectory.opencode.enable`).
 
 The shared Home Manager configuration installs the OpenCode v2 CLI (`opencode`, packaged in `pkgs/opencode` from the official `@opencode/cli` release tarballs since nixpkgs still tracks the v1 Go binary; bump the version there to update) and OpenChamber Desktop (`OpenChamber.app`, packaged in `pkgs/openchamber-desktop` from the official GitHub release zips at `https://github.com/openchamber/openchamber/releases`; bump the version there to update). OpenCode Desktop is intentionally not installed.
 
 The Trajectory configuration test runs during `nix flake check` through the `checks.trajectory` derivation.
 
 Beside an install managed outside Nix (the upstream installer or an MDM, which self-update under `~/.trajectory`), set `services.trajectory.configFile.enable = false` so Nix leaves `config.yaml` to it, `clients = []`, `serve.enable = false` and `opencode.enable = false` so nothing is registered or run twice, and `preferInstalled = true` so the `trajectory` on `PATH` runs that install's binary (`$TRAJECTORY_HOME/bin/trajectory`) when it exists and the Nix package otherwise. `checks.trajectory-launcher` tests that launcher (`pkgs/trajectory/launcher.sh`) against fake binaries.
+
+To run the Nix package beside that install and switch between the two at run time, without a rebuild, set `services.trajectory.selector.enable = true`, a `home` of its own under the home directory (for example `~/.local/share/trajectory`) and a `server.port` other than `selector.installedPort` (default 19222):
+
+- The launcher reads `selector.file` (default `~/.config/trajectory/active`), or `TRAJECTORY_ACTIVE` when set. `installed`, no file, or anything else (with a warning) runs the other install as `preferInstalled` does, with the caller's environment untouched.
+- `nix` runs the package with `TRAJECTORY_HOME` set to `home`, `TRAJECTORY_PORT` to `server.port` and `TRAJECTORY_CAPTURE_URL` to `http://127.0.0.1:<server.port>`, whatever the caller set. Every other `TRAJECTORY_*` variable from the caller (`TRAJECTORY_BINARY`, for one) is dropped, since it may point at the other install; only the off switches `TRAJECTORY_DISABLED` and `TRAJECTORY_DISABLE_*` pass through. It refuses to run if `home` resolves, through symlinks and ignoring case (APFS is case-insensitive by default), to `~/.trajectory` or inside it, and if `HOME` is unset, since it can't check that then.
+- In `nix` mode it also sets `TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE=1`, `TRAJECTORY_DISABLE_STARTUP_RECONCILE=1` and `TRAJECTORY_DISABLE_CLIENT_WATCHERS=1`. Without them a `trajectory serve` or `trajectory mcp` started in a second home rewrites the client integrations the two installs share (Claude Code's installed plugin, OpenCode's config and plugin pointer) to point at itself. These variables are undocumented upstream: `checks.trajectory-reconcile-variables` fails `nix flake check` when the packaged binary stops containing any of them, so a Trajectory bump rechecks them.
+- For the same reason `nix` mode refuses `trajectory setup`, `uninstrument` and `uninstall`, unless `TRAJECTORY_SELECTOR_ALLOW_SETUP=1`.
+- `trajectory-select nix` or `trajectory-select installed` writes the file atomically; with no argument it prints the selected install, its binary, home and port, and whether its serve is listening. Running OpenCode, Claude Code and Trajectory MCP processes keep the install they started with, so restart them after switching.
+- Serve starts on demand for the selected install, so the module refuses the selector with `serve.enable`, `view.enable`, `clients` or `opencode.enable`. Wire clients by pointing their configuration at the `trajectory` launcher on `PATH`, not through `trajectory setup`. Anything that runs `pkgs.trajectory` or `services.trajectory.package` directly bypasses the selector.
+- `home` and `selector.file` must be normal paths under the home directory (no empty, `.` or `..` segments, no trailing `/`), and `home` must be neither `~/.trajectory` nor inside it, in any case.
+- `configFile.enable` writes `config.yaml` into `home`, and `managedDefaults` writes `config.defaults.yaml` there, Trajectory's managed defaults (required destinations and the other managed keys), so the Nix install can publish like the other one without syncing `org.config_source`. `auth.mode = "managed_keychain"` reads credentials only from the OS keychain accounts each destination names in `api_key_ref`. Neither file holds secrets.
+
+Without `selector.enable` none of this applies and nothing changes.
+
+`checks.trajectory-selector` tests the selector and `trajectory-select` (`pkgs/trajectory/select.sh`) against fake binaries; `checks.trajectory-module` evaluates the module with and without the selector, including every combination it refuses; `checks.trajectory-selector-wiring` checks that, with the selector on, the shared configuration reaches the package only through the launcher.
 
 ## VS Code
 
