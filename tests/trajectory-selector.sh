@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Tests the selector in pkgs/trajectory/launcher.sh and trajectory-select
 # against a fake Nix binary and a fake install. Usage:
-#   trajectory-selector.sh LAUNCHER SELECT NIX_HOME NIX_PORT INSTALLED_PORT
+#   trajectory-selector.sh LAUNCHER SELECT NIX_HOME NIX_PORT INSTALLED_PORT [NIX_USER]
+# NIX_USER is the launcher's selector.user; empty or missing means none.
 # The launcher must be built with the selector file at
 # $HOME/.config/trajectory/active and the installed home at
 # $HOME/.trajectory (relative to HOME, as the check builds it). The fake Nix
@@ -13,13 +14,14 @@ select=$2
 nix_home=$3
 nix_port=$4
 installed_port=$5
+nix_user=${6:-}
 stderr="$PWD/stderr"
 stdout="$PWD/stdout"
 
 export HOME="$PWD/home"
 export RAN="$PWD/ran"
 mkdir -p "$HOME"
-unset TRAJECTORY_HOME TRAJECTORY_PORT TRAJECTORY_ACTIVE
+unset TRAJECTORY_HOME TRAJECTORY_PORT TRAJECTORY_ACTIVE TRAJECTORY_USER
 unset TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE TRAJECTORY_DISABLE_STARTUP_RECONCILE TRAJECTORY_DISABLE_CLIENT_WATCHERS
 selector="$HOME/.config/trajectory/active"
 
@@ -44,6 +46,7 @@ cat >"$HOME/.trajectory/bin/trajectory" <<EOF
   printf 'other=%s\n' "\${TRAJECTORY_OTHER-unset}"
   printf 'disabled=%s\n' "\${TRAJECTORY_DISABLED-unset}"
   printf 'keychain=%s\n' "\${TRAJECTORY_DISABLE_KEYCHAIN-unset}"
+  printf 'user=%s\n' "\${TRAJECTORY_USER-unset}"
 } >"\$RAN"
 EOF
 chmod +x "$HOME/.trajectory/bin/trajectory"
@@ -76,7 +79,8 @@ quiet() {
 
 # nix_ran <args...>: the Nix binary ran in the Nix home and port, with client
 # reconcile turned off, so it never rewrites another install's client setup,
-# capture pointed at its own port, and no other caller TRAJECTORY_* variable.
+# capture pointed at its own port, TRAJECTORY_USER set to selector.user only
+# when that is non-empty, and no other caller TRAJECTORY_* variable.
 nix_ran() {
   ran nix "$@"
   env_is home "$nix_home"
@@ -87,6 +91,7 @@ nix_ran() {
   env_is capture "http://127.0.0.1:$nix_port"
   env_is binary unset
   env_is other unset
+  env_is user "${nix_user:-unset}"
 }
 
 # refused <args...>: nothing ran, and the launcher said why, with status 2.
@@ -136,6 +141,12 @@ env_is disabled 1
 env_is keychain 1
 quiet
 
+# A caller's TRAJECTORY_USER is dropped like the rest: the Nix install's
+# user is selector.user, or Trajectory's own default without it.
+TRAJECTORY_USER=caller run mcp
+nix_ran mcp
+quiet
+
 # setup and uninstrument (or uninstall) rewrite the client integrations the
 # installs share, so nix mode refuses them, after flags too, unless
 # TRAJECTORY_SELECTOR_ALLOW_SETUP=1.
@@ -164,13 +175,16 @@ echo installed >"$selector"
 run doctor
 installed_ran doctor
 env_is home unset
+# selector.user is the Nix install's only.
+env_is user unset
 quiet
 
 # In installed mode the caller's environment passes through unchanged, and
 # setup is the installed install's business.
-TRAJECTORY_HOME="$HOME/.trajectory" TRAJECTORY_PORT=9 TRAJECTORY_CAPTURE_URL=http://127.0.0.1:9 TRAJECTORY_BINARY=/b run doctor
+TRAJECTORY_HOME="$HOME/.trajectory" TRAJECTORY_PORT=9 TRAJECTORY_CAPTURE_URL=http://127.0.0.1:9 TRAJECTORY_BINARY=/b TRAJECTORY_USER=caller run doctor
 installed_ran doctor
 env_is home "$HOME/.trajectory"
+env_is user caller
 env_is port 9
 env_is capture http://127.0.0.1:9
 env_is binary /b

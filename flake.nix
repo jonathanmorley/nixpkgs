@@ -111,6 +111,7 @@
           # The launcher's selector and trajectory-select, with a fake Nix
           # binary that also records the environment it was given. The ports
           # are ones nothing listens on (the darwin sandbox shares the network).
+          # It runs without selector.user and with one.
           trajectory-selector = let
             fakeTrajectory = pkgs.writeShellScriptBin "trajectory" ''
               {
@@ -125,21 +126,32 @@
                 printf 'other=%s\n' "''${TRAJECTORY_OTHER-unset}"
                 printf 'disabled=%s\n' "''${TRAJECTORY_DISABLED-unset}"
                 printf 'keychain=%s\n' "''${TRAJECTORY_DISABLE_KEYCHAIN-unset}"
+                printf 'user=%s\n' "''${TRAJECTORY_USER-unset}"
               } >"$RAN"
               exit "''${FAKE_EXIT:-0}"
             '';
-            launcher = pkgs.callPackage ./pkgs/trajectory/launcher.nix {
-              trajectory = fakeTrajectory;
-              selector = {
-                file = ".config/trajectory/active";
-                home = "/nix-home/trajectory";
-                port = 2;
-                installedPort = 3;
+            launcher = extra:
+              pkgs.callPackage ./pkgs/trajectory/launcher.nix {
+                trajectory = fakeTrajectory;
+                selector =
+                  {
+                    file = ".config/trajectory/active";
+                    home = "/nix-home/trajectory";
+                    port = 2;
+                    installedPort = 3;
+                  }
+                  // extra;
               };
-            };
+            # Survives the launcher only if it is quoted there. `\\n` in Nix is
+            # a backslash and an n, not a newline.
+            user = "j'morley \"x\" $(exit 9) `exit 9` \\n";
+            withoutUser = launcher {};
+            withUser = launcher {inherit user;};
           in
             pkgs.runCommand "trajectory-selector-tests" {} ''
-              ${pkgs.bash}/bin/bash ${./tests/trajectory-selector.sh} ${launcher}/bin/trajectory ${launcher}/bin/trajectory-select /nix-home/trajectory 2 3
+              mkdir without with
+              (cd without && ${pkgs.bash}/bin/bash ${./tests/trajectory-selector.sh} ${withoutUser}/bin/trajectory ${withoutUser}/bin/trajectory-select /nix-home/trajectory 2 3)
+              (cd with && ${pkgs.bash}/bin/bash ${./tests/trajectory-selector.sh} ${withUser}/bin/trajectory ${withUser}/bin/trajectory-select /nix-home/trajectory 2 3 ${pkgs.lib.escapeShellArg user})
               touch "$out"
             '';
           # services.trajectory's home, config files and selector, evaluated
@@ -198,7 +210,8 @@
             plain = hm {enable = true;};
             # Home Manager adds files of its own; only Trajectory's count.
             files = config: lib.filter (lib.hasInfix "trajectory") (builtins.attrNames config.home.file);
-            launcher = lib.findFirst (p: (p.name or "") == "trajectory-launcher") null withSelector.home.packages;
+            launcherOf = config: lib.findFirst (p: (p.name or "") == "trajectory-launcher") null config.home.packages;
+            launcher = launcherOf withSelector;
           in
             assert failed withSelector == [];
             assert builtins.elem ".local/share/trajectory/config.yaml" (files withSelector);
@@ -212,6 +225,14 @@
               home = "${homeDirectory}/.local/share/trajectory";
               port = 19300;
               installedPort = 19222;
+              user = "";
+            };
+            # identity.user reaches the launcher, and only the selector uses it.
+            assert failed (hm (lib.recursiveUpdate selector {identity.user = "jmorley";})) == [];
+            assert (launcherOf (hm (lib.recursiveUpdate selector {identity.user = "jmorley";}))).selector.user == "jmorley";
+            assert fails "identity.user" {
+              enable = true;
+              identity.user = "jmorley";
             };
             # Without the new options nothing changes.
             assert failed plain == [];

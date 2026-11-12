@@ -73,6 +73,13 @@ if [ -n "$selector_file" ]; then
     export TRAJECTORY_DISABLE_RUNTIME_ASSET_RECONCILE=1
     export TRAJECTORY_DISABLE_STARTUP_RECONCILE=1
     export TRAJECTORY_DISABLE_CLIENT_WATCHERS=1
+    # The user name Trajectory tags captures with (trajectory.user); it has
+    # no config key, and the loop above dropped the caller's. Without one,
+    # Trajectory uses the Unix user name.
+    nix_user=@nixUser@
+    if [ -n "$nix_user" ]; then
+      export TRAJECTORY_USER="$nix_user"
+    fi
     exec @trajectory@ "$@"
     ;;
   installed | '') ;;

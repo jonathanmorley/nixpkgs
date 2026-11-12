@@ -20,6 +20,8 @@
   #   home: the Nix install's TRAJECTORY_HOME (absolute)
   #   port: the Nix install's serve port
   #   installedPort: the other install's serve port, for trajectory-select
+  #   user (optional): TRAJECTORY_USER for the Nix install; "" leaves
+  #     Trajectory's default (the Unix user name)
   selector ? null,
 }: let
   withSelector = selector != null;
@@ -49,7 +51,16 @@ in
       meta.mainProgram = "trajectory";
       passthru = {inherit trajectory selector;};
     } (''
-        install -Dm755 ${replaceVars ./launcher.sh vars} "$out/bin/trajectory"
+        install -Dm755 ${replaceVars ./launcher.sh (vars
+          // {
+            # A complete shell word, quoted whatever it holds.
+            # replaceVars substitutes in turn: another @var@ in it either gets that path pasted inside the quotes (harmless) or fails the build.
+            nixUser = lib.escapeShellArg (
+              if withSelector
+              then selector.user or ""
+              else ""
+            );
+          })} "$out/bin/trajectory"
       ''
       + lib.optionalString withSelector ''
         install -Dm755 ${replaceVars ./select.sh (vars

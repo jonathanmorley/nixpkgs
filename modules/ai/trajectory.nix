@@ -38,6 +38,7 @@
           inherit (cfg) home;
           inherit (cfg.server) port;
           installedPort = cfg.selector.installedPort;
+          inherit (cfg.identity) user;
         };
       }
     else if cfg.preferInstalled
@@ -298,6 +299,18 @@ in {
         default = "";
         description = "User email for trajectory identity";
       };
+
+      user = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        example = "jdoe";
+        description = ''
+          The user name Trajectory tags captures with (`trajectory.user`).
+          Trajectory reads it only from TRAJECTORY_USER, so the selector's
+          `nix` mode sets that variable; "" leaves Trajectory's default, the
+          Unix user name. Only the selector uses it.
+        '';
+      };
     };
 
     features = {
@@ -456,6 +469,10 @@ in {
         {
           assertion = cfg.selector.enable || cfg.home == defaultHome;
           message = "services.trajectory.home is only used by the selector; set services.trajectory.selector.enable or leave home at ${defaultHome}.";
+        }
+        {
+          assertion = cfg.selector.enable || cfg.identity.user == "";
+          message = "services.trajectory.identity.user is only used by the selector's nix mode; set services.trajectory.selector.enable or leave it empty.";
         }
       ]
       ++ lib.optionals cfg.selector.enable [
