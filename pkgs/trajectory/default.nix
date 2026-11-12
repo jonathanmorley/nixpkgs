@@ -13,15 +13,15 @@
     aarch64-linux = "trajectory-linux-arm64";
   };
   hashes = {
-    aarch64-darwin = "sha256-8O1E5PHHCGgKLxva0AXXKCGGqMnNfh0c5HvzuZ9Gl0w=";
-    x86_64-darwin = "sha256-ps1jo23gtbL6oM1bTvFwkI7Sdqx2RUAhZBD1Z25dubI=";
-    x86_64-linux = "sha256-V33Cr/f+TPblnokbwdBJp/9oqaHHt/VIXq5C/Q/cbwk=";
-    aarch64-linux = "sha256-31Jd1MnzAky9k4nIrQqTDXVO8pGHko/kB/qQRKlJ4Kc=";
+    aarch64-darwin = "sha256-B1eBvlqusGimVBmIjh9Q54xPaQ0wfLoSZJBFtzYN3WE=";
+    x86_64-darwin = "sha256-grVtY+Gs/yfIVaiE771nUdHvEWQitGW4S0EWXSwXtSg=";
+    x86_64-linux = "sha256-t2B9UfasW+465W4qKNHqhWPaH+g8LsUHMtVon2U6RnE=";
+    aarch64-linux = "sha256-/VJpPWV6sQoFLJT4RD3sI3itYalkwxlvtAFVmzwC9uk=";
   };
 in
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "trajectory";
-    version = "0.6.2";
+    version = "0.6.3";
 
     asset = assets.${system} or (throw "Unsupported Trajectory platform: ${system}");
 
@@ -49,7 +49,7 @@ in
       owner = "datadog-labs";
       repo = "trajectory";
       rev = "v${version}";
-      hash = "sha256-uLViRFL/g+Yi03mh0GOxvkZo1af+FYgc5lgzbJS8vbk=";
+      hash = "sha256-+dOvhJ0pzdKtkL+PS420FpkGNE6ytHZx6Tbcc2xX+0k=";
     };
 
     dontUnpack = true;
