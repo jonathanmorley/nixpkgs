@@ -142,7 +142,8 @@
                   }
                   // extra;
               };
-            # Survives the launcher only if it is quoted there.
+            # Survives the launcher only if it is quoted there. `\\n` in Nix is
+            # a backslash and an n, not a newline.
             user = "j'morley \"x\" $(exit 9) `exit 9` \\n";
             withoutUser = launcher {};
             withUser = launcher {inherit user;};
@@ -227,6 +228,7 @@
               user = "";
             };
             # identity.user reaches the launcher, and only the selector uses it.
+            assert failed (hm (lib.recursiveUpdate selector {identity.user = "jmorley";})) == [];
             assert (launcherOf (hm (lib.recursiveUpdate selector {identity.user = "jmorley";}))).selector.user == "jmorley";
             assert fails "identity.user" {
               enable = true;

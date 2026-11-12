@@ -54,6 +54,7 @@ in
         install -Dm755 ${replaceVars ./launcher.sh (vars
           // {
             # A complete shell word, quoted whatever it holds.
+            # replaceVars substitutes in turn: another @var@ in it either gets that path pasted inside the quotes (harmless) or fails the build.
             nixUser = lib.escapeShellArg (
               if withSelector
               then selector.user or ""
