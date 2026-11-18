@@ -8,14 +8,14 @@
   targets = {
     aarch64-darwin = {
       arch = "arm64";
-      hash = "sha256-te/slE3wFz91HrguKVZ9c7Kf12spS5DpaFfLw8nLnC0=";
+      hash = "sha256-yphI2l4qxm7Zm8uNdjmV4++jGESFAQt/qICohHpEH/I=";
     };
   };
   target = targets.${system} or (throw "Unsupported OpenChamber Desktop platform: ${system}");
 in
   stdenvNoCC.mkDerivation (_finalAttrs: rec {
     pname = "openchamber-desktop";
-    version = "2.7.0";
+    version = "2.7.2";
 
     # TODO: bump the version by updating `version` and the `hash`es.
     # Regenerate the hashes with:
